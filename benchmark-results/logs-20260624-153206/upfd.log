@@ -1,0 +1,11 @@
+Open5GS daemon v2.7.2
+
+[32m06/24 15:32:07.917[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/upf.yaml' (../lib/app/ogs-init.c:144)
+[32m06/24 15:32:07.917[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+Failed to bind to port 0: Address already in use
+[32m06/24 15:32:07.941[0m: [[33mmetrics[0m] [1;33mERROR[0m: Cannot start Prometheus HTTP server (../lib/metrics/prometheus/context.c:283)
+[32m06/24 15:32:07.941[0m: [[33mpfcp[0m] [1;32mINFO[0m: pfcp_server() [127.0.0.7]:8805 (../lib/pfcp/path.c:30)
+[32m06/24 15:32:07.941[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_server() [127.0.0.7]:2152 (../lib/gtp/path.c:30)
+[32m06/24 15:32:07.943[0m: [[33mupf[0m] [1;33mERROR[0m: upf_eap_relay_start: bind() failed (98) (../src/upf/eap-relay.c:229)
+[32m06/24 15:32:07.943[0m: [[33mapp[0m] [1;33mERROR[0m: Failed to initialize UPF (../src/upf/app.c:28)
+[32m06/24 15:32:07.943[0m: [[33mapp[0m] [1;31mFATAL[0m: Open5GS initialization failed. Aborted (../src/main.c:228)

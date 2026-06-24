@@ -1,0 +1,61 @@
+method,profile,role,operation,primitive,op_count,compute_ns
+0,SIG/SIG Ed25519,initiator,Keygen,X25519/ML-KEM-768,1,26256.3
+0,SIG/SIG Ed25519,initiator,ScalarMult,X25519,1,26580.8
+0,SIG/SIG Ed25519,initiator,Encaps,ML-KEM-768,0,0.0
+0,SIG/SIG Ed25519,initiator,Decaps,ML-KEM-768,0,0.0
+0,SIG/SIG Ed25519,initiator,Signature,Ed25519,1,11303.6
+0,SIG/SIG Ed25519,initiator,Verify,Ed25519,1,32790.2
+0,SIG/SIG Ed25519,responder,Keygen,X25519/ML-KEM-768,1,26256.3
+0,SIG/SIG Ed25519,responder,ScalarMult,X25519,1,26580.8
+0,SIG/SIG Ed25519,responder,Encaps,ML-KEM-768,0,0.0
+0,SIG/SIG Ed25519,responder,Decaps,ML-KEM-768,0,0.0
+0,SIG/SIG Ed25519,responder,Signature,Ed25519,1,11303.6
+0,SIG/SIG Ed25519,responder,Verify,Ed25519,1,32790.2
+1,SIG-Ed25519 / MAC-X25519,initiator,Keygen,X25519/ML-KEM-768,1,26256.3
+1,SIG-Ed25519 / MAC-X25519,initiator,ScalarMult,X25519,1,26580.8
+1,SIG-Ed25519 / MAC-X25519,initiator,Encaps,ML-KEM-768,0,0.0
+1,SIG-Ed25519 / MAC-X25519,initiator,Decaps,ML-KEM-768,0,0.0
+1,SIG-Ed25519 / MAC-X25519,initiator,Signature,Ed25519,1,11303.6
+1,SIG-Ed25519 / MAC-X25519,initiator,Verify,Ed25519,0,0.0
+1,SIG-Ed25519 / MAC-X25519,responder,Keygen,X25519/ML-KEM-768,1,26256.3
+1,SIG-Ed25519 / MAC-X25519,responder,ScalarMult,X25519,2,53161.6
+1,SIG-Ed25519 / MAC-X25519,responder,Encaps,ML-KEM-768,0,0.0
+1,SIG-Ed25519 / MAC-X25519,responder,Decaps,ML-KEM-768,0,0.0
+1,SIG-Ed25519 / MAC-X25519,responder,Signature,Ed25519,0,0.0
+1,SIG-Ed25519 / MAC-X25519,responder,Verify,Ed25519,1,32790.2
+2,MAC-X25519 / SIG-Ed25519,initiator,Keygen,X25519/ML-KEM-768,1,26256.3
+2,MAC-X25519 / SIG-Ed25519,initiator,ScalarMult,X25519,2,53161.6
+2,MAC-X25519 / SIG-Ed25519,initiator,Encaps,ML-KEM-768,0,0.0
+2,MAC-X25519 / SIG-Ed25519,initiator,Decaps,ML-KEM-768,0,0.0
+2,MAC-X25519 / SIG-Ed25519,initiator,Signature,Ed25519,0,0.0
+2,MAC-X25519 / SIG-Ed25519,initiator,Verify,Ed25519,1,32790.2
+2,MAC-X25519 / SIG-Ed25519,responder,Keygen,X25519/ML-KEM-768,1,26256.3
+2,MAC-X25519 / SIG-Ed25519,responder,ScalarMult,X25519,1,26580.8
+2,MAC-X25519 / SIG-Ed25519,responder,Encaps,ML-KEM-768,0,0.0
+2,MAC-X25519 / SIG-Ed25519,responder,Decaps,ML-KEM-768,0,0.0
+2,MAC-X25519 / SIG-Ed25519,responder,Signature,Ed25519,1,11303.6
+2,MAC-X25519 / SIG-Ed25519,responder,Verify,Ed25519,0,0.0
+3,MAC/MAC static-DH X25519,initiator,Keygen,X25519/ML-KEM-768,1,26256.3
+3,MAC/MAC static-DH X25519,initiator,ScalarMult,X25519,2,53161.6
+3,MAC/MAC static-DH X25519,initiator,Encaps,ML-KEM-768,0,0.0
+3,MAC/MAC static-DH X25519,initiator,Decaps,ML-KEM-768,0,0.0
+3,MAC/MAC static-DH X25519,initiator,Signature,Ed25519,0,0.0
+3,MAC/MAC static-DH X25519,initiator,Verify,Ed25519,0,0.0
+3,MAC/MAC static-DH X25519,responder,Keygen,X25519/ML-KEM-768,1,26256.3
+3,MAC/MAC static-DH X25519,responder,ScalarMult,X25519,2,53161.6
+3,MAC/MAC static-DH X25519,responder,Encaps,ML-KEM-768,0,0.0
+3,MAC/MAC static-DH X25519,responder,Decaps,ML-KEM-768,0,0.0
+3,MAC/MAC static-DH X25519,responder,Signature,Ed25519,0,0.0
+3,MAC/MAC static-DH X25519,responder,Verify,Ed25519,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,Keygen,X25519/ML-KEM-768,2,60002.1
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,ScalarMult,X25519,1,26580.8
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,Encaps,ML-KEM-768,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,Decaps,ML-KEM-768,2,85590.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,Signature,Ed25519,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),initiator,Verify,Ed25519,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,Keygen,X25519/ML-KEM-768,1,26256.3
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,ScalarMult,X25519,2,53161.6
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,Encaps,ML-KEM-768,2,68576.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,Decaps,ML-KEM-768,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,Signature,Ed25519,0,0.0
+4,MAC/MAC XWING (X25519+ML-KEM-768),responder,Verify,Ed25519,0,0.0
