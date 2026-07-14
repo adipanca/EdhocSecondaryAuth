@@ -200,3 +200,4 @@ Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atrib
 | 4 | message_2 | 1135 | 5 | 2 | 1 | no |
 | 4 | message_3 | 20 | 1 | 1 | 1 | no |
 Pesan yang memerlukan fragmentasi terdapat pada method 4 (profil PQC XWING), karena ML-KEM-768 menambah ~1–1.2 KB per pesan.
+
