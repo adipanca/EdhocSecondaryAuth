@@ -34,6 +34,7 @@ typedef struct smf_n1_n2_message_transfer_param_s {
 #define SMF_NETWORK_REQUESTED_PDU_SESSION_RELEASE       4
 #define SMF_NETWORK_TRIGGERED_SERVICE_REQUEST           5
 #define SMF_ERROR_INDICATON_RECEIVED_FROM_5G_AN         6
+#define SMF_NETWORK_REQUESTED_SECONDARY_AUTHENTICATION  7
     int state;
 
     ogs_pkbuf_t *n1smbuf;

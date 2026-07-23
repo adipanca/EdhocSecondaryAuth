@@ -279,62 +279,54 @@ sequenceDiagram
 
 
 
-## 5) Hybrid Our Aproach (Static XWING - Static XWING)
+## 5. EAP-EDHOC Hybrid PQC (XWING) — SIGMA  (Initiator: SIGMA, Responder: SIGMA)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant I as Initiator I<br/>( (a, A ≡ g^a), (R, B) )
-    participant R as Responder R<br/>( (b, B ≡ g^b), (I, A) )
+    participant UE as UE<br/>EAP Client
+    participant SMF as SMF<br/>(Authenticator)
+    participant UPF as UPF
+    participant AAA as DN-AAA<br/>(EAP Server)
 
-    Note over I: (sk_KEM, PK_KEM) ← PQ-KEM.KeyGen( pp_KEM )
-    Note over I: Generate ephemeral ECDH key (x, X ≡ g^x)
+    Note over UE: Longterm XWING (pkA, skA)<br/>Longterm ML-DSA-44 (VK_I, sk_SIG,I)
+    Note over AAA: Longterm XWING (pkB, skB)<br/>Longterm ML-DSA-44 (VK_R, sk_SIG,R)
 
-    I->>R: M1 = ( METHOD, SUITES_I, X, PK_KEM, C_1, EAD_1 )
+    Note over UE: Generate (skX,pkX)=XWING.KeyGen()<br/>Compute (ssB,ctB)=XWing.Encaps(pkB)<br/>Compute TH1=H(pkX,ctB)<br/>Compute PRK1e=HKDF-Extract(TH1,ssB)<br/>Compute K1=HKDF-Expand(PRK1e,TH1)<br/>Set Message1=(ctB,pkX,AEAD.enc(K1,Plaintext1))
 
-    Note over R: (k_KEM, C_KEM) ← PQ-KEM.Encaps( PK_KEM )
-    Note over R: Generate ephemeral ECDH key (y, Y ≡ g^y)
-    Note over R: TH_2 = H( Y, M1, C_KEM )
-    Note over R: PRK_2e = Extract( X^y, k_KEM, TH_2 )  — hybrid ECDH + PQ-KEM
-    Note over R: EK_2 = Expand( PRK_2e, TH_2 )
-    Note over R: PRK_3e2m = Extract( X^b, PRK_2e )  — static(R)-ephemeral(I)
-    Note over R: MK_2 = Expand( PRK_3e2m, TH_2 )
-    Note over R: MAC_2 = KDF( MK_2, C_R, R, TH_2, B, EAD_2, len_2 )
-    Note over R: msg_2 = ( C_R, R, MAC_2, EAD_2 )
+    UE->>SMF: 1. EAP Responses/Identity (Message1)
+    SMF->>AAA: 2. Access Challenge EAP
 
-    R->>I: M2 = ( Y, C_KEM, Enc_EK_2( msg_2 ) )
+    Note over AAA: Decaps ssB, rebuild TH1/K1, decrypt Plaintext1<br/>Compute (sse,cte)=XWING.Encaps(pkX)<br/>Compute TH2=H(H(Message1),cte,CR)<br/>Compute PRK2e, K2<br/>Compute (ssA,ctA)=XWING.Encaps(pkA)<br/>Compute PRK3e2m=HKDF-Extract(PRK2e,ssB)<br/>Compute MAC2=HKDF-Expand(PRK3e2m,TH2,ID_CREDR,EAD2,Len2)
+    rect rgb(15,110,86)
+    Note over AAA: Compute sigma_R = ML-DSA.Sign(sk_SIG,R, TH2‖ID_CREDR‖MAC2)<br/>Set Plaintext2=(ctA,CR,ID_CREDR,VK_R,EAD2,MAC2,sigma_R)
+    end
+    Note over AAA: Set Message2=(cte,AEAD.enc(K2,Plaintext2))<br/>Compute TH3=H(TH2,Plaintext2)
 
-    Note over I: k_KEM ← PQ-KEM.Decaps( sk_KEM, C_KEM )
-    Note over I: TH_2 = H( Y, M1, C_KEM )
-    Note over I: PRK_2e = Extract( Y^x, k_KEM, TH_2 )  — hybrid ECDH + PQ-KEM
-    Note over I: EK_2 = Expand( PRK_2e, TH_2 )
-    Note over I: msg_2 = Dec_EK_2( Enc_EK_2( msg_2 ) )
-    Note over I: ( C_R, R, MAC_2, EAD_2 ) ← msg_2
-    Note over I: PRK_3e2m = Extract( B^x, PRK_2e )  — ephemeral(I)-static(R)
-    Note over I: MK_2 = Expand( PRK_3e2m, TH_2 )
-    Note over I: Verify MAC_2
-    Note over I: TH_3 = H( TH_2, msg_2, B )
-    Note over I: (EK_3, IV_3) = Expand( PRK_3e2m, TH_3 )
-    Note over I: PRK_4e3m = Extract( Y^a, PRK_3e2m )  — static(I)-ephemeral(R)
-    Note over I: MK_3 = Expand( PRK_4e3m, TH_3 )
-    Note over I: MAC_3 = KDF( MK_3, I, TH_3, A, EAD_3, len_3 )
-    Note over I: msg_3 = ( I, MAC_3, EAD_3 )
-    Note over I: TH_4 = H( TH_3, msg_3, A )
-    Note over I: PRK_out = Expand( PRK_4e3m, TH_4 )
-    Note over I: AK = Expand( Expand( PRK_out ) )
+    AAA->>SMF: 3. Access Challenge EAP Response (Message2)
+    SMF->>UE: 4. EAP Request (Message2)
 
-    I->>R: M3 = Enc_EK_3( msg_3 )
+    Note over UE: Decaps sse, rebuild TH2/PRK2e/K2, decrypt Plaintext2<br/>Compute PRK3e2m=HKDF-Extract(PRK2e,ssB)
+    rect rgb(15,110,86)
+    Note over UE: Verify MAC2 == HKDF-Expand(PRK3e2m,TH2,ID_CREDR,EAD2,Len2)<br/>Verify ML-DSA.Verify(VK_R, TH2‖ID_CREDR‖MAC2, sigma_R)==valid<br/>If either check fails: ABORT
+    end
+    Note over UE: Compute TH3, ssA=Decaps(ctA,skA), PRK4e3m<br/>Generate (NskA,NpkA)=XWING.KeyGen()<br/>EAD3=NpkA<br/>Compute MAC3=HKDF-Expand(PRK4e3m,TH3,ID_CREDI,EAD3,Len3)
+    rect rgb(15,110,86)
+    Note over UE: Compute sigma_I = ML-DSA.Sign(sk_SIG,I, TH3‖ID_CREDI‖MAC3)<br/>Set Plaintext3=(EAD3,MAC3,VK_I,sigma_I)
+    end
+    Note over UE: Set Message3=AEAD.enc(K3,Plaintext3)<br/>Compute TH4=H(TH3,Plaintext3)
 
-    Note over R: TH_3 = H( TH_2, msg_2, B )
-    Note over R: (EK_3, IV_3) = Expand( PRK_3e2m, TH_3 )
-    Note over R: msg_3 = Dec_EK_3( Enc_EK_3( msg_3 ) )
-    Note over R: ( I, MAC_3, EAD_3 ) ← msg_3
-    Note over R: PRK_4e3m = Extract( A^y, PRK_3e2m )  — ephemeral(R)-static(I)
-    Note over R: MK_3 = Expand( PRK_4e3m, TH_3 )
-    Note over R: Verify MAC_3
-    Note over R: TH_4 = H( TH_3, msg_3, A )
-    Note over R: PRK_out = Expand( PRK_4e3m, TH_4 )
-    Note over R: AK = Expand( Expand( PRK_out ) )
+    UE->>SMF: 5. EAP Response (Message3)
+    SMF->>AAA: 6. EAP Response (Message3)
 
-    Note over I,R: Session complete — Application Key (AK) established
+    Note over AAA: Compute K3, decrypt Plaintext3, TH4<br/>Compute PRK4e3m=HKDF-Extract(PRK3e2m,ssA)
+    rect rgb(15,110,86)
+    Note over AAA: Verify MAC3 == HKDF-Expand(PRK4e3m,TH3,ID_CREDI,EAD3,Len3)<br/>Verify ML-DSA.Verify(VK_I, TH3‖ID_CREDI‖MAC3, sigma_I)==valid<br/>If either check fails: ABORT
+    end
+    Note over AAA: Compute PRKout, AK<br/>Generate (NskB,NpkB)=XWING.KeyGen()<br/>EAD4=NpkB<br/>Update pkA=EAD3<br/>(pkB,skB)=(NpkB,NskB)<br/>Set Message4=AEAD.enc(K4,EAD4)<br/>Compute MSK,EMSK=EDHOC_Exporter(PRKout,...)
+
+    AAA->>SMF: 7. EAP Success/Failed (Message4)
+    SMF->>UE: 8. EAP Success/Failed (Message4)
+
+    Note over UE: Decrypt Message4, update pkB=EAD4<br/>Update (pkA,skA)=(NpkA,NskA)<br/>Compute PRKout, AK<br/>Compute MSK,EMSK=EDHOC_Exporter(PRKout,...)
 ```

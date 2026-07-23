@@ -19,6 +19,7 @@
 
 #include "binding.h"
 #include "sbi-path.h"
+#include "timer.h"
 #include "gn-handler.h"
 #include "gx-handler.h"
 #include "gy-handler.h"
@@ -35,6 +36,231 @@
 #include "pfcp-path.h"
 #include "ngap-path.h"
 #include "fd-path.h"
+#include "radius-client.h"
+
+#define SMF_SEC_AUTH_EAP_MAX 8192
+
+/*
+ * Deliver the EAP-EDHOC secondary-authentication N1 NAS payload (PDU Session
+ * Authentication Command / Result) to an already-established PDU session.
+ *
+ * We must NOT use a PDU Session Modification (N2 PDU_RES_MOD_REQ) here: that
+ * causes the AMF to emit an NGAP PDUSessionResourceModifyRequest
+ * (procedureCode 17) which UERANSIM's gNB does not implement and silently
+ * drops, so the N1 never reaches the UE.
+ *
+ * Instead we send an N1-only N1N2MessageTransfer tagged with the dedicated
+ * SMF_NETWORK_REQUESTED_SECONDARY_AUTHENTICATION state. The AMF recognises the
+ * PDU Session Authentication Command/Result NAS message type and forwards the
+ * N1 to the UE over a plain DL NAS Transport (NGAP procedure 4), which
+ * UERANSIM handles, without tearing down the session.
+ */
+static void smf_send_secondary_auth_command(
+        smf_sess_t *sess, const uint8_t *eap, size_t eap_len)
+{
+    smf_n1_n2_message_transfer_param_t param;
+
+    ogs_assert(sess);
+    ogs_assert(eap);
+    ogs_assert(eap_len > 0 && eap_len <= UINT16_MAX);
+
+    memset(&param, 0, sizeof(param));
+    param.state = SMF_NETWORK_REQUESTED_SECONDARY_AUTHENTICATION;
+    param.n1smbuf = gsm_build_pdu_session_authentication_command(
+            sess, eap, (uint16_t)eap_len);
+    if (!param.n1smbuf) {
+        ogs_error("[%d] Failed to build PDU Session Authentication Command",
+                sess->psi);
+        return;
+    }
+
+    ogs_info("[%d] Sending secondary-auth command N1 (n1=%d)",
+            sess->psi, (int)param.n1smbuf->len);
+    smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+}
+
+static void smf_send_secondary_auth_result(
+        smf_sess_t *sess, const uint8_t *eap, size_t eap_len)
+{
+    smf_n1_n2_message_transfer_param_t param;
+
+    ogs_assert(sess);
+    ogs_assert(eap_len <= UINT16_MAX);
+
+    memset(&param, 0, sizeof(param));
+    param.state = SMF_NETWORK_REQUESTED_SECONDARY_AUTHENTICATION;
+    param.n1smbuf = gsm_build_pdu_session_authentication_result(
+            sess, eap, (uint16_t)eap_len);
+    if (!param.n1smbuf) {
+        ogs_error("[%d] Failed to build PDU Session Authentication Result",
+                sess->psi);
+        return;
+    }
+
+    ogs_info("[%d] Sending secondary-auth result N1 (n1=%d)",
+            sess->psi, (int)param.n1smbuf->len);
+    smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+}
+
+static void smf_handle_secondary_auth_complete(
+        smf_sess_t *sess, smf_ue_t *smf_ue,
+        ogs_nas_5gs_pdu_session_authentication_complete_t *complete);
+
+/*
+ * Relay an EAP payload (an EAP-Response from the UE, or an EAP-Response/Identity
+ * to kick off the conversation) to the RADIUS server via the UPF sidecar and
+ * act on the result: deliver the next EAP-Request to the UE as an
+ * Authentication Command (challenge) or terminate with an Authentication
+ * Result (accept/reject).
+ */
+static void smf_sec_auth_relay_and_deliver(
+        smf_sess_t *sess, smf_ue_t *smf_ue,
+        const uint8_t *eap_in, size_t eap_in_len)
+{
+    uint8_t out_result = SMF_EAP_RELAY_RESULT_ERROR;
+    uint8_t out_state[SMF_SEC_AUTH_STATE_MAX];
+    uint8_t out_eap[SMF_SEC_AUTH_EAP_MAX];
+    size_t out_state_len = 0;
+    size_t out_eap_len = 0;
+    int rc;
+
+    ogs_assert(sess);
+    ogs_assert(smf_ue);
+
+    rc = smf_eap_relay_exchange(smf_ue->supi,
+            sess->sec_auth.state, sess->sec_auth.state_len,
+            eap_in, eap_in_len,
+            &out_result,
+            out_state, sizeof(out_state), &out_state_len,
+            out_eap, sizeof(out_eap), &out_eap_len);
+    if (rc != 0) {
+        ogs_error("[%s:%d] Secondary auth relay exchange failed",
+                smf_ue->supi, sess->psi);
+        smf_send_secondary_auth_result(sess, NULL, 0);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        return;
+    }
+
+    if (out_state_len > sizeof(sess->sec_auth.state)) {
+        ogs_error("[%s:%d] Secondary auth state too large (%zu)",
+                smf_ue->supi, sess->psi, out_state_len);
+        smf_send_secondary_auth_result(sess, NULL, 0);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        return;
+    }
+
+    if (out_state_len)
+        memcpy(sess->sec_auth.state, out_state, out_state_len);
+    sess->sec_auth.state_len = out_state_len;
+
+    switch (out_result) {
+    case SMF_EAP_RELAY_RESULT_CHALLENGE:
+        if (!out_eap_len) {
+            ogs_error("[%s:%d] Relay challenge without EAP payload",
+                    smf_ue->supi, sess->psi);
+            smf_send_secondary_auth_result(sess, NULL, 0);
+            sess->sec_auth.in_progress = false;
+            sess->sec_auth.state_len = 0;
+            return;
+        }
+        ogs_info("[%s:%d] Secondary auth challenge (%zu bytes)",
+                smf_ue->supi, sess->psi, out_eap_len);
+        smf_send_secondary_auth_command(sess, out_eap, out_eap_len);
+        break;
+
+    case SMF_EAP_RELAY_RESULT_ACCEPT:
+        ogs_info("[%s:%d] Secondary auth accepted", smf_ue->supi, sess->psi);
+        smf_send_secondary_auth_result(sess, out_eap, out_eap_len);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        break;
+
+    case SMF_EAP_RELAY_RESULT_REJECT:
+        ogs_warn("[%s:%d] Secondary auth rejected", smf_ue->supi, sess->psi);
+        smf_send_secondary_auth_result(sess, out_eap, out_eap_len);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        break;
+
+    default:
+        ogs_error("[%s:%d] Secondary auth relay returned error result %u",
+                smf_ue->supi, sess->psi, out_result);
+        smf_send_secondary_auth_result(sess, NULL, 0);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        break;
+    }
+}
+
+static void smf_start_secondary_auth(smf_sess_t *sess)
+{
+    smf_ue_t *smf_ue = NULL;
+    uint8_t eap_identity[5 + OGS_MAX_IMSI_BCD_LEN + sizeof("imsi-")];
+    size_t id_len;
+    size_t eap_len;
+    uint16_t eap_total;
+
+    ogs_assert(sess);
+
+    if (sess->sec_auth.in_progress == true)
+        return;
+
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
+    ogs_assert(smf_ue);
+
+    sess->sec_auth.in_progress = true;
+    sess->sec_auth.state_len = 0;
+    sess->sec_auth.eap_id = 1;
+
+    /*
+     * Kick off the EAP conversation by relaying an EAP-Response/Identity to the
+     * RADIUS server. FreeRADIUS (the authenticator) drives the EAP state
+     * machine: it responds with an Access-Challenge carrying the first
+     * EAP-Request (EDHOC start) and a State attribute, which we then deliver to
+     * the UE. We must NOT fabricate the initial EAP-Request locally, otherwise
+     * the first relayed UE response would arrive at FreeRADIUS with no State
+     * and be rejected.
+     */
+    id_len = strlen(smf_ue->supi);
+    if (id_len > sizeof(eap_identity) - 5)
+        id_len = sizeof(eap_identity) - 5;
+
+    eap_total = (uint16_t)(5 + id_len);
+    eap_identity[0] = 2; /* EAP Code: Response */
+    eap_identity[1] = sess->sec_auth.eap_id;
+    eap_identity[2] = (uint8_t)(eap_total >> 8);
+    eap_identity[3] = (uint8_t)(eap_total & 0xff);
+    eap_identity[4] = 1; /* EAP Type: Identity */
+    memcpy(&eap_identity[5], smf_ue->supi, id_len);
+    eap_len = eap_total;
+
+    ogs_info("[%d] Starting secondary authentication via EAP-EDHOC",
+            sess->psi);
+    smf_sec_auth_relay_and_deliver(sess, smf_ue, eap_identity, eap_len);
+}
+
+static void smf_handle_secondary_auth_complete(
+        smf_sess_t *sess, smf_ue_t *smf_ue,
+        ogs_nas_5gs_pdu_session_authentication_complete_t *complete)
+{
+    ogs_assert(sess);
+    ogs_assert(smf_ue);
+    ogs_assert(complete);
+
+    if (!complete->eap_message.buffer || !complete->eap_message.length) {
+        ogs_error("[%s:%d] Missing EAP payload in Authentication Complete",
+                smf_ue->supi, sess->psi);
+        smf_send_secondary_auth_result(sess, NULL, 0);
+        sess->sec_auth.in_progress = false;
+        sess->sec_auth.state_len = 0;
+        return;
+    }
+
+    smf_sec_auth_relay_and_deliver(sess, smf_ue,
+            complete->eap_message.buffer, complete->eap_message.length);
+}
 
 static uint8_t gtp_cause_from_diameter(uint8_t gtp_version,
         const uint32_t dia_err, const uint32_t *dia_exp_err)
@@ -829,6 +1055,18 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
     case OGS_FSM_EXIT_SIG:
         break;
 
+    case SMF_EVT_5GSM_TIMER:
+        switch (e->h.timer_id) {
+        case SMF_TIMER_SEC_AUTH_START:
+            smf_start_secondary_auth(sess);
+            break;
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    smf_timer_get_name(e->h.timer_id), e->h.timer_id);
+            break;
+        }
+        break;
+
     case SMF_EVT_GN_MESSAGE:
         gtp1_message = e->gtp1_message;
         ogs_assert(gtp1_message);
@@ -1160,6 +1398,12 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         }
 
         switch (nas_message->gsm.h.message_type) {
+        case OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_COMPLETE:
+            smf_handle_secondary_auth_complete(sess, smf_ue,
+                &nas_message->gsm.pdu_session_authentication_complete);
+            ogs_assert(true == ogs_sbi_send_http_status_no_content(stream));
+            break;
+
         case OGS_NAS_5GS_PDU_SESSION_MODIFICATION_REQUEST:
             rv = gsm_handle_pdu_session_modification_request(sess, stream,
                     &nas_message->gsm.pdu_session_modification_request);
@@ -1253,7 +1497,21 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 ogs_error("[%s:%d] Cannot handle NGAP message",
                         smf_ue->supi, sess->psi);
                 OGS_FSM_TRAN(s, smf_gsm_state_exception);
+                break;
             }
+            /*
+             * PDU session resource is now fully set up on the RAN.
+             * This is the deterministic point to start EAP-EDHOC
+             * secondary authentication (avoids racing the
+             * establishment-accept N1N2 transfer).
+             *
+             * The N1N2MessageTransfer must be issued from a fresh event
+             * iteration so the session's SBI object is free; defer via a
+             * short one-shot timer.
+             */
+            if (!sess->sec_auth.in_progress)
+                ogs_timer_start(sess->sec_auth.t_start,
+                        ogs_time_from_msec(100));
             break;
 
         case OpenAPI_n2_sm_info_type_PDU_RES_SETUP_FAIL:

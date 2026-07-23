@@ -41,6 +41,11 @@ ogs_pkbuf_t *gsm_build_pdu_session_release_command(
 ogs_pkbuf_t *gsm_build_pdu_session_release_reject(
         smf_sess_t *sess, ogs_nas_5gsm_cause_t gsm_cause);
 
+ogs_pkbuf_t *gsm_build_pdu_session_authentication_command(
+        smf_sess_t *sess, const uint8_t *eap, uint16_t eap_len);
+ogs_pkbuf_t *gsm_build_pdu_session_authentication_result(
+        smf_sess_t *sess, const uint8_t *eap, uint16_t eap_len);
+
 ogs_pkbuf_t *gsm_build_status(smf_sess_t *sess, ogs_nas_5gsm_cause_t cause);
 
 #ifdef __cplusplus

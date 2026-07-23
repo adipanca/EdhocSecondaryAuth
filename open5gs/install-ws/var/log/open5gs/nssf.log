@@ -62,3 +62,38 @@ Open5GS daemon v2.7.2
 06/24 15:56:03.901: [app] INFO: Open5GS daemon terminating... (../src/main.c:235)
 06/24 15:56:03.901: [sbi] INFO: [92bff0f2-6f99-41f1-b835-9d70625ec07c] NF de-registered (../lib/sbi/nf-sm.c:324)
 06/24 15:56:03.903: [app] INFO: NSSF terminate...done (../src/nssf/app.c:39)
+Open5GS daemon v2.7.2
+
+07/22 16:57:00.510: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/nssf.yaml' (../lib/app/ogs-init.c:144)
+07/22 16:57:00.510: [app] INFO: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/nssf.log' (../lib/app/ogs-init.c:147)
+07/22 16:57:00.512: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+07/22 16:57:00.512: [sbi] INFO: NF Service [nnssf-nsselection] (../lib/sbi/context.c:1994)
+07/22 16:57:00.512: [sbi] INFO: nghttp2_server() [http://127.0.0.14]:7777 (../lib/sbi/nghttp2-server.c:439)
+07/22 16:57:00.512: [app] INFO: NSSF initialize...done (../src/nssf/app.c:31)
+07/22 16:57:00.534: [sbi] INFO: [eb5cdd5a-85a2-41f1-9272-d552864ce90a] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+07/22 16:57:00.537: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:57:00.537: [sbi] INFO: [eb604a80-85a2-41f1-8694-91b475053baa] Subscription created until 2026-07-23T16:57:00.534864+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+Open5GS daemon v2.7.2
+
+07/22 17:02:13.980: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/nssf.yaml' (../lib/app/ogs-init.c:144)
+07/22 17:02:13.980: [app] INFO: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/nssf.log' (../lib/app/ogs-init.c:147)
+07/22 17:02:13.982: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+07/22 17:02:13.982: [sbi] INFO: NF Service [nnssf-nsselection] (../lib/sbi/context.c:1994)
+07/22 17:02:13.982: [sbi] INFO: nghttp2_server() [http://127.0.0.14]:7777 (../lib/sbi/nghttp2-server.c:439)
+07/22 17:02:13.982: [app] INFO: NSSF initialize...done (../src/nssf/app.c:31)
+07/22 17:02:13.998: [sbi] INFO: [a6348812-85a3-41f1-92e1-f5320e2b03b9] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+07/22 17:02:14.009: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 17:02:14.009: [sbi] INFO: [a637737e-85a3-41f1-8b06-67df907723cf] Subscription created until 2026-07-23T17:02:14.001161+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+Open5GS daemon v2.7.2
+
+07/22 17:29:42.565: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/nssf.yaml' (../lib/app/ogs-init.c:144)
+07/22 17:29:42.565: [app] INFO: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/nssf.log' (../lib/app/ogs-init.c:147)
+07/22 17:29:42.567: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+07/22 17:29:42.567: [sbi] INFO: NF Service [nnssf-nsselection] (../lib/sbi/context.c:1994)
+07/22 17:29:42.567: [sbi] INFO: nghttp2_server() [http://127.0.0.14]:7777 (../lib/sbi/nghttp2-server.c:439)
+07/22 17:29:42.567: [app] INFO: NSSF initialize...done (../src/nssf/app.c:31)
+07/22 17:29:42.569: [sbi] INFO: [7cd6ae60-85a7-41f1-8c60-51f187fa58dd] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+07/22 17:29:42.570: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 17:29:42.570: [sbi] INFO: [7cd6faf0-85a7-41f1-8917-4fedfb25d28e] Subscription created until 2026-07-23T17:29:42.569247+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/23 05:29:42.572: [nssf] INFO: [7cd6faf0-85a7-41f1-8917-4fedfb25d28e] Need to update Subscription (../src/nssf/nssf-sm.c:322)
+07/23 05:29:42.573: [sbi] INFO: [7cd6faf0-85a7-41f1-8917-4fedfb25d28e] Subscription updated(204 No Content) until 2026-07-24T05:29:42.573850+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)

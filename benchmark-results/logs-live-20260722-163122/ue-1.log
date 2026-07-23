@@ -1,0 +1,169 @@
+UERANSIM v3.2.7
+[2026-07-22 16:31:37.607] [nas] [info] UE switches to state [MM-DEREGISTERED/PLMN-SEARCH]
+[2026-07-22 16:31:37.607] [rrc] [debug] New signal detected for cell[1], total [1] cells in coverage
+[2026-07-22 16:31:37.608] [nas] [info] Selected plmn[999/70]
+[2026-07-22 16:31:37.608] [rrc] [info] Selected cell plmn[999/70] tac[1] category[SUITABLE]
+[2026-07-22 16:31:37.608] [nas] [info] UE switches to state [MM-DEREGISTERED/PS]
+[2026-07-22 16:31:37.608] [nas] [info] UE switches to state [MM-DEREGISTERED/NORMAL-SERVICE]
+[2026-07-22 16:31:37.608] [nas] [debug] Initial registration required due to [MM-DEREG-NORMAL-SERVICE]
+[2026-07-22 16:31:37.608] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[2026-07-22 16:31:37.608] [nas] [debug] Sending Initial Registration
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.609] [nas] [info] UE switches to state [MM-REGISTER-INITIATED]
+[2026-07-22 16:31:37.609] [rrc] [debug] Sending RRC Setup Request
+[2026-07-22 16:31:37.609] [rrc] [info] RRC connection established
+[2026-07-22 16:31:37.609] [rrc] [info] UE switches to state [RRC-CONNECTED]
+[2026-07-22 16:31:37.610] [nas] [info] UE switches to state [CM-CONNECTED]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.618] [nas] [debug] Authentication Request received
+[2026-07-22 16:31:37.618] [nas] [debug] Received SQN [0000000000A1]
+[2026-07-22 16:31:37.618] [nas] [debug] SQN-MS [000000000000]
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6b
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: 27825C0EB286AD6D9C8EFD265587216C
+[KDF] Parameter[1] len: 16 (appended as 2 bytes)
+[KDF] Parameter[2]: 39EA34EBD416DAB4
+[KDF] Parameter[2] len: 8 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002027825C0EB286AD6D9C8EFD265587216C001039EA34EBD416DAB40008
+[HMAC] Key   : AF468E53713FEA0802BB0BAAA77E9CAB67773EA01D7A3C8A0E41DC0F505593BA
+[HMAC] Key Length : 32
+[HMAC] Input   : 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002027825C0EB286AD6D9C8EFD265587216C001039EA34EBD416DAB40008
+[HMAC] Input Length : 63
+[KDF] Output HMAC-SHA256: 0E9E03A5EA0244F1EE808F74471EB8D7EB07ABCE0F61E5903D8850B4455C3C8E
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6a
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: 24718A4097D7
+[KDF] Parameter[1] len: 6 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002024718A4097D70006
+[HMAC] Key   : AF468E53713FEA0802BB0BAAA77E9CAB67773EA01D7A3C8A0E41DC0F505593BA
+[HMAC] Key Length : 32
+[HMAC] Input   : 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002024718A4097D70006
+[HMAC] Input Length : 43
+[KDF] Output HMAC-SHA256: 9C1D7C31EE5A6E3118992F1923B6B5EE90FD107723DF5978E1AC081EF271CC42
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF-Encode] SNN (raw string): 999700000000001
+[KDF-Encode] SNN (hex): 393939373030303030303030303031
+[KDF] FC: 6c
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Key   : 9C1D7C31EE5A6E3118992F1923B6B5EE90FD107723DF5978E1AC081EF271CC42
+[HMAC] Key Length : 32
+[HMAC] Input   : 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Input Length : 35
+[KDF] Output HMAC-SHA256: DB13B9CF044442DCB97EDF04AF6AE9FD9CF035458AA6E73DB1493C4F5C5429A8
+[KDF] FC: 6d
+[KDF] Parameter[0]: 393939373030303030303030303031
+[KDF] Parameter[0] len: 15 (appended as 2 bytes)
+[KDF] Parameter[1]: 0000
+[KDF] Parameter[1] len: 2 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6D393939373030303030303030303031000F00000002
+[HMAC] Key   : DB13B9CF044442DCB97EDF04AF6AE9FD9CF035458AA6E73DB1493C4F5C5429A8
+[HMAC] Key Length : 32
+[HMAC] Input   : 6D393939373030303030303030303031000F00000002
+[HMAC] Input Length : 22
+[KDF] Output HMAC-SHA256: 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+===========================DEBUG PARAMETER KDF================================ 
+[KDF DEBUG] SNN           = 5G:mnc070.mcc999.3gppnetwork.org
+[KDF DEBUG] SUPI          = 999700000000001
+[KDF DEBUG] ABBA len      = 2
+[KDF DEBUG] ABBA value    = 0000
+[KDF DEBUG] KAUSF         = 9C1D7C31EE5A6E3118992F1923B6B5EE90FD107723DF5978E1AC081EF271CC42
+[KDF DEBUG] KSEAF         = DB13B9CF044442DCB97EDF04AF6AE9FD9CF035458AA6E73DB1493C4F5C5429A8
+[KDF DEBUG] KAMF          = 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+===========================DEBUG PARAMETER KDF================================ 
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.645] [nas] [debug] Security Mode Command received
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: B729F9D97A8F20A04C340EEC3D395D6127AEB580476CFEFC8F805BB2DCB5A194
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: C90A496EC8FF830F4804F3C84B209778A54F5A7D44712FDEA53EF402B12BFD0D
+[KDF DEBUG] KNASenc = 27AEB580476CFEFC8F805BB2DCB5A194
+[KDF DEBUG] KNASint = A54F5A7D44712FDEA53EF402B12BFD0D
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: B729F9D97A8F20A04C340EEC3D395D6127AEB580476CFEFC8F805BB2DCB5A194
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 2BF66FEAD02D5BA618EA739628FE152D1A1971FFAF79BD9373057BBEE339B775
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: C90A496EC8FF830F4804F3C84B209778A54F5A7D44712FDEA53EF402B12BFD0D
+[KDF DEBUG] KNASenc = 27AEB580476CFEFC8F805BB2DCB5A194
+[KDF DEBUG] KNASint = A54F5A7D44712FDEA53EF402B12BFD0D
+[2026-07-22 16:31:37.645] [nas] [debug] Selected integrity[2] ciphering[0]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.661] [nas] [debug] Registration accept received
+[2026-07-22 16:31:37.661] [nas] [info] UE switches to state [MM-REGISTERED/NORMAL-SERVICE]
+[2026-07-22 16:31:37.661] [nas] [debug] Sending Registration Complete
+[2026-07-22 16:31:37.661] [nas] [info] Initial Registration is successful
+[2026-07-22 16:31:37.661] [nas] [debug] Sending PDU Session Establishment Request
+[2026-07-22 16:31:37.661] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.866] [nas] [debug] Configuration Update Command received
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[DecodeViaBuilder] Start decoding stream at offset 4
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.876] [nas] [debug] PDU Session Establishment Accept received
+[2026-07-22 16:31:37.876] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-07-22 16:31:37.876] [app] [error] TUN interface could not be setup. Permission denied. Please run the UE with 'sudo'
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[DecodeViaBuilder] Start decoding stream at offset 4
+============= [IEEapMessage::Decode] START =============
+[IEEapMessage::Decode] EAP IE length = 6
+[IEEapMessage::Decode] Raw EAP Data:
+01 01 00 06 38 01 
+[EAP Header] code=1, id=1, len=6, type=0x38, subtype=0x1
+============= [IEEapMessage::Decode] END =============
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.876] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[2026-07-22 16:31:37.877] [nas] [info] EAP-EDHOC: loaded method-4 SIGMA XWING credentials
+[2026-07-22 16:31:37.877] [nas] [info] EAP-EDHOC: sent message_1 fragment (997/2354 bytes)
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:31:37.878] [nas] [error] MM status received with cause [INSUFFICIENT_USER_PLANE_RESOURCES]

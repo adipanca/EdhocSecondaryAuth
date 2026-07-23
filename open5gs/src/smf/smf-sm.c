@@ -444,6 +444,16 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_fsm_dispatch(&pfcp_node->sm, e);
         break;
 
+    case SMF_EVT_5GSM_TIMER:
+        ogs_assert(e);
+        sess = smf_sess_find_by_id(e->sess_id);
+        if (!sess) {
+            ogs_warn("5GSM timer: session already removed");
+            break;
+        }
+        ogs_fsm_dispatch(&sess->sm, e);
+        break;
+
     case OGS_EVENT_SBI_SERVER:
         sbi_request = e->h.sbi.request;
         ogs_assert(sbi_request);

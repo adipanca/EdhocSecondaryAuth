@@ -1,0 +1,20 @@
+nohup: ignoring input
+UERANSIM v3.2.7
+[2026-07-22 16:15:36.781] [sctp] [info] Trying to establish SCTP connection... (127.0.0.5:38412)
+[2026-07-22 16:15:36.783] [sctp] [info] SCTP connection established (127.0.0.5:38412)
+[2026-07-22 16:15:36.783] [sctp] [debug] SCTP association setup ascId[5]
+[2026-07-22 16:15:36.784] [ngap] [debug] Sending NG Setup Request
+[2026-07-22 16:15:36.789] [ngap] [debug] NG Setup Response received
+[2026-07-22 16:15:36.789] [ngap] [info] NG Setup procedure is successful
+[2026-07-22 16:15:37.760] [rrc] [debug] UE[1] new signal detected
+[2026-07-22 16:15:37.762] [rrc] [info] RRC Setup for UE[1]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:15:37.763] [ngap] [debug] Initial NAS message received from UE[1]
+[2026-07-22 16:15:37.791] [ngap] [debug] Initial Context Setup Request received
+[2026-07-22 16:15:38.001] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[2026-07-22 16:17:58.525] [rls] [debug] UE[1] signal lost
+[2026-07-22 16:19:31.765] [sctp] [debug] SCTP association shutdown (clientId: 2)
+[2026-07-22 16:19:31.765] [sctp] [warning] Unhandled SCTP notification received
+[2026-07-22 16:19:31.765] [ngap] [error] Association terminated for AMF[2]
+[2026-07-22 16:19:31.765] [ngap] [debug] Removing AMF context[2]

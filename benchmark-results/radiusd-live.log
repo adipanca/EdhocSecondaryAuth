@@ -1,0 +1,1990 @@
+FreeRADIUS Version 3.2.6
+Copyright (C) 1999-2023 The FreeRADIUS server project and contributors
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE
+You may redistribute copies of FreeRADIUS under the terms of the
+GNU General Public License
+For more information about these matters, see the file named COPYRIGHT
+Starting - reading configuration files ...
+including dictionary file /usr/local/share/freeradius/dictionary
+including dictionary file /usr/local/share/freeradius/dictionary.dhcp
+including dictionary file /usr/local/share/freeradius/dictionary.vqp
+including dictionary file /usr/local/etc/raddb/dictionary
+including configuration file /usr/local/etc/raddb/radiusd.conf
+including configuration file /usr/local/etc/raddb/proxy.conf
+including configuration file /usr/local/etc/raddb/clients.conf
+including files in directory /usr/local/etc/raddb/mods-enabled/
+including configuration file /usr/local/etc/raddb/mods-enabled/echo
+including configuration file /usr/local/etc/raddb/mods-enabled/detail
+including configuration file /usr/local/etc/raddb/mods-enabled/dynamic_clients
+including configuration file /usr/local/etc/raddb/mods-enabled/files
+including configuration file /usr/local/etc/raddb/mods-enabled/unpack
+including configuration file /usr/local/etc/raddb/mods-enabled/linelog
+including configuration file /usr/local/etc/raddb/mods-enabled/passwd
+including configuration file /usr/local/etc/raddb/mods-enabled/chap
+including configuration file /usr/local/etc/raddb/mods-enabled/date
+including configuration file /usr/local/etc/raddb/mods-enabled/expr
+including configuration file /usr/local/etc/raddb/mods-enabled/totp
+including configuration file /usr/local/etc/raddb/mods-enabled/logintime
+including configuration file /usr/local/etc/raddb/mods-enabled/mschap
+including configuration file /usr/local/etc/raddb/mods-enabled/realm
+including configuration file /usr/local/etc/raddb/mods-enabled/expiration
+including configuration file /usr/local/etc/raddb/mods-enabled/unix
+including configuration file /usr/local/etc/raddb/mods-enabled/radutmp
+including configuration file /usr/local/etc/raddb/mods-enabled/exec
+including configuration file /usr/local/etc/raddb/mods-enabled/utf8
+including configuration file /usr/local/etc/raddb/mods-enabled/digest
+including configuration file /usr/local/etc/raddb/mods-enabled/preprocess
+including configuration file /usr/local/etc/raddb/mods-enabled/ntlm_auth
+including configuration file /usr/local/etc/raddb/mods-enabled/detail.log
+including configuration file /usr/local/etc/raddb/mods-enabled/eap
+including configuration file /usr/local/etc/raddb/mods-enabled/attr_filter
+including configuration file /usr/local/etc/raddb/mods-enabled/pap
+including configuration file /usr/local/etc/raddb/mods-enabled/soh
+including configuration file /usr/local/etc/raddb/mods-enabled/always
+including configuration file /usr/local/etc/raddb/mods-enabled/replicate
+including configuration file /usr/local/etc/raddb/mods-enabled/sradutmp
+including files in directory /usr/local/etc/raddb/policy.d/
+including configuration file /usr/local/etc/raddb/policy.d/dhcp
+including configuration file /usr/local/etc/raddb/policy.d/operator-name
+including configuration file /usr/local/etc/raddb/policy.d/accounting
+including configuration file /usr/local/etc/raddb/policy.d/filter
+including configuration file /usr/local/etc/raddb/policy.d/canonicalization
+including configuration file /usr/local/etc/raddb/policy.d/cui
+including configuration file /usr/local/etc/raddb/policy.d/rfc7542
+including configuration file /usr/local/etc/raddb/policy.d/moonshot-targeted-ids
+including configuration file /usr/local/etc/raddb/policy.d/eap
+including configuration file /usr/local/etc/raddb/policy.d/control
+including configuration file /usr/local/etc/raddb/policy.d/debug
+including configuration file /usr/local/etc/raddb/policy.d/abfab-tr
+including files in directory /usr/local/etc/raddb/sites-enabled/
+including configuration file /usr/local/etc/raddb/sites-enabled/inner-tunnel
+including configuration file /usr/local/etc/raddb/sites-enabled/default
+main {
+ security {
+ 	allow_core_dumps = no
+ }
+	name = "radiusd"
+	prefix = "/usr/local"
+	localstatedir = "/usr/local/var"
+	logdir = "/usr/local/var/log/radius"
+	run_dir = "/usr/local/var/run/radiusd"
+}
+main {
+	name = "radiusd"
+	prefix = "/usr/local"
+	localstatedir = "/usr/local/var"
+	sbindir = "/usr/local/sbin"
+	logdir = "/usr/local/var/log/radius"
+	run_dir = "/usr/local/var/run/radiusd"
+	libdir = "/usr/local/lib"
+	radacctdir = "/usr/local/var/log/radius/radacct"
+	hostname_lookups = no
+	max_request_time = 30
+	proxy_dedup_window = 1
+	cleanup_delay = 5
+	max_requests = 16384
+	max_fds = 512
+	postauth_client_lost = no
+	pidfile = "/usr/local/var/run/radiusd/radiusd.pid"
+	checkrad = "/usr/local/sbin/checkrad"
+	debug_level = 0
+	proxy_requests = yes
+ log {
+ 	stripped_names = no
+ 	auth = no
+ 	auth_badpass = no
+ 	auth_goodpass = no
+ 	colourise = yes
+ 	msg_denied = "You are already logged in - access denied"
+ }
+ resources {
+ }
+ security {
+ 	max_attributes = 200
+ 	reject_delay = 1.000000
+ 	status_server = yes
+ 	require_message_authenticator = "auto"
+ 	limit_proxy_state = "auto"
+ 	allow_vulnerable_openssl = "no"
+ }
+}
+radiusd: #### Loading Realms and Home Servers ####
+ proxy server {
+ 	retry_delay = 5
+ 	retry_count = 3
+ 	default_fallback = no
+ 	dead_time = 120
+ 	wake_all_if_all_dead = no
+ }
+ home_server localhost {
+ 	nonblock = no
+ 	ipaddr = 127.0.0.1
+ 	port = 1812
+ 	type = "auth"
+ 	secret = <<< secret >>>
+ 	response_window = 20.000000
+ 	response_timeouts = 1
+ 	max_outstanding = 65536
+ 	zombie_period = 40
+ 	status_check = "status-server"
+ 	ping_interval = 30
+ 	check_interval = 30
+ 	check_timeout = 4
+ 	num_answers_to_alive = 3
+ 	revive_interval = 120
+  limit {
+  	max_connections = 16
+  	max_requests = 0
+  	lifetime = 0
+  	idle_timeout = 0
+  }
+  coa {
+  	irt = 2
+  	mrt = 16
+  	mrc = 5
+  	mrd = 30
+  }
+ }
+ home_server_pool my_auth_failover {
+	type = fail-over
+	home_server = localhost
+ }
+ realm example.com {
+	auth_pool = my_auth_failover
+ }
+ realm LOCAL {
+ }
+radiusd: #### Loading Clients ####
+ client localhost {
+ 	ipaddr = 127.0.0.1
+ 	secret = <<< secret >>>
+ 	nas_type = "other"
+ 	proto = "*"
+  limit {
+  	max_connections = 16
+  	lifetime = 0
+  	idle_timeout = 30
+  }
+ }
+Shared secret for client localhost is short, and likely can be broken by an attacker.
+ client localhost_ipv6 {
+ 	ipv6addr = ::1
+ 	secret = <<< secret >>>
+  limit {
+  	max_connections = 16
+  	lifetime = 0
+  	idle_timeout = 30
+  }
+ }
+Shared secret for client localhost_ipv6 is short, and likely can be broken by an attacker.
+Debugger not attached
+ # Creating Auth-Type = mschap
+ # Creating Auth-Type = eap
+ # Creating Auth-Type = PAP
+ # Creating Auth-Type = CHAP
+ # Creating Auth-Type = MS-CHAP
+ # Creating Auth-Type = digest
+ # Creating Autz-Type = New-TLS-Connection
+radiusd: #### Instantiating modules ####
+ modules {
+  # Loaded module rlm_exec
+  # Loading module "echo" from file /usr/local/etc/raddb/mods-enabled/echo
+  exec echo {
+  	wait = yes
+  	program = "/bin/echo %{User-Name}"
+  	input_pairs = "request"
+  	output_pairs = "reply"
+  	shell_escape = yes
+  }
+  # Loaded module rlm_detail
+  # Loading module "detail" from file /usr/local/etc/raddb/mods-enabled/detail
+  detail {
+  	filename = "/usr/local/var/log/radius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/detail-%Y%m%d"
+  	header = "%t"
+  	permissions = 384
+  	locking = no
+  	dates_as_integer = no
+  	escape_filenames = no
+  	log_packet_header = no
+  }
+  # Loaded module rlm_dynamic_clients
+  # Loading module "dynamic_clients" from file /usr/local/etc/raddb/mods-enabled/dynamic_clients
+  # Loaded module rlm_files
+  # Loading module "files" from file /usr/local/etc/raddb/mods-enabled/files
+  files {
+  	filename = "/usr/local/etc/raddb/mods-config/files/authorize"
+  	acctusersfile = "/usr/local/etc/raddb/mods-config/files/accounting"
+  	preproxy_usersfile = "/usr/local/etc/raddb/mods-config/files/pre-proxy"
+  }
+  # Loaded module rlm_unpack
+  # Loading module "unpack" from file /usr/local/etc/raddb/mods-enabled/unpack
+  # Loaded module rlm_linelog
+  # Loading module "linelog" from file /usr/local/etc/raddb/mods-enabled/linelog
+  linelog {
+  	filename = "/usr/local/var/log/radius/linelog"
+  	escape_filenames = no
+  	syslog_severity = "info"
+  	permissions = 384
+  	format = "This is a log message for %{User-Name}"
+  	reference = "messages.%{%{reply:Packet-Type}:-default}"
+  }
+  # Loading module "log_accounting" from file /usr/local/etc/raddb/mods-enabled/linelog
+  linelog log_accounting {
+  	filename = "/usr/local/var/log/radius/linelog-accounting"
+  	escape_filenames = no
+  	syslog_severity = "info"
+  	permissions = 384
+  	format = ""
+  	reference = "Accounting-Request.%{%{Acct-Status-Type}:-unknown}"
+  }
+  # Loaded module rlm_passwd
+  # Loading module "etc_passwd" from file /usr/local/etc/raddb/mods-enabled/passwd
+  passwd etc_passwd {
+  	filename = "/etc/passwd"
+  	format = "*User-Name:Crypt-Password:"
+  	delimiter = ":"
+  	ignore_nislike = no
+  	ignore_empty = yes
+  	allow_multiple_keys = no
+  	hash_size = 100
+  }
+  # Loaded module rlm_chap
+  # Loading module "chap" from file /usr/local/etc/raddb/mods-enabled/chap
+  # Loaded module rlm_date
+  # Loading module "date" from file /usr/local/etc/raddb/mods-enabled/date
+  date {
+  	format = "%b %e %Y %H:%M:%S %Z"
+  	utc = no
+  }
+  # Loading module "wispr2date" from file /usr/local/etc/raddb/mods-enabled/date
+  date wispr2date {
+  	format = "%Y-%m-%dT%H:%M:%S"
+  	utc = no
+  }
+  # Loaded module rlm_expr
+  # Loading module "expr" from file /usr/local/etc/raddb/mods-enabled/expr
+  expr {
+  	safe_characters = "@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_: /äéöüàâæçèéêëîïôœùûüaÿÄÉÖÜßÀÂÆÇÈÉÊËÎÏÔŒÙÛÜŸ"
+  }
+  # Loaded module rlm_totp
+  # Loading module "totp" from file /usr/local/etc/raddb/mods-enabled/totp
+  totp {
+  	time_step = 30
+  	otp_length = 6
+  	lookback_steps = 1
+  	lookback_interval = 30
+  	lookforward_steps = 0
+  }
+  # Loaded module rlm_logintime
+  # Loading module "logintime" from file /usr/local/etc/raddb/mods-enabled/logintime
+  logintime {
+  	minimum_timeout = 60
+  }
+  # Loaded module rlm_mschap
+  # Loading module "mschap" from file /usr/local/etc/raddb/mods-enabled/mschap
+  mschap {
+  	use_mppe = yes
+  	require_encryption = no
+  	require_strong = no
+  	with_ntdomain_hack = yes
+   passchange {
+   }
+  	allow_retry = yes
+  	winbind_retry_with_normalised_username = no
+  }
+  # Loaded module rlm_realm
+  # Loading module "IPASS" from file /usr/local/etc/raddb/mods-enabled/realm
+  realm IPASS {
+  	format = "prefix"
+  	delimiter = "/"
+  	ignore_default = no
+  	ignore_null = no
+  }
+  # Loading module "suffix" from file /usr/local/etc/raddb/mods-enabled/realm
+  realm suffix {
+  	format = "suffix"
+  	delimiter = "@"
+  	ignore_default = no
+  	ignore_null = no
+  }
+  # Loading module "bangpath" from file /usr/local/etc/raddb/mods-enabled/realm
+  realm bangpath {
+  	format = "prefix"
+  	delimiter = "!"
+  	ignore_default = no
+  	ignore_null = no
+  }
+  # Loading module "realmpercent" from file /usr/local/etc/raddb/mods-enabled/realm
+  realm realmpercent {
+  	format = "suffix"
+  	delimiter = "%"
+  	ignore_default = no
+  	ignore_null = no
+  }
+  # Loading module "ntdomain" from file /usr/local/etc/raddb/mods-enabled/realm
+  realm ntdomain {
+  	format = "prefix"
+  	delimiter = "\"
+  	ignore_default = no
+  	ignore_null = no
+  }
+  # Loaded module rlm_expiration
+  # Loading module "expiration" from file /usr/local/etc/raddb/mods-enabled/expiration
+  # Loaded module rlm_unix
+  # Loading module "unix" from file /usr/local/etc/raddb/mods-enabled/unix
+  unix {
+  	radwtmp = "/usr/local/var/log/radius/radwtmp"
+  }
+Creating attribute Unix-Group
+  # Loaded module rlm_radutmp
+  # Loading module "radutmp" from file /usr/local/etc/raddb/mods-enabled/radutmp
+  radutmp {
+  	filename = "/usr/local/var/log/radius/radutmp"
+  	username = "%{User-Name}"
+  	case_sensitive = yes
+  	check_with_nas = yes
+  	permissions = 384
+  	caller_id = yes
+  }
+  # Loading module "exec" from file /usr/local/etc/raddb/mods-enabled/exec
+  exec {
+  	wait = no
+  	input_pairs = "request"
+  	shell_escape = yes
+  	timeout = 10
+  }
+  # Loaded module rlm_utf8
+  # Loading module "utf8" from file /usr/local/etc/raddb/mods-enabled/utf8
+  # Loaded module rlm_digest
+  # Loading module "digest" from file /usr/local/etc/raddb/mods-enabled/digest
+  # Loaded module rlm_preprocess
+  # Loading module "preprocess" from file /usr/local/etc/raddb/mods-enabled/preprocess
+  preprocess {
+  	huntgroups = "/usr/local/etc/raddb/mods-config/preprocess/huntgroups"
+  	hints = "/usr/local/etc/raddb/mods-config/preprocess/hints"
+  	with_ascend_hack = no
+  	ascend_channels_per_line = 23
+  	with_ntdomain_hack = no
+  	with_specialix_jetstream_hack = no
+  	with_cisco_vsa_hack = no
+  	with_alvarion_vsa_hack = no
+  }
+  # Loading module "ntlm_auth" from file /usr/local/etc/raddb/mods-enabled/ntlm_auth
+  exec ntlm_auth {
+  	wait = yes
+  	program = "/path/to/ntlm_auth --request-nt-key --domain=MYDOMAIN --username=%{mschap:User-Name} --password=%{User-Password}"
+  	shell_escape = yes
+  }
+  # Loading module "auth_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  detail auth_log {
+  	filename = "/usr/local/var/log/radius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/auth-detail-%Y%m%d"
+  	header = "%t"
+  	permissions = 384
+  	locking = no
+  	dates_as_integer = no
+  	escape_filenames = no
+  	log_packet_header = no
+  }
+  # Loading module "reply_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  detail reply_log {
+  	filename = "/usr/local/var/log/radius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/reply-detail-%Y%m%d"
+  	header = "%t"
+  	permissions = 384
+  	locking = no
+  	dates_as_integer = no
+  	escape_filenames = no
+  	log_packet_header = no
+  }
+  # Loading module "pre_proxy_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  detail pre_proxy_log {
+  	filename = "/usr/local/var/log/radius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/pre-proxy-detail-%Y%m%d"
+  	header = "%t"
+  	permissions = 384
+  	locking = no
+  	dates_as_integer = no
+  	escape_filenames = no
+  	log_packet_header = no
+  }
+  # Loading module "post_proxy_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  detail post_proxy_log {
+  	filename = "/usr/local/var/log/radius/radacct/%{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}}/post-proxy-detail-%Y%m%d"
+  	header = "%t"
+  	permissions = 384
+  	locking = no
+  	dates_as_integer = no
+  	escape_filenames = no
+  	log_packet_header = no
+  }
+  # Loaded module rlm_eap
+  # Loading module "eap" from file /usr/local/etc/raddb/mods-enabled/eap
+  eap {
+  	default_eap_type = "edhoc"
+  	timer_expire = 60
+  	max_eap_type = 52
+  	ignore_unknown_eap_types = no
+  	cisco_accounting_username_bug = no
+  	max_sessions = 16384
+  	dedup_key = ""
+  }
+  # Loaded module rlm_attr_filter
+  # Loading module "attr_filter.post-proxy" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.post-proxy {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/post-proxy"
+  	key = "%{Realm}"
+  	relaxed = no
+  }
+  # Loading module "attr_filter.pre-proxy" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.pre-proxy {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/pre-proxy"
+  	key = "%{Realm}"
+  	relaxed = no
+  }
+  # Loading module "attr_filter.access_reject" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.access_reject {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/access_reject"
+  	key = "%{User-Name}"
+  	relaxed = no
+  }
+  # Loading module "attr_filter.access_challenge" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.access_challenge {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/access_challenge"
+  	key = "%{User-Name}"
+  	relaxed = no
+  }
+  # Loading module "attr_filter.accounting_response" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.accounting_response {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/accounting_response"
+  	key = "%{User-Name}"
+  	relaxed = no
+  }
+  # Loading module "attr_filter.coa" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+  attr_filter attr_filter.coa {
+  	filename = "/usr/local/etc/raddb/mods-config/attr_filter/coa"
+  	key = "%{User-Name}"
+  	relaxed = no
+  }
+  # Loaded module rlm_pap
+  # Loading module "pap" from file /usr/local/etc/raddb/mods-enabled/pap
+  pap {
+  	normalise = yes
+  }
+  # Loaded module rlm_soh
+  # Loading module "soh" from file /usr/local/etc/raddb/mods-enabled/soh
+  soh {
+  	dhcp = yes
+  }
+  # Loaded module rlm_always
+  # Loading module "reject" from file /usr/local/etc/raddb/mods-enabled/always
+  always reject {
+  	rcode = "reject"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "fail" from file /usr/local/etc/raddb/mods-enabled/always
+  always fail {
+  	rcode = "fail"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "ok" from file /usr/local/etc/raddb/mods-enabled/always
+  always ok {
+  	rcode = "ok"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "handled" from file /usr/local/etc/raddb/mods-enabled/always
+  always handled {
+  	rcode = "handled"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "invalid" from file /usr/local/etc/raddb/mods-enabled/always
+  always invalid {
+  	rcode = "invalid"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "userlock" from file /usr/local/etc/raddb/mods-enabled/always
+  always userlock {
+  	rcode = "userlock"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "notfound" from file /usr/local/etc/raddb/mods-enabled/always
+  always notfound {
+  	rcode = "notfound"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "noop" from file /usr/local/etc/raddb/mods-enabled/always
+  always noop {
+  	rcode = "noop"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loading module "updated" from file /usr/local/etc/raddb/mods-enabled/always
+  always updated {
+  	rcode = "updated"
+  	simulcount = 0
+  	mpp = no
+  }
+  # Loaded module rlm_replicate
+  # Loading module "replicate" from file /usr/local/etc/raddb/mods-enabled/replicate
+  # Loading module "sradutmp" from file /usr/local/etc/raddb/mods-enabled/sradutmp
+  radutmp sradutmp {
+  	filename = "/usr/local/var/log/radius/sradutmp"
+  	username = "%{User-Name}"
+  	case_sensitive = yes
+  	check_with_nas = yes
+  	permissions = 420
+  	caller_id = no
+  }
+  instantiate {
+  }
+  # Instantiating module "detail" from file /usr/local/etc/raddb/mods-enabled/detail
+  # Instantiating module "files" from file /usr/local/etc/raddb/mods-enabled/files
+reading pairlist file /usr/local/etc/raddb/mods-config/files/authorize
+reading pairlist file /usr/local/etc/raddb/mods-config/files/accounting
+reading pairlist file /usr/local/etc/raddb/mods-config/files/pre-proxy
+  # Instantiating module "linelog" from file /usr/local/etc/raddb/mods-enabled/linelog
+  # Instantiating module "log_accounting" from file /usr/local/etc/raddb/mods-enabled/linelog
+  # Instantiating module "etc_passwd" from file /usr/local/etc/raddb/mods-enabled/passwd
+rlm_passwd: nfields: 3 keyfield 0(User-Name) listable: no
+  # Instantiating module "totp" from file /usr/local/etc/raddb/mods-enabled/totp
+  # Instantiating module "logintime" from file /usr/local/etc/raddb/mods-enabled/logintime
+  # Instantiating module "mschap" from file /usr/local/etc/raddb/mods-enabled/mschap
+rlm_mschap (mschap): using internal authentication
+  # Instantiating module "IPASS" from file /usr/local/etc/raddb/mods-enabled/realm
+  # Instantiating module "suffix" from file /usr/local/etc/raddb/mods-enabled/realm
+  # Instantiating module "bangpath" from file /usr/local/etc/raddb/mods-enabled/realm
+  # Instantiating module "realmpercent" from file /usr/local/etc/raddb/mods-enabled/realm
+  # Instantiating module "ntdomain" from file /usr/local/etc/raddb/mods-enabled/realm
+  # Instantiating module "expiration" from file /usr/local/etc/raddb/mods-enabled/expiration
+  # Instantiating module "preprocess" from file /usr/local/etc/raddb/mods-enabled/preprocess
+reading pairlist file /usr/local/etc/raddb/mods-config/preprocess/huntgroups
+reading pairlist file /usr/local/etc/raddb/mods-config/preprocess/hints
+  # Instantiating module "auth_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+rlm_detail (auth_log): 'User-Password' suppressed, will not appear in detail output
+  # Instantiating module "reply_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  # Instantiating module "pre_proxy_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  # Instantiating module "post_proxy_log" from file /usr/local/etc/raddb/mods-enabled/detail.log
+  # Instantiating module "eap" from file /usr/local/etc/raddb/mods-enabled/eap
+   # Linked to sub-module rlm_eap_md5
+   # Linked to sub-module rlm_eap_gtc
+   gtc {
+   	challenge = "Password: "
+   	auth_type = "PAP"
+   }
+   # Linked to sub-module rlm_eap_tls
+   tls {
+   	tls = "tls-common"
+   }
+   tls-config tls-common {
+   	verify_depth = 0
+   	ca_path = "/usr/local/etc/raddb/certs"
+   	pem_file_type = yes
+   	private_key_file = "/usr/local/etc/raddb/certs/server.pem"
+   	certificate_file = "/usr/local/etc/raddb/certs/server.pem"
+   	ca_file = "/usr/local/etc/raddb/certs/ca.pem"
+   	private_key_password = <<< secret >>>
+   	fragment_size = 1024
+   	include_length = yes
+   	auto_chain = yes
+   	check_crl = no
+   	check_all_crl = no
+   	ca_path_reload_interval = 0
+   	cipher_list = "DEFAULT"
+   	cipher_server_preference = no
+   	reject_unknown_intermediate_ca = no
+   	ecdh_curve = ""
+   	tls_max_version = "1.2"
+   	tls_min_version = "1.2"
+    cache {
+    	enable = no
+    	lifetime = 24
+    	max_entries = 255
+    }
+    verify {
+    	skip_if_ocsp_ok = no
+    }
+    ocsp {
+    	enable = no
+    	override_cert_url = yes
+    	url = "http://127.0.0.1/ocsp/"
+    	use_nonce = yes
+    	timeout = 0
+    	softfail = no
+    }
+   }
+   # Linked to sub-module rlm_eap_ttls
+   ttls {
+   	tls = "tls-common"
+   	default_eap_type = "md5"
+   	copy_request_to_tunnel = no
+   	use_tunneled_reply = no
+   	virtual_server = "inner-tunnel"
+   	include_length = yes
+   	require_client_cert = no
+   }
+tls: Using cached TLS configuration from previous invocation
+   # Linked to sub-module rlm_eap_peap
+   peap {
+   	tls = "tls-common"
+   	default_eap_type = "mschapv2"
+   	copy_request_to_tunnel = no
+   	use_tunneled_reply = no
+   	proxy_tunneled_request_as_eap = yes
+   	virtual_server = "inner-tunnel"
+   	soh = no
+   	require_client_cert = no
+   }
+tls: Using cached TLS configuration from previous invocation
+   # Linked to sub-module rlm_eap_mschapv2
+   mschapv2 {
+   	with_ntdomain_hack = no
+   	send_error = no
+   }
+   # Linked to sub-module rlm_eap_edhoc
+   edhoc {
+   	creds = "/usr/local/etc/edhoc/server.creds"
+   	peer_pub = "/usr/local/etc/edhoc/ue.pub"
+   }
+rlm_eap_edhoc: loaded method-4 SIGMA XWING credentials
+  # Instantiating module "attr_filter.post-proxy" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/post-proxy
+  # Instantiating module "attr_filter.pre-proxy" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/pre-proxy
+  # Instantiating module "attr_filter.access_reject" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/access_reject
+  # Instantiating module "attr_filter.access_challenge" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/access_challenge
+  # Instantiating module "attr_filter.accounting_response" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/accounting_response
+  # Instantiating module "attr_filter.coa" from file /usr/local/etc/raddb/mods-enabled/attr_filter
+reading pairlist file /usr/local/etc/raddb/mods-config/attr_filter/coa
+  # Instantiating module "pap" from file /usr/local/etc/raddb/mods-enabled/pap
+  # Instantiating module "reject" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "fail" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "ok" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "handled" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "invalid" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "userlock" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "notfound" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "noop" from file /usr/local/etc/raddb/mods-enabled/always
+  # Instantiating module "updated" from file /usr/local/etc/raddb/mods-enabled/always
+ } # modules
+radiusd: #### Loading Virtual Servers ####
+server { # from file /usr/local/etc/raddb/radiusd.conf
+} # server
+server inner-tunnel { # from file /usr/local/etc/raddb/sites-enabled/inner-tunnel
+ # Loading authenticate {...}
+Compiling Auth-Type PAP for attr Auth-Type
+Compiling Auth-Type CHAP for attr Auth-Type
+Compiling Auth-Type MS-CHAP for attr Auth-Type
+ # Loading authorize {...}
+Ignoring "sql" (see raddb/mods-available/README.rst)
+Ignoring "ldap" (see raddb/mods-available/README.rst)
+ # Loading session {...}
+ # Loading post-proxy {...}
+ # Loading post-auth {...}
+ # Skipping contents of 'if' as it is always 'false' -- /usr/local/etc/raddb/sites-enabled/inner-tunnel:366
+Compiling Post-Auth-Type REJECT for attr Post-Auth-Type
+} # server inner-tunnel
+server default { # from file /usr/local/etc/raddb/sites-enabled/default
+ # Loading authenticate {...}
+Compiling Auth-Type PAP for attr Auth-Type
+Compiling Auth-Type CHAP for attr Auth-Type
+Compiling Auth-Type MS-CHAP for attr Auth-Type
+ # Loading authorize {...}
+Compiling Autz-Type New-TLS-Connection for attr Autz-Type
+ # Loading preacct {...}
+ # Loading accounting {...}
+ # Loading post-proxy {...}
+ # Loading post-auth {...}
+Compiling Post-Auth-Type REJECT for attr Post-Auth-Type
+Compiling Post-Auth-Type Challenge for attr Post-Auth-Type
+Compiling Post-Auth-Type Client-Lost for attr Post-Auth-Type
+} # server default
+radiusd: #### Opening IP addresses and Ports ####
+listen {
+  	type = "auth"
+  	ipaddr = 127.0.0.1
+  	port = 18120
+}
+listen {
+  	type = "auth"
+  	ipaddr = *
+  	port = 0
+   limit {
+   	max_connections = 16
+   	lifetime = 0
+   	idle_timeout = 30
+   }
+}
+listen {
+  	type = "acct"
+  	ipaddr = *
+  	port = 0
+   limit {
+   	max_connections = 16
+   	lifetime = 0
+   	idle_timeout = 30
+   }
+}
+listen {
+  	type = "auth"
+  	ipv6addr = ::
+  	port = 0
+   limit {
+   	max_connections = 16
+   	lifetime = 0
+   	idle_timeout = 30
+   }
+}
+listen {
+  	type = "acct"
+  	ipv6addr = ::
+  	port = 0
+   limit {
+   	max_connections = 16
+   	lifetime = 0
+   	idle_timeout = 30
+   }
+}
+Listening on auth address 127.0.0.1 port 18120 bound to server inner-tunnel
+Listening on auth address * port 1812 bound to server default
+Listening on acct address * port 1813 bound to server default
+Listening on auth address :: port 1812 bound to server default
+Listening on acct address :: port 1813 bound to server default
+Listening on proxy address * port 45655
+Listening on proxy address :: port 35873
+Ready to process requests
+(0) Received Access-Request Id 1 from 127.0.0.1:47067 to 127.0.0.1:1812 length 1081
+(0)   User-Name = "imsi-999700000000001"
+(0)   Attr-6 = 0x0002
+(0)   Attr-61 = 0x0005
+(0)   EAP-Message = 0x020103ed38c0093242112c3ddb64a4828b5c10d550d1446e9c8b00ca97da3a60ec025b554faf0acc01958f392a1f171c287e160d85fdcd244729d6e196d1af86c4fc58ebcea509c0b3d312bfa6143d886578ea27f222ab7d124ee048663425f5927ee3d73b4453ac4b6081bdd9142968f543d6534627bfd158d4180f53425909b03fe1a08e5f4b7df03685413c028ed4d7469aa4b2ff6a783b41ec0b00f43566ead096200706d50e1421b9e7c49ecd08eca11da8307852eb049c126382ec01e8c988a6f2216956aaba3a7530ce36f165de11d5104e47dfb15e75dc3524082dd508491fc3d99a3246b0cc90395ceca28e45d73b66a0f0549a1f46121a71b742701f377dce4de00d441c1adae3177740c640911608c6fb43c5611da0f03db1f7dc55ea8b52e18c65b4b98e52f3a5c31d3f2aaee78bb00eee8355e3337281b0450c789c9f99c4d50b57f026ca7423b3ee2c32f3904715df11279cea0489408ab613845f171329647fcad277e6b21d74291fb7e87d56a904eb
+(0)   Message-Authenticator = 0x96f72681c71a0c994dea506498e8f85a
+(0) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(0)   authorize {
+(0)     policy filter_username {
+(0)       if (&User-Name) {
+(0)       if (&User-Name)  -> TRUE
+(0)       if (&User-Name)  {
+(0)         if (&User-Name =~ / /) {
+(0)         if (&User-Name =~ / /)  -> FALSE
+(0)         if (&User-Name =~ /@[^@]*@/ ) {
+(0)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(0)         if (&User-Name =~ /\.\./ ) {
+(0)         if (&User-Name =~ /\.\./ )  -> FALSE
+(0)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(0)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(0)         if (&User-Name =~ /\.$/)  {
+(0)         if (&User-Name =~ /\.$/)   -> FALSE
+(0)         if (&User-Name =~ /@\./)  {
+(0)         if (&User-Name =~ /@\./)   -> FALSE
+(0)       } # if (&User-Name)  = notfound
+(0)     } # policy filter_username = notfound
+(0)     [preprocess] = ok
+(0)     [chap] = noop
+(0)     [mschap] = noop
+(0)     [digest] = noop
+(0) suffix: Checking for suffix after "@"
+(0) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(0) suffix: No such realm "NULL"
+(0)     [suffix] = noop
+(0) eap: Peer sent EAP Response (code 2) ID 1 length 1005
+(0) eap: No EAP Start, assuming it's an on-going EAP conversation
+(0)     [eap] = updated
+(0)     [files] = noop
+(0)     [expiration] = noop
+(0)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(0)     [pap] = noop
+(0)   } # authorize = updated
+(0) Found Auth-Type = eap
+(0) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(0)   authenticate {
+(0) eap: ERROR: EAP requires the State attribute to work, but no State exists in the Access-Request packet.
+(0) eap: ERROR: The RADIUS client is broken.  No amount of changing FreeRADIUS will fix the RADIUS client.
+(0) eap: Either EAP-request timed out OR EAP-response to an unknown EAP-request
+(0) eap: Failed in handler
+(0)     [eap] = invalid
+(0)   } # authenticate = invalid
+(0) Failed to authenticate the user
+(0) Using Post-Auth-Type Reject
+(0) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(0)   Post-Auth-Type REJECT {
+(0) attr_filter.access_reject: EXPAND %{User-Name}
+(0) attr_filter.access_reject:    --> imsi-999700000000001
+(0) attr_filter.access_reject: Matched entry DEFAULT at line 11
+(0)     [attr_filter.access_reject] = updated
+(0) eap: ERROR: EAP requires the State attribute to work, but no State exists in the Access-Request packet.
+(0) eap: ERROR: The RADIUS client is broken.  No amount of changing FreeRADIUS will fix the RADIUS client.
+(0) eap: Either EAP-request timed out OR EAP-response to an unknown EAP-request
+(0) eap: Failed to get handler, probably already removed, not inserting EAP-Failure
+(0)     [eap] = noop
+(0)     policy remove_reply_message_if_eap {
+(0)       if (&reply:EAP-Message && &reply:Reply-Message) {
+(0)       if (&reply:EAP-Message && &reply:Reply-Message)  -> FALSE
+(0)       else {
+(0)         [noop] = noop
+(0)       } # else = noop
+(0)     } # policy remove_reply_message_if_eap = noop
+(0)   } # Post-Auth-Type REJECT = updated
+(0) Delaying response for 1.000000 seconds
+Waking up in 0.3 seconds.
+Waking up in 0.6 seconds.
+(0) Sending delayed response
+(0) Sent Access-Reject Id 1 from 127.0.0.1:1812 to 127.0.0.1:47067 length 38
+Waking up in 3.9 seconds.
+(0) Cleaning up request packet ID 1 with timestamp +61395 due to cleanup_delay was reached
+Ready to process requests
+(1) Received Access-Request Id 2 from 127.0.0.1:50978 to 127.0.0.1:1812 length 95
+(1)   User-Name = "imsi-999700000000001"
+(1)   Attr-6 = 0x0002
+(1)   Attr-61 = 0x0005
+(1)   EAP-Message = 0x0201001901696d73692d393939373030303030303030303031
+(1)   Message-Authenticator = 0x579913f8e700f9b3aada25ddb2963d53
+(1) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(1)   authorize {
+(1)     policy filter_username {
+(1)       if (&User-Name) {
+(1)       if (&User-Name)  -> TRUE
+(1)       if (&User-Name)  {
+(1)         if (&User-Name =~ / /) {
+(1)         if (&User-Name =~ / /)  -> FALSE
+(1)         if (&User-Name =~ /@[^@]*@/ ) {
+(1)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(1)         if (&User-Name =~ /\.\./ ) {
+(1)         if (&User-Name =~ /\.\./ )  -> FALSE
+(1)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(1)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(1)         if (&User-Name =~ /\.$/)  {
+(1)         if (&User-Name =~ /\.$/)   -> FALSE
+(1)         if (&User-Name =~ /@\./)  {
+(1)         if (&User-Name =~ /@\./)   -> FALSE
+(1)       } # if (&User-Name)  = notfound
+(1)     } # policy filter_username = notfound
+(1)     [preprocess] = ok
+(1)     [chap] = noop
+(1)     [mschap] = noop
+(1)     [digest] = noop
+(1) suffix: Checking for suffix after "@"
+(1) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(1) suffix: No such realm "NULL"
+(1)     [suffix] = noop
+(1) eap: Peer sent EAP Response (code 2) ID 1 length 25
+(1) eap: EAP-Identity reply, returning 'ok' so we can short-circuit the rest of authorize
+(1)     [eap] = ok
+(1)   } # authorize = ok
+(1) Found Auth-Type = eap
+(1) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(1)   authenticate {
+(1) eap: Peer sent packet with method EAP Identity (1)
+(1) eap: Calling submodule eap_edhoc to process data
+(1) eap: Sending EAP Request (code 1) ID 2 length 6
+(1) eap: EAP session adding &reply:State = 0x9ae522c99ae71ac8
+(1)     [eap] = handled
+(1)   } # authenticate = handled
+(1) Using Post-Auth-Type Challenge
+(1) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(1)   Challenge { ... } # empty sub-section is ignored
+(1) Sent Access-Challenge Id 2 from 127.0.0.1:1812 to 127.0.0.1:50978 length 64
+(1)   EAP-Message = 0x010200063801
+(1)   Message-Authenticator = 0x00000000000000000000000000000000
+(1)   State = 0x9ae522c99ae71ac824a7207121d060a6
+(1) Finished request
+Waking up in 4.9 seconds.
+(2) Received Access-Request Id 3 from 127.0.0.1:58396 to 127.0.0.1:1812 length 1099
+(2)   User-Name = "imsi-999700000000001"
+(2)   Attr-6 = 0x0002
+(2)   Attr-61 = 0x0005
+(2)   State = 0x9ae522c99ae71ac824a7207121d060a6
+(2)   EAP-Message = 0x020203ed38c009322c1c228f337cc0e7efdb363ab8e9992a808e99462f0464b0e28a0d63528aa830823c14c2dfc98826403744db0a0462e982835bf4cb3b8b4debc3a18b5c9c689d2929670817fd36540a09e13fef9a7f2ec06ad4ae330b705d4aa7090ced6f1244b9ae347d91c58ad6f4fd0aafd7261fe7fd7b7caf2d3beece7a4c8dcfc912d119ce847fb7349e1d0eedc7d7250d6d5820123010b7dee545abbe743a0af3770d561676217af3af9708bccdfe392f146dcde990aaf824f239529f69c14bd98d3c95977a68ed22767d5546367467dc1f9c1dc7db3f0c4c8b2007bd7bf61540a050097409092d609eca8b41a2fcd63a840ada4f0bb2fa7e1d9e892f6ca41a2ab202c4f4aa9601de4d3c2c0ce4fe42494a87369e3cabe978b651d35c9a7ff27cdbe039cebdc029fb9b07de6daa18f78e20a1a0c596c7992ce7c1636c4b9d267410e980bdf4ab2c58c5e94e6179ff5f127762037f97733c6e195d6283d97eabf31106325cf0be558ab3d7bde7be7dfc6dbeff
+(2)   Message-Authenticator = 0xb7290f67c300251b3786033d5e647fa2
+(2) session-state: No cached attributes
+(2) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(2)   authorize {
+(2)     policy filter_username {
+(2)       if (&User-Name) {
+(2)       if (&User-Name)  -> TRUE
+(2)       if (&User-Name)  {
+(2)         if (&User-Name =~ / /) {
+(2)         if (&User-Name =~ / /)  -> FALSE
+(2)         if (&User-Name =~ /@[^@]*@/ ) {
+(2)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(2)         if (&User-Name =~ /\.\./ ) {
+(2)         if (&User-Name =~ /\.\./ )  -> FALSE
+(2)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(2)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(2)         if (&User-Name =~ /\.$/)  {
+(2)         if (&User-Name =~ /\.$/)   -> FALSE
+(2)         if (&User-Name =~ /@\./)  {
+(2)         if (&User-Name =~ /@\./)   -> FALSE
+(2)       } # if (&User-Name)  = notfound
+(2)     } # policy filter_username = notfound
+(2)     [preprocess] = ok
+(2)     [chap] = noop
+(2)     [mschap] = noop
+(2)     [digest] = noop
+(2) suffix: Checking for suffix after "@"
+(2) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(2) suffix: No such realm "NULL"
+(2)     [suffix] = noop
+(2) eap: Peer sent EAP Response (code 2) ID 2 length 1005
+(2) eap: No EAP Start, assuming it's an on-going EAP conversation
+(2)     [eap] = updated
+(2)     [files] = noop
+(2)     [expiration] = noop
+(2)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(2)     [pap] = noop
+(2)   } # authorize = updated
+(2) Found Auth-Type = eap
+(2) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(2)   authenticate {
+(2) eap: Removing EAP session with state 0x9ae522c99ae71ac8
+(2) eap: Previous EAP request found for state 0x9ae522c99ae71ac8, released from the list
+(2) eap: Peer sent packet with method EAP EDHOC (56)
+(2) eap: Calling submodule eap_edhoc to process data
+(2) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (997 bytes buffered)
+(2) eap: Sending EAP Request (code 1) ID 3 length 6
+(2) eap: EAP session adding &reply:State = 0x9ae522c99be61ac8
+(2)     [eap] = handled
+(2)   } # authenticate = handled
+(2) Using Post-Auth-Type Challenge
+(2) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(2)   Challenge { ... } # empty sub-section is ignored
+(2) Sent Access-Challenge Id 3 from 127.0.0.1:1812 to 127.0.0.1:58396 length 64
+(2)   EAP-Message = 0x010300063800
+(2)   Message-Authenticator = 0x00000000000000000000000000000000
+(2)   State = 0x9ae522c99be61ac824a7207121d060a6
+(2) Finished request
+Waking up in 4.9 seconds.
+(3) Received Access-Request Id 4 from 127.0.0.1:54060 to 127.0.0.1:1812 length 1099
+(3)   User-Name = "imsi-999700000000001"
+(3)   Attr-6 = 0x0002
+(3)   Attr-61 = 0x0005
+(3)   State = 0x9ae522c99be61ac824a7207121d060a6
+(3)   EAP-Message = 0x020303ed3840a7e134704944f83b7ad0d8338234a84575b28292d6647c5d89c844ab96f5959784c8750d49e3766cab90b31f3e25347fc28762ebb0fcd8df772b5d047c9b20950bd1553af8c73cdf43340d7a6b0ce96e6cd9cfb661a0433f018d18e58748785f984d3c3c5a8631808ccf40a56fc68f5ced88427567401860b16142dc048c53e7681b726509ca32cb9398147796b126602507b932788cbee899418572e71c71faf900a4a23030222237855b2fe58ed4959025ba2eca5804b7527a31b603bf57281180c3dc1490ee48ca6830071181282fa453a33866ec308a6a56135f8b6212f10096398f0ac36d7de8adeeac65d3392e72982f18b32f2756908b02258550850ca70ea4d3871db738a49117a41cc5f6838cd423048bc9aaf0e885738906f08a13e5717ff9aa6379e8978047b26716355377947fd459c6474fd26858d5d82da2b33926f4cf8390702707c8f0076a7f17ba08b0baa1b48945e48db96cc3a892896e4b114eb156a3863eda967d220830dae452
+(3)   Message-Authenticator = 0x548ca1ea1c1da5e01187f37baa7145a9
+(3) session-state: No cached attributes
+(3) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(3)   authorize {
+(3)     policy filter_username {
+(3)       if (&User-Name) {
+(3)       if (&User-Name)  -> TRUE
+(3)       if (&User-Name)  {
+(3)         if (&User-Name =~ / /) {
+(3)         if (&User-Name =~ / /)  -> FALSE
+(3)         if (&User-Name =~ /@[^@]*@/ ) {
+(3)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(3)         if (&User-Name =~ /\.\./ ) {
+(3)         if (&User-Name =~ /\.\./ )  -> FALSE
+(3)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(3)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(3)         if (&User-Name =~ /\.$/)  {
+(3)         if (&User-Name =~ /\.$/)   -> FALSE
+(3)         if (&User-Name =~ /@\./)  {
+(3)         if (&User-Name =~ /@\./)   -> FALSE
+(3)       } # if (&User-Name)  = notfound
+(3)     } # policy filter_username = notfound
+(3)     [preprocess] = ok
+(3)     [chap] = noop
+(3)     [mschap] = noop
+(3)     [digest] = noop
+(3) suffix: Checking for suffix after "@"
+(3) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(3) suffix: No such realm "NULL"
+(3)     [suffix] = noop
+(3) eap: Peer sent EAP Response (code 2) ID 3 length 1005
+(3) eap: No EAP Start, assuming it's an on-going EAP conversation
+(3)     [eap] = updated
+(3)     [files] = noop
+(3)     [expiration] = noop
+(3)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(3)     [pap] = noop
+(3)   } # authorize = updated
+(3) Found Auth-Type = eap
+(3) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(3)   authenticate {
+(3) eap: Removing EAP session with state 0x9ae522c99be61ac8
+(3) eap: Previous EAP request found for state 0x9ae522c99be61ac8, released from the list
+(3) eap: Peer sent packet with method EAP EDHOC (56)
+(3) eap: Calling submodule eap_edhoc to process data
+(3) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (1996 bytes buffered)
+(3) eap: Sending EAP Request (code 1) ID 4 length 6
+(3) eap: EAP session adding &reply:State = 0x9ae522c998e11ac8
+(3)     [eap] = handled
+(3)   } # authenticate = handled
+(3) Using Post-Auth-Type Challenge
+(3) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(3)   Challenge { ... } # empty sub-section is ignored
+(3) Sent Access-Challenge Id 4 from 127.0.0.1:1812 to 127.0.0.1:54060 length 64
+(3)   EAP-Message = 0x010400063800
+(3)   Message-Authenticator = 0x00000000000000000000000000000000
+(3)   State = 0x9ae522c998e11ac824a7207121d060a6
+(3) Finished request
+Waking up in 4.9 seconds.
+(4) Received Access-Request Id 5 from 127.0.0.1:51582 to 127.0.0.1:1812 length 454
+(4)   User-Name = "imsi-999700000000001"
+(4)   Attr-6 = 0x0002
+(4)   Attr-61 = 0x0005
+(4)   State = 0x9ae522c998e11ac824a7207121d060a6
+(4)   EAP-Message = 0x0204016c38009a1093ae727c60918125ba91b710799b22c43983030554917cd438a7b93d80bc572ea8681ac3989662198b0c7b36f5a2e5c10e48910e8be986d556b4a7721e9198097d9105f7d46874eac4ff44b942c6c3e356547ef3958223aea2991fe80c61a40086631c2b3ec883752baeb9b8171ae003a6357afb6650fd0982f8245058e52719032435c5a8a3025ad61a622eb22e2b5102658cc501e8118625cee4b9225ea09d39c42b5d308889444ae13c8991b59ec9eba50bf63b2e92bfb079b1a682767e4b1da735621706be975cb91a337f0e66a90e665248087d44d0c63d8ba146788bd027c9ae205c6fb9508068952cba0c270b9ba3cb60bc30b192280e691c15b43892972441da13982e4c00ed250051e85859193e5e8e3ead46dac700104cc234f4644b8e4d7c6ff557121f2ef60c5abcec942c41be074a69d4815de29e3009390490f7ba8acbfbe2f6653beabad376a4bedc096286605df749fc340c7b6c1a372c68dd0a400b
+(4)   Message-Authenticator = 0xd98ddf0ede451106532b43f11b44a12a
+(4) session-state: No cached attributes
+(4) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(4)   authorize {
+(4)     policy filter_username {
+(4)       if (&User-Name) {
+(4)       if (&User-Name)  -> TRUE
+(4)       if (&User-Name)  {
+(4)         if (&User-Name =~ / /) {
+(4)         if (&User-Name =~ / /)  -> FALSE
+(4)         if (&User-Name =~ /@[^@]*@/ ) {
+(4)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(4)         if (&User-Name =~ /\.\./ ) {
+(4)         if (&User-Name =~ /\.\./ )  -> FALSE
+(4)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(4)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(4)         if (&User-Name =~ /\.$/)  {
+(4)         if (&User-Name =~ /\.$/)   -> FALSE
+(4)         if (&User-Name =~ /@\./)  {
+(4)         if (&User-Name =~ /@\./)   -> FALSE
+(4)       } # if (&User-Name)  = notfound
+(4)     } # policy filter_username = notfound
+(4)     [preprocess] = ok
+(4)     [chap] = noop
+(4)     [mschap] = noop
+(4)     [digest] = noop
+(4) suffix: Checking for suffix after "@"
+(4) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(4) suffix: No such realm "NULL"
+(4)     [suffix] = noop
+(4) eap: Peer sent EAP Response (code 2) ID 4 length 364
+(4) eap: No EAP Start, assuming it's an on-going EAP conversation
+(4)     [eap] = updated
+(4)     [files] = noop
+(4)     [expiration] = noop
+(4)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(4)     [pap] = noop
+(4)   } # authorize = updated
+(4) Found Auth-Type = eap
+(4) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(4)   authenticate {
+(4) eap: Removing EAP session with state 0x9ae522c998e11ac8
+(4) eap: Previous EAP request found for state 0x9ae522c998e11ac8, released from the list
+(4) eap: Peer sent packet with method EAP EDHOC (56)
+(4) eap: Calling submodule eap_edhoc to process data
+(4) eap_edhoc: rlm_eap_edhoc: sent message_2 (6000 bytes)
+(4) eap: Sending EAP Request (code 1) ID 5 length 1005
+(4) eap: EAP session adding &reply:State = 0x9ae522c999e01ac8
+(4)     [eap] = handled
+(4)   } # authenticate = handled
+(4) Using Post-Auth-Type Challenge
+(4) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(4)   Challenge { ... } # empty sub-section is ignored
+(4) Sent Access-Challenge Id 5 from 127.0.0.1:1812 to 127.0.0.1:51582 length 1069
+(4)   EAP-Message = 0x010503ed38c017709f56f7b3c462f42f8882417893a1960bf4f5a874c614c32123f5fb95c728f2045f4d2baec1392f4ec3c1038f15fdcc5dd00158818068f488765ab8b974113471af9eb17852283239f9e34223b2172c095687992cb04ea835e8cf55a1c54744edff17351e46287f5097def8a9bbea2a23a62842139b75729200f61d2025dfec7d10985c835b9f9b5a5356c14bf2683f296d4852fe985da6c5654613495f0b2cdbba592d0945855fa8da67aa81d61ed2c3b5a45c7abd341483a974b010afb49fc217fdfaff2bd66032f8e15ebcb1a83e4c173ed3633939f5102b2103881ccd455c13da7e5c0d15a7edf767091b81136782f53068c8ee6777511c8957db0fa897eeacb0196bddec9b623d9a4130e876ec21292229b0916a9e6fa9cc1d8226315518a1f2062cf51fac77edd5024e4ca5aadc76542aa507871fa9b66f6807a07da90bb3c264b3ff3edc293182f8c576b39e743b17b41acd36231661a6fbbc1b24bb86b893118898452b49a95fadb416e831
+(4)   Message-Authenticator = 0x00000000000000000000000000000000
+(4)   State = 0x9ae522c999e01ac824a7207121d060a6
+(4) Finished request
+Waking up in 4.9 seconds.
+(5) Received Access-Request Id 6 from 127.0.0.1:55481 to 127.0.0.1:1812 length 94
+(5)   User-Name = "imsi-999700000000001"
+(5)   Attr-6 = 0x0002
+(5)   Attr-61 = 0x0005
+(5)   State = 0x9ae522c999e01ac824a7207121d060a6
+(5)   EAP-Message = 0x020500063800
+(5)   Message-Authenticator = 0xee0eba26dbacebaeb94db079501b1359
+(5) session-state: No cached attributes
+(5) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(5)   authorize {
+(5)     policy filter_username {
+(5)       if (&User-Name) {
+(5)       if (&User-Name)  -> TRUE
+(5)       if (&User-Name)  {
+(5)         if (&User-Name =~ / /) {
+(5)         if (&User-Name =~ / /)  -> FALSE
+(5)         if (&User-Name =~ /@[^@]*@/ ) {
+(5)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(5)         if (&User-Name =~ /\.\./ ) {
+(5)         if (&User-Name =~ /\.\./ )  -> FALSE
+(5)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(5)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(5)         if (&User-Name =~ /\.$/)  {
+(5)         if (&User-Name =~ /\.$/)   -> FALSE
+(5)         if (&User-Name =~ /@\./)  {
+(5)         if (&User-Name =~ /@\./)   -> FALSE
+(5)       } # if (&User-Name)  = notfound
+(5)     } # policy filter_username = notfound
+(5)     [preprocess] = ok
+(5)     [chap] = noop
+(5)     [mschap] = noop
+(5)     [digest] = noop
+(5) suffix: Checking for suffix after "@"
+(5) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(5) suffix: No such realm "NULL"
+(5)     [suffix] = noop
+(5) eap: Peer sent EAP Response (code 2) ID 5 length 6
+(5) eap: No EAP Start, assuming it's an on-going EAP conversation
+(5)     [eap] = updated
+(5)     [files] = noop
+(5)     [expiration] = noop
+(5)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(5)     [pap] = noop
+(5)   } # authorize = updated
+(5) Found Auth-Type = eap
+(5) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(5)   authenticate {
+(5) eap: Removing EAP session with state 0x9ae522c999e01ac8
+(5) eap: Previous EAP request found for state 0x9ae522c999e01ac8, released from the list
+(5) eap: Peer sent packet with method EAP EDHOC (56)
+(5) eap: Calling submodule eap_edhoc to process data
+(5) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (4004 bytes remaining)
+(5) eap: Sending EAP Request (code 1) ID 6 length 1005
+(5) eap: EAP session adding &reply:State = 0x9ae522c99ee31ac8
+(5)     [eap] = handled
+(5)   } # authenticate = handled
+(5) Using Post-Auth-Type Challenge
+(5) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(5)   Challenge { ... } # empty sub-section is ignored
+(5) Sent Access-Challenge Id 6 from 127.0.0.1:1812 to 127.0.0.1:55481 length 1069
+(5)   EAP-Message = 0x010603ed38402c009e7af228c76dadbddf93e28e4a60c2c9f08894fbd8142742c48688eaa63f585c622885b2cc2ec6f3306643b1aa24bd2f521f64fe6e9dd746748abd56246cd1f9d52e63c2f759ba42ca42fda2028156fa9fe8de1c4b65eb92f09af49ca58e6cfaca8d45e01e2a9a25c0a0259ad8c08dcf75d86232ea9450065c0953bae02c5560c60fdf89be5b78156e09ec80ac0896be3b6c364cf9c43a17644a1aae4eeb70ed3459e99e92f5b36ed62e8adc41083077b70f36970e2b398c76cc22d0b2521ad19a1c011ddf49e72558819808248eea05672e8c9d31654d268464cb6d68f12d96a1bd3896430f7cfde1fa07351647d9478c1aefc481bf9b847852ed1434297e1beaf8207a9964d12f7753e66fbc7370d0f49bff21c2f6d0e30b7c232415c682709cb5f9af1a2a68e24ab2ab1a07a1661534c6b8634f45a5835e871e1bbfeb613280046beb610241c6f572e41309f0a58d9ad2fd1a6772dbb996061da6a4518e1f837074b12cea02d31a8acd7ebff767
+(5)   Message-Authenticator = 0x00000000000000000000000000000000
+(5)   State = 0x9ae522c99ee31ac824a7207121d060a6
+(5) Finished request
+Waking up in 4.9 seconds.
+(6) Received Access-Request Id 7 from 127.0.0.1:43561 to 127.0.0.1:1812 length 94
+(6)   User-Name = "imsi-999700000000001"
+(6)   Attr-6 = 0x0002
+(6)   Attr-61 = 0x0005
+(6)   State = 0x9ae522c99ee31ac824a7207121d060a6
+(6)   EAP-Message = 0x020600063800
+(6)   Message-Authenticator = 0x4632b160f58c1106f45680663813f726
+(6) session-state: No cached attributes
+(6) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(6)   authorize {
+(6)     policy filter_username {
+(6)       if (&User-Name) {
+(6)       if (&User-Name)  -> TRUE
+(6)       if (&User-Name)  {
+(6)         if (&User-Name =~ / /) {
+(6)         if (&User-Name =~ / /)  -> FALSE
+(6)         if (&User-Name =~ /@[^@]*@/ ) {
+(6)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(6)         if (&User-Name =~ /\.\./ ) {
+(6)         if (&User-Name =~ /\.\./ )  -> FALSE
+(6)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(6)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(6)         if (&User-Name =~ /\.$/)  {
+(6)         if (&User-Name =~ /\.$/)   -> FALSE
+(6)         if (&User-Name =~ /@\./)  {
+(6)         if (&User-Name =~ /@\./)   -> FALSE
+(6)       } # if (&User-Name)  = notfound
+(6)     } # policy filter_username = notfound
+(6)     [preprocess] = ok
+(6)     [chap] = noop
+(6)     [mschap] = noop
+(6)     [digest] = noop
+(6) suffix: Checking for suffix after "@"
+(6) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(6) suffix: No such realm "NULL"
+(6)     [suffix] = noop
+(6) eap: Peer sent EAP Response (code 2) ID 6 length 6
+(6) eap: No EAP Start, assuming it's an on-going EAP conversation
+(6)     [eap] = updated
+(6)     [files] = noop
+(6)     [expiration] = noop
+(6)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(6)     [pap] = noop
+(6)   } # authorize = updated
+(6) Found Auth-Type = eap
+(6) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(6)   authenticate {
+(6) eap: Removing EAP session with state 0x9ae522c99ee31ac8
+(6) eap: Previous EAP request found for state 0x9ae522c99ee31ac8, released from the list
+(6) eap: Peer sent packet with method EAP EDHOC (56)
+(6) eap: Calling submodule eap_edhoc to process data
+(6) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (3005 bytes remaining)
+(6) eap: Sending EAP Request (code 1) ID 7 length 1005
+(6) eap: EAP session adding &reply:State = 0x9ae522c99fe21ac8
+(6)     [eap] = handled
+(6)   } # authenticate = handled
+(6) Using Post-Auth-Type Challenge
+(6) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(6)   Challenge { ... } # empty sub-section is ignored
+(6) Sent Access-Challenge Id 7 from 127.0.0.1:1812 to 127.0.0.1:43561 length 1069
+(6)   EAP-Message = 0x010703ed3840584bbba9da4a07dfbd8759b790ab47ce76aab4f1783911a2ef5378cbdd7d0849168370199ddbfaa865acec1b8b941ac7bc48257c7d39c5b6f8eb9c0a2f49b00dc971d8cfa527f0f18166fb66abfed060ae2e1677be30c03cbe8d02d22386519a558b005315071d5f1754f2f52287d5b9da494965b4e40e575831183112ee38c9eb168281516182cc92ec7ffb459f2685746d1eab146e232dbaf3067565c75645b008a1bd1174f197a9e7ec08fa1edd31411f992522b1b006044be631c2eb7c64c77d54c5209d26b04f6ffd2ef2396ac402434f9afe7a1e5cc58148d9c0db19dd9b7ef914aa247b1cae80cbbfffa884463f2c260168cc81d041df0867e1593c0a7e3b3fe01dd404b89caec6e8c9afbd481892637b0a2c13bde21c0b462374ff812c89c985b86ea61cc598bc38ab546589b84097f545bcef5d7ad211f760174688e3cb3ffa9a541e4bf3c4a30c66bf482419e0adc3140964bf23de654e3642336ea6bed5cd12736f89ebcb90ce4ab38a9c08
+(6)   Message-Authenticator = 0x00000000000000000000000000000000
+(6)   State = 0x9ae522c99fe21ac824a7207121d060a6
+(6) Finished request
+Waking up in 4.9 seconds.
+(7) Received Access-Request Id 8 from 127.0.0.1:46804 to 127.0.0.1:1812 length 94
+(7)   User-Name = "imsi-999700000000001"
+(7)   Attr-6 = 0x0002
+(7)   Attr-61 = 0x0005
+(7)   State = 0x9ae522c99fe21ac824a7207121d060a6
+(7)   EAP-Message = 0x020700063800
+(7)   Message-Authenticator = 0xf2ee3c3d9a6195d9755404ae933fece4
+(7) session-state: No cached attributes
+(7) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(7)   authorize {
+(7)     policy filter_username {
+(7)       if (&User-Name) {
+(7)       if (&User-Name)  -> TRUE
+(7)       if (&User-Name)  {
+(7)         if (&User-Name =~ / /) {
+(7)         if (&User-Name =~ / /)  -> FALSE
+(7)         if (&User-Name =~ /@[^@]*@/ ) {
+(7)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(7)         if (&User-Name =~ /\.\./ ) {
+(7)         if (&User-Name =~ /\.\./ )  -> FALSE
+(7)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(7)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(7)         if (&User-Name =~ /\.$/)  {
+(7)         if (&User-Name =~ /\.$/)   -> FALSE
+(7)         if (&User-Name =~ /@\./)  {
+(7)         if (&User-Name =~ /@\./)   -> FALSE
+(7)       } # if (&User-Name)  = notfound
+(7)     } # policy filter_username = notfound
+(7)     [preprocess] = ok
+(7)     [chap] = noop
+(7)     [mschap] = noop
+(7)     [digest] = noop
+(7) suffix: Checking for suffix after "@"
+(7) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(7) suffix: No such realm "NULL"
+(7)     [suffix] = noop
+(7) eap: Peer sent EAP Response (code 2) ID 7 length 6
+(7) eap: No EAP Start, assuming it's an on-going EAP conversation
+(7)     [eap] = updated
+(7)     [files] = noop
+(7)     [expiration] = noop
+(7)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(7)     [pap] = noop
+(7)   } # authorize = updated
+(7) Found Auth-Type = eap
+(7) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(7)   authenticate {
+(7) eap: Removing EAP session with state 0x9ae522c99fe21ac8
+(7) eap: Previous EAP request found for state 0x9ae522c99fe21ac8, released from the list
+(7) eap: Peer sent packet with method EAP EDHOC (56)
+(7) eap: Calling submodule eap_edhoc to process data
+(7) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (2006 bytes remaining)
+(7) eap: Sending EAP Request (code 1) ID 8 length 1005
+(7) eap: EAP session adding &reply:State = 0x9ae522c99ced1ac8
+(7)     [eap] = handled
+(7)   } # authenticate = handled
+(7) Using Post-Auth-Type Challenge
+(7) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(7)   Challenge { ... } # empty sub-section is ignored
+(7) Sent Access-Challenge Id 8 from 127.0.0.1:1812 to 127.0.0.1:46804 length 1069
+(7)   EAP-Message = 0x010803ed384069741bf7bee3cbba4968ab9716943bd486b358fe2aa58fe2bd0f0b1dece9b1328a2a4fe54e64b5db954e97a4b42db7f0d1ce8d032040ccf8ecd8a31e0f9dd49863696e659f7c3c7951811ad22ca42e08d95a047d7d0c68b8083366760b3f211c497a33d233c035e5d5a70b8db78f73c3ee41722557eac7930f2a4b862e68975ec5beb988f10cb433bf47e93d88574f1dfc83e8d0392520f8f3e1b4823226aa10d560b6abe901e3ac2aac001bd089f1fd3e120e131cf6ae1e7f4502ceebec167e279998572052dc170c3ffae14f06c6fd73d9e24f2e93ecf9df839cb3d4d71f473b89582ae1169288137f2cd2d1d8ec7858761ea62b1ea0de087a2f117220a7dcfb4c059ada37ab2d1e6761f886433565f3c38c55dc660bcf5f2ba7c79725b9f1e358f000f3e35e2ce5e083a3953fbf90df50dc078581d223492983c87d87e2c9977414da2d8437abe233206ae01aab28cf40ee0ffadac8d7ed9d5540e0d5d078b06bf743f42ffd75e35852f5d5024782eb
+(7)   Message-Authenticator = 0x00000000000000000000000000000000
+(7)   State = 0x9ae522c99ced1ac824a7207121d060a6
+(7) Finished request
+Waking up in 4.9 seconds.
+(8) Received Access-Request Id 9 from 127.0.0.1:59194 to 127.0.0.1:1812 length 94
+(8)   User-Name = "imsi-999700000000001"
+(8)   Attr-6 = 0x0002
+(8)   Attr-61 = 0x0005
+(8)   State = 0x9ae522c99ced1ac824a7207121d060a6
+(8)   EAP-Message = 0x020800063800
+(8)   Message-Authenticator = 0x57c932573ca2aaeeb3fcb16cdb8ca9ba
+(8) session-state: No cached attributes
+(8) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(8)   authorize {
+(8)     policy filter_username {
+(8)       if (&User-Name) {
+(8)       if (&User-Name)  -> TRUE
+(8)       if (&User-Name)  {
+(8)         if (&User-Name =~ / /) {
+(8)         if (&User-Name =~ / /)  -> FALSE
+(8)         if (&User-Name =~ /@[^@]*@/ ) {
+(8)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(8)         if (&User-Name =~ /\.\./ ) {
+(8)         if (&User-Name =~ /\.\./ )  -> FALSE
+(8)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(8)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(8)         if (&User-Name =~ /\.$/)  {
+(8)         if (&User-Name =~ /\.$/)   -> FALSE
+(8)         if (&User-Name =~ /@\./)  {
+(8)         if (&User-Name =~ /@\./)   -> FALSE
+(8)       } # if (&User-Name)  = notfound
+(8)     } # policy filter_username = notfound
+(8)     [preprocess] = ok
+(8)     [chap] = noop
+(8)     [mschap] = noop
+(8)     [digest] = noop
+(8) suffix: Checking for suffix after "@"
+(8) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(8) suffix: No such realm "NULL"
+(8)     [suffix] = noop
+(8) eap: Peer sent EAP Response (code 2) ID 8 length 6
+(8) eap: No EAP Start, assuming it's an on-going EAP conversation
+(8)     [eap] = updated
+(8)     [files] = noop
+(8)     [expiration] = noop
+(8)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(8)     [pap] = noop
+(8)   } # authorize = updated
+(8) Found Auth-Type = eap
+(8) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(8)   authenticate {
+(8) eap: Removing EAP session with state 0x9ae522c99ced1ac8
+(8) eap: Previous EAP request found for state 0x9ae522c99ced1ac8, released from the list
+(8) eap: Peer sent packet with method EAP EDHOC (56)
+(8) eap: Calling submodule eap_edhoc to process data
+(8) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (1007 bytes remaining)
+(8) eap: Sending EAP Request (code 1) ID 9 length 1005
+(8) eap: EAP session adding &reply:State = 0x9ae522c99dec1ac8
+(8)     [eap] = handled
+(8)   } # authenticate = handled
+(8) Using Post-Auth-Type Challenge
+(8) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(8)   Challenge { ... } # empty sub-section is ignored
+(8) Sent Access-Challenge Id 9 from 127.0.0.1:1812 to 127.0.0.1:59194 length 1069
+(8)   EAP-Message = 0x010903ed38400c8a01c5aa220be683aea82e47901e7b760a64ce6896df4213259b67d1ac1b7feabac7b76efe547fdf735f3ee998e21c34a250e248a22060314309592b933c85793f2205ac6653217ae9a748b9277c4e4afbd00cc4286df3791e616def3cfd8afc8de24976e0256444304dfba3cb487f9817ed6195a8d7de196270d0a6413663f831f94714ff1822e9bdde9c684ec45e6470aed7812e80326bf196616dc7c9a500210ae70743bcb728e663f29fd587e52fdf22888185106587b712ebb6fd6b105bebf3f17306f0f81eeadb348bf55a91fe308277f1e17f1316fe77d3d1958b7c511e78c0189e5fc4354ed7dc133500bb844441cc7ef8513870216f5d4ec495c0a83b7ece5c171f72c884d63dad19b5db0d9401dd696a0eff59966f4a48beead983b6f7ff244bd81118a4cc45a80216387a27c1c85e5fa84c986f4d96a1ab9c757a71ae7d5215de3ce18a7d8db1f4072826e949ca34f1557ec23bfe595cbae2c1347e607ee396714869d6b5b23fcee439a2
+(8)   Message-Authenticator = 0x00000000000000000000000000000000
+(8)   State = 0x9ae522c99dec1ac824a7207121d060a6
+(8) Finished request
+Waking up in 4.9 seconds.
+(9) Received Access-Request Id 10 from 127.0.0.1:40096 to 127.0.0.1:1812 length 94
+(9)   User-Name = "imsi-999700000000001"
+(9)   Attr-6 = 0x0002
+(9)   Attr-61 = 0x0005
+(9)   State = 0x9ae522c99dec1ac824a7207121d060a6
+(9)   EAP-Message = 0x020900063800
+(9)   Message-Authenticator = 0xa9500c9639cc8885a3751daee46fcd40
+(9) session-state: No cached attributes
+(9) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(9)   authorize {
+(9)     policy filter_username {
+(9)       if (&User-Name) {
+(9)       if (&User-Name)  -> TRUE
+(9)       if (&User-Name)  {
+(9)         if (&User-Name =~ / /) {
+(9)         if (&User-Name =~ / /)  -> FALSE
+(9)         if (&User-Name =~ /@[^@]*@/ ) {
+(9)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(9)         if (&User-Name =~ /\.\./ ) {
+(9)         if (&User-Name =~ /\.\./ )  -> FALSE
+(9)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(9)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(9)         if (&User-Name =~ /\.$/)  {
+(9)         if (&User-Name =~ /\.$/)   -> FALSE
+(9)         if (&User-Name =~ /@\./)  {
+(9)         if (&User-Name =~ /@\./)   -> FALSE
+(9)       } # if (&User-Name)  = notfound
+(9)     } # policy filter_username = notfound
+(9)     [preprocess] = ok
+(9)     [chap] = noop
+(9)     [mschap] = noop
+(9)     [digest] = noop
+(9) suffix: Checking for suffix after "@"
+(9) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(9) suffix: No such realm "NULL"
+(9)     [suffix] = noop
+(9) eap: Peer sent EAP Response (code 2) ID 9 length 6
+(9) eap: No EAP Start, assuming it's an on-going EAP conversation
+(9)     [eap] = updated
+(9)     [files] = noop
+(9)     [expiration] = noop
+(9)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(9)     [pap] = noop
+(9)   } # authorize = updated
+(9) Found Auth-Type = eap
+(9) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(9)   authenticate {
+(9) eap: Removing EAP session with state 0x9ae522c99dec1ac8
+(9) eap: Previous EAP request found for state 0x9ae522c99dec1ac8, released from the list
+(9) eap: Peer sent packet with method EAP EDHOC (56)
+(9) eap: Calling submodule eap_edhoc to process data
+(9) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (8 bytes remaining)
+(9) eap: Sending EAP Request (code 1) ID 10 length 1005
+(9) eap: EAP session adding &reply:State = 0x9ae522c992ef1ac8
+(9)     [eap] = handled
+(9)   } # authenticate = handled
+(9) Using Post-Auth-Type Challenge
+(9) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(9)   Challenge { ... } # empty sub-section is ignored
+(9) Sent Access-Challenge Id 10 from 127.0.0.1:1812 to 127.0.0.1:40096 length 1069
+(9)   EAP-Message = 0x010a03ed3840384e829756eb4e8f0e1ac691c055a429b8dad83a72426c5082e26dbe7116b92c9df7e03b4355e7d3b63651f348cb8335d8ecb6968337317cba0b32651022290ad88c793e6d6ac966e424d43ac26726c963a88c1b9ebe78b19fe4ada5082d2ef1ac2438921e66df4057bdc9994711b9c933144ca9c3a8a7b301b536720fd1c42ca2cff57f8684407d850a96f82ac89ece5c1ffc4394d88809dddc98ed46a0d4b283cdf11de26ee90ad0c63d571683b3d094aaad2966ead4a3949d6be58d9d57d0a00bda739badedd9e5cfdd7321468dba878370a60eb5059b3a43de2a5502596ea1bbd1f137082a0e900ab4f5b354a6c209b4e4206bcf1b7368393dde0711a1e4b0d73d12018ceea3955075a065bc9ad6646b2bf00cc3332235043347350974a4fe9937e390fdc2e4f9037ab126389fffa8c912ae758810132f52ff420638ff442c985bd4ac98cfb9ef9a3a786274f92b29f97df22af5c030aa682b1a5ca9ab0065e3e059ed9f2738304148bc543a61d3e7
+(9)   Message-Authenticator = 0x00000000000000000000000000000000
+(9)   State = 0x9ae522c992ef1ac824a7207121d060a6
+(9) Finished request
+Waking up in 4.9 seconds.
+(10) Received Access-Request Id 11 from 127.0.0.1:50378 to 127.0.0.1:1812 length 94
+(10)   User-Name = "imsi-999700000000001"
+(10)   Attr-6 = 0x0002
+(10)   Attr-61 = 0x0005
+(10)   State = 0x9ae522c992ef1ac824a7207121d060a6
+(10)   EAP-Message = 0x020a00063800
+(10)   Message-Authenticator = 0xf1e32926000069c5413f606675e849ab
+(10) session-state: No cached attributes
+(10) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(10)   authorize {
+(10)     policy filter_username {
+(10)       if (&User-Name) {
+(10)       if (&User-Name)  -> TRUE
+(10)       if (&User-Name)  {
+(10)         if (&User-Name =~ / /) {
+(10)         if (&User-Name =~ / /)  -> FALSE
+(10)         if (&User-Name =~ /@[^@]*@/ ) {
+(10)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(10)         if (&User-Name =~ /\.\./ ) {
+(10)         if (&User-Name =~ /\.\./ )  -> FALSE
+(10)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(10)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(10)         if (&User-Name =~ /\.$/)  {
+(10)         if (&User-Name =~ /\.$/)   -> FALSE
+(10)         if (&User-Name =~ /@\./)  {
+(10)         if (&User-Name =~ /@\./)   -> FALSE
+(10)       } # if (&User-Name)  = notfound
+(10)     } # policy filter_username = notfound
+(10)     [preprocess] = ok
+(10)     [chap] = noop
+(10)     [mschap] = noop
+(10)     [digest] = noop
+(10) suffix: Checking for suffix after "@"
+(10) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(10) suffix: No such realm "NULL"
+(10)     [suffix] = noop
+(10) eap: Peer sent EAP Response (code 2) ID 10 length 6
+(10) eap: No EAP Start, assuming it's an on-going EAP conversation
+(10)     [eap] = updated
+(10)     [files] = noop
+(10)     [expiration] = noop
+(10)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(10)     [pap] = noop
+(10)   } # authorize = updated
+(10) Found Auth-Type = eap
+(10) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(10)   authenticate {
+(10) eap: Removing EAP session with state 0x9ae522c992ef1ac8
+(10) eap: Previous EAP request found for state 0x9ae522c992ef1ac8, released from the list
+(10) eap: Peer sent packet with method EAP EDHOC (56)
+(10) eap: Calling submodule eap_edhoc to process data
+(10) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (0 bytes remaining)
+(10) eap: Sending EAP Request (code 1) ID 11 length 14
+(10) eap: EAP session adding &reply:State = 0x9ae522c993ee1ac8
+(10)     [eap] = handled
+(10)   } # authenticate = handled
+(10) Using Post-Auth-Type Challenge
+(10) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(10)   Challenge { ... } # empty sub-section is ignored
+(10) Sent Access-Challenge Id 11 from 127.0.0.1:1812 to 127.0.0.1:50378 length 72
+(10)   EAP-Message = 0x010b000e3800f1e0ae6165d16d5e
+(10)   Message-Authenticator = 0x00000000000000000000000000000000
+(10)   State = 0x9ae522c993ee1ac824a7207121d060a6
+(10) Finished request
+Waking up in 4.8 seconds.
+(11) Received Access-Request Id 12 from 127.0.0.1:38628 to 127.0.0.1:1812 length 1099
+(11)   User-Name = "imsi-999700000000001"
+(11)   Attr-6 = 0x0002
+(11)   Attr-61 = 0x0005
+(11)   State = 0x9ae522c993ee1ac824a7207121d060a6
+(11)   EAP-Message = 0x020b03ed38c0136f0d19ab37f9b3221cf009a007f197e85d1421ba992e27683e82aa42221ba74b569eb5a5ccdec8f4a65589bf27e27a67265c4bd527192747ef4e94ff30c642031325dbe85c8952c129446a6a1d855d939225cbe45d305dd77b60ed63f5940c27ab32ae9275e9f8922d2d57610a1fa90f3888f4a913fea4ade74fac921329e0ee0278752e6a23e9fd97ffe4646636e055ada846e82a75f8a25fd244201e345c53ef683d874d2ffbee9a3fa5e1eea5788b476229da2e9409fa9bbd95f42287a32eff322683719634bf4089f5ea0263f77678e40104152f32ec550c0e0bb334b52fd15d94730f4725bd5637168a54cf1467d4958cb04c927e6ba57e53cb0b435ed7bbe50fe3696db18d638128e7eff938efab374b0b11968aff0e19f3921fa29e1be74a9ae0fd987c319ca3851a7ace6fa3f706b9174fab86ee69d5dc62790bbff9480ab952b2c5830510643f770961b1522c901720492db32d4093a973cbba9607ea8794cd422e2cbd2776bdfe924bc2b8
+(11)   Message-Authenticator = 0xe82151cd213ab79976a4015d5bf02caa
+(11) session-state: No cached attributes
+(11) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(11)   authorize {
+(11)     policy filter_username {
+(11)       if (&User-Name) {
+(11)       if (&User-Name)  -> TRUE
+(11)       if (&User-Name)  {
+(11)         if (&User-Name =~ / /) {
+(11)         if (&User-Name =~ / /)  -> FALSE
+(11)         if (&User-Name =~ /@[^@]*@/ ) {
+(11)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(11)         if (&User-Name =~ /\.\./ ) {
+(11)         if (&User-Name =~ /\.\./ )  -> FALSE
+(11)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(11)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(11)         if (&User-Name =~ /\.$/)  {
+(11)         if (&User-Name =~ /\.$/)   -> FALSE
+(11)         if (&User-Name =~ /@\./)  {
+(11)         if (&User-Name =~ /@\./)   -> FALSE
+(11)       } # if (&User-Name)  = notfound
+(11)     } # policy filter_username = notfound
+(11)     [preprocess] = ok
+(11)     [chap] = noop
+(11)     [mschap] = noop
+(11)     [digest] = noop
+(11) suffix: Checking for suffix after "@"
+(11) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(11) suffix: No such realm "NULL"
+(11)     [suffix] = noop
+(11) eap: Peer sent EAP Response (code 2) ID 11 length 1005
+(11) eap: No EAP Start, assuming it's an on-going EAP conversation
+(11)     [eap] = updated
+(11)     [files] = noop
+(11)     [expiration] = noop
+(11)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(11)     [pap] = noop
+(11)   } # authorize = updated
+(11) Found Auth-Type = eap
+(11) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(11)   authenticate {
+(11) eap: Removing EAP session with state 0x9ae522c993ee1ac8
+(11) eap: Previous EAP request found for state 0x9ae522c993ee1ac8, released from the list
+(11) eap: Peer sent packet with method EAP EDHOC (56)
+(11) eap: Calling submodule eap_edhoc to process data
+(11) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (997 bytes buffered)
+(11) eap: Sending EAP Request (code 1) ID 12 length 6
+(11) eap: EAP session adding &reply:State = 0x9ae522c990e91ac8
+(11)     [eap] = handled
+(11)   } # authenticate = handled
+(11) Using Post-Auth-Type Challenge
+(11) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(11)   Challenge { ... } # empty sub-section is ignored
+(11) Sent Access-Challenge Id 12 from 127.0.0.1:1812 to 127.0.0.1:38628 length 64
+(11)   EAP-Message = 0x010c00063800
+(11)   Message-Authenticator = 0x00000000000000000000000000000000
+(11)   State = 0x9ae522c990e91ac824a7207121d060a6
+(11) Finished request
+Waking up in 4.8 seconds.
+(12) Received Access-Request Id 13 from 127.0.0.1:48169 to 127.0.0.1:1812 length 1099
+(12)   User-Name = "imsi-999700000000001"
+(12)   Attr-6 = 0x0002
+(12)   Attr-61 = 0x0005
+(12)   State = 0x9ae522c990e91ac824a7207121d060a6
+(12)   EAP-Message = 0x020c03ed38405dcfe0ef0650ada86b886f7ee73a80c06d3f7154219684c242b15ed941215874397c8456ba4fbba3d41dc0ed2a0612447882cfdc7945429fb8ce87a56a69fb656ea6cb3a78ab946902f456c7321e6bc842577cc01d342516b36fb82dee80e12230b86ef7cb9ebafc393e0e62cae113c1498ea20adb20b9f1581153b3b4be7b82e2bebe09c94d02ccc799d0bd057ea03c1300dcc37ffda7515f0e4ebd91514e253f9610c9e8edb1ff7fd38547067059d14d9feaf71fb8b61ca17f3265eb2f669bf209971ebee8e3f1fc01dac0939d933dd4cd8c4b2636e9fef42f3f6b64301ce3d9c70080f193cea6df66bdec03e534b233a2629915097b7e5b2b03f9770eab61bff6827276ba2eef90ee9d1ec4d01de485405931bf96c0109fad37e34a4b9413e72bd89c96a96499834a4367579595a7ea58004787fb214388622c5853b50547d0ec96b77e4c4ecfb7e6a890e4bccf81dbc0eec85e9c73c12c3b460ac8d83d98063bc1a70bd97c02269c181ffb89e33615
+(12)   Message-Authenticator = 0x934fd0df3d9ce850b2f8eec936178876
+(12) session-state: No cached attributes
+(12) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(12)   authorize {
+(12)     policy filter_username {
+(12)       if (&User-Name) {
+(12)       if (&User-Name)  -> TRUE
+(12)       if (&User-Name)  {
+(12)         if (&User-Name =~ / /) {
+(12)         if (&User-Name =~ / /)  -> FALSE
+(12)         if (&User-Name =~ /@[^@]*@/ ) {
+(12)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(12)         if (&User-Name =~ /\.\./ ) {
+(12)         if (&User-Name =~ /\.\./ )  -> FALSE
+(12)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(12)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(12)         if (&User-Name =~ /\.$/)  {
+(12)         if (&User-Name =~ /\.$/)   -> FALSE
+(12)         if (&User-Name =~ /@\./)  {
+(12)         if (&User-Name =~ /@\./)   -> FALSE
+(12)       } # if (&User-Name)  = notfound
+(12)     } # policy filter_username = notfound
+(12)     [preprocess] = ok
+(12)     [chap] = noop
+(12)     [mschap] = noop
+(12)     [digest] = noop
+(12) suffix: Checking for suffix after "@"
+(12) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(12) suffix: No such realm "NULL"
+(12)     [suffix] = noop
+(12) eap: Peer sent EAP Response (code 2) ID 12 length 1005
+(12) eap: No EAP Start, assuming it's an on-going EAP conversation
+(12)     [eap] = updated
+(12)     [files] = noop
+(12)     [expiration] = noop
+(12)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(12)     [pap] = noop
+(12)   } # authorize = updated
+(12) Found Auth-Type = eap
+(12) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(12)   authenticate {
+(12) eap: Removing EAP session with state 0x9ae522c990e91ac8
+(12) eap: Previous EAP request found for state 0x9ae522c990e91ac8, released from the list
+(12) eap: Peer sent packet with method EAP EDHOC (56)
+(12) eap: Calling submodule eap_edhoc to process data
+(12) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (1996 bytes buffered)
+(12) eap: Sending EAP Request (code 1) ID 13 length 6
+(12) eap: EAP session adding &reply:State = 0x9ae522c991e81ac8
+(12)     [eap] = handled
+(12)   } # authenticate = handled
+(12) Using Post-Auth-Type Challenge
+(12) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(12)   Challenge { ... } # empty sub-section is ignored
+(12) Sent Access-Challenge Id 13 from 127.0.0.1:1812 to 127.0.0.1:48169 length 64
+(12)   EAP-Message = 0x010d00063800
+(12)   Message-Authenticator = 0x00000000000000000000000000000000
+(12)   State = 0x9ae522c991e81ac824a7207121d060a6
+(12) Finished request
+Waking up in 4.8 seconds.
+(13) Received Access-Request Id 14 from 127.0.0.1:56834 to 127.0.0.1:1812 length 1099
+(13)   User-Name = "imsi-999700000000001"
+(13)   Attr-6 = 0x0002
+(13)   Attr-61 = 0x0005
+(13)   State = 0x9ae522c991e81ac824a7207121d060a6
+(13)   EAP-Message = 0x020d03ed38409946c6ea28af1524ec49f2111bcc81392c2506035490e80c688d36c12b271cbe0b60ff441c59b8a4341f3b6379cc3a7cd3af1540b652f05de67a7a357fd2a1f58f64b65d0c5a52f21267cd5fe5714b777b86a9b85d7ee1a71bbee2d65750b99736f24472083e69c65f6c11858502fc8265a98764970e25e78edb0f212b68221b12ddfcbb4b97c33ef77468747c86f756f12c26b806613d89603468e3b02e618d135eec5986fd490f040288caf21c3fa65386f2ff4c297f1fa7b52f90374ac4e16e7563ec4214a21819c981efc6fa60dbe83986c19d97d4ce9f398f53461ec8deb41131e1a26df8a762c42e82844e5524b840c900d09fbf408efd63d1444df68ffd7a2e7f17841792ec46962d23d503023bbf63d8987bd7493145dd7653640929085f2c9089884cdd9bffef285d78479f8b60bde3a040ca9849b0605841490609bd761711615e8054e71922cc3790ea3beff248fd0be2f812166c8646feaebd36b8cc963c8c21938894805d77daf20c2ff7
+(13)   Message-Authenticator = 0x4e9aab112d3466cbe3f302430487d2fb
+(13) session-state: No cached attributes
+(13) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(13)   authorize {
+(13)     policy filter_username {
+(13)       if (&User-Name) {
+(13)       if (&User-Name)  -> TRUE
+(13)       if (&User-Name)  {
+(13)         if (&User-Name =~ / /) {
+(13)         if (&User-Name =~ / /)  -> FALSE
+(13)         if (&User-Name =~ /@[^@]*@/ ) {
+(13)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(13)         if (&User-Name =~ /\.\./ ) {
+(13)         if (&User-Name =~ /\.\./ )  -> FALSE
+(13)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(13)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(13)         if (&User-Name =~ /\.$/)  {
+(13)         if (&User-Name =~ /\.$/)   -> FALSE
+(13)         if (&User-Name =~ /@\./)  {
+(13)         if (&User-Name =~ /@\./)   -> FALSE
+(13)       } # if (&User-Name)  = notfound
+(13)     } # policy filter_username = notfound
+(13)     [preprocess] = ok
+(13)     [chap] = noop
+(13)     [mschap] = noop
+(13)     [digest] = noop
+(13) suffix: Checking for suffix after "@"
+(13) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(13) suffix: No such realm "NULL"
+(13)     [suffix] = noop
+(13) eap: Peer sent EAP Response (code 2) ID 13 length 1005
+(13) eap: No EAP Start, assuming it's an on-going EAP conversation
+(13)     [eap] = updated
+(13)     [files] = noop
+(13)     [expiration] = noop
+(13)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(13)     [pap] = noop
+(13)   } # authorize = updated
+(13) Found Auth-Type = eap
+(13) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(13)   authenticate {
+(13) eap: Removing EAP session with state 0x9ae522c991e81ac8
+(13) eap: Previous EAP request found for state 0x9ae522c991e81ac8, released from the list
+(13) eap: Peer sent packet with method EAP EDHOC (56)
+(13) eap: Calling submodule eap_edhoc to process data
+(13) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (2995 bytes buffered)
+(13) eap: Sending EAP Request (code 1) ID 14 length 6
+(13) eap: EAP session adding &reply:State = 0x9ae522c996eb1ac8
+(13)     [eap] = handled
+(13)   } # authenticate = handled
+(13) Using Post-Auth-Type Challenge
+(13) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(13)   Challenge { ... } # empty sub-section is ignored
+(13) Sent Access-Challenge Id 14 from 127.0.0.1:1812 to 127.0.0.1:56834 length 64
+(13)   EAP-Message = 0x010e00063800
+(13)   Message-Authenticator = 0x00000000000000000000000000000000
+(13)   State = 0x9ae522c996eb1ac824a7207121d060a6
+(13) Finished request
+Waking up in 4.8 seconds.
+(14) Received Access-Request Id 15 from 127.0.0.1:33867 to 127.0.0.1:1812 length 1099
+(14)   User-Name = "imsi-999700000000001"
+(14)   Attr-6 = 0x0002
+(14)   Attr-61 = 0x0005
+(14)   State = 0x9ae522c996eb1ac824a7207121d060a6
+(14)   EAP-Message = 0x020e03ed38404f3c517c7fdd942bcb207a92bbf3fcd0aff60f248487c28d6fbd28673c5e1ded224fef1205ce8f6572a7aaf06f11f6cbd6fc4dfb70c3e9ab60777cfad207c60724dfde0cae71b39eebe4630fe01d2c6543108555c39c520fdba40cfe37fd7ca2c67d326ea3b4d92ff9bf0057ac0d820b1ceca56386ad40812c7f30f9cdc2828ec68795af89fb5fcff78d0309fe2057aa11bfab0d1747a2a4548460606378a0c42fe9f03561e99c144ba467c54355e6e005a6f7e42fdfe269d7728bd4e094dffcc077d0bcba5105c555d6b61d488baf298c072d1d9a4d9c25f389d06f94c3c6f3f23cbc4e143dd0b98fba05124e9d4099f9c5f3dce9c9b3791fd7d865944b41f9f5958a46803c824272350a5025e2dc0471fd706b8cb11cca08c72a3dd8ca4e8abaad7b13fdeda706ceb2ec9860e4c5b0edbc8caa75985205c7426fb8bb5309928ac0ec61dc21d644a018dfd77171c8873c45173ecb727503d150bb782ad044f78c8fbbfff14920cbc51c942572db56344c
+(14)   Message-Authenticator = 0x83f36378537e04d85b9fabe6d1ad51d6
+(14) session-state: No cached attributes
+(14) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(14)   authorize {
+(14)     policy filter_username {
+(14)       if (&User-Name) {
+(14)       if (&User-Name)  -> TRUE
+(14)       if (&User-Name)  {
+(14)         if (&User-Name =~ / /) {
+(14)         if (&User-Name =~ / /)  -> FALSE
+(14)         if (&User-Name =~ /@[^@]*@/ ) {
+(14)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(14)         if (&User-Name =~ /\.\./ ) {
+(14)         if (&User-Name =~ /\.\./ )  -> FALSE
+(14)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(14)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(14)         if (&User-Name =~ /\.$/)  {
+(14)         if (&User-Name =~ /\.$/)   -> FALSE
+(14)         if (&User-Name =~ /@\./)  {
+(14)         if (&User-Name =~ /@\./)   -> FALSE
+(14)       } # if (&User-Name)  = notfound
+(14)     } # policy filter_username = notfound
+(14)     [preprocess] = ok
+(14)     [chap] = noop
+(14)     [mschap] = noop
+(14)     [digest] = noop
+(14) suffix: Checking for suffix after "@"
+(14) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(14) suffix: No such realm "NULL"
+(14)     [suffix] = noop
+(14) eap: Peer sent EAP Response (code 2) ID 14 length 1005
+(14) eap: No EAP Start, assuming it's an on-going EAP conversation
+(14)     [eap] = updated
+(14)     [files] = noop
+(14)     [expiration] = noop
+(14)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(14)     [pap] = noop
+(14)   } # authorize = updated
+(14) Found Auth-Type = eap
+(14) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(14)   authenticate {
+(14) eap: Removing EAP session with state 0x9ae522c996eb1ac8
+(14) eap: Previous EAP request found for state 0x9ae522c996eb1ac8, released from the list
+(14) eap: Peer sent packet with method EAP EDHOC (56)
+(14) eap: Calling submodule eap_edhoc to process data
+(14) eap_edhoc: rlm_eap_edhoc: ACKed incoming fragment (3994 bytes buffered)
+(14) eap: Sending EAP Request (code 1) ID 15 length 6
+(14) eap: EAP session adding &reply:State = 0x9ae522c997ea1ac8
+(14)     [eap] = handled
+(14)   } # authenticate = handled
+(14) Using Post-Auth-Type Challenge
+(14) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(14)   Challenge { ... } # empty sub-section is ignored
+(14) Sent Access-Challenge Id 15 from 127.0.0.1:1812 to 127.0.0.1:33867 length 64
+(14)   EAP-Message = 0x010f00063800
+(14)   Message-Authenticator = 0x00000000000000000000000000000000
+(14)   State = 0x9ae522c997ea1ac824a7207121d060a6
+(14) Finished request
+Waking up in 4.8 seconds.
+(15) Received Access-Request Id 16 from 127.0.0.1:37801 to 127.0.0.1:1812 length 1081
+(15)   User-Name = "imsi-999700000000001"
+(15)   Attr-6 = 0x0002
+(15)   Attr-61 = 0x0005
+(15)   State = 0x9ae522c997ea1ac824a7207121d060a6
+(15)   EAP-Message = 0x020f03db38000c5c4e7750ab535332a723ed0bbd7795c227a6ec22d7cb1a95e6712fc353a21ef99fc592cb1f7ce3d8df392f5699416a3a385244e3f5c98663c9e70a36425d4c9613ad3eaa7f132abe95edbf0ace7604b60d6cab4bbd6dfde80c25fac787db7ff29fcbda5854cdac498ace37ecc8db2b8013c45a1ed58600cd03725ceec47ee00ac036b3868f3b36826e039ba72671dfcd7724358c88f0a3a3891f276a151d783fb665da7c4eced7645f0fb29075b4b64464cec7eb0958a8969d5acf2b9552f8b06f14c18b4b7262e9cee9ff45adaef9e3eb44ef9d097f928538fb098a4f1883afb555364a13dee7dc375eb190cbce36ccfb6c68cfc3efd8f9e78058b6ee0f704abd6bec78884d0850979813126e5f854e2f274692ebdad60b45056733a9542e4078f012281dcad548b3575565d412b268610e50142cd7642b5fba8db9254226357ff1bbde746227cfacfdc2ee1b0d1dc59f2b32e59de90fd2bc67afab38f4e7c63130809bd868c796941853143d0916d8
+(15)   Message-Authenticator = 0x528c2a9676b0b6a5ba18c95224c4521a
+(15) session-state: No cached attributes
+(15) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(15)   authorize {
+(15)     policy filter_username {
+(15)       if (&User-Name) {
+(15)       if (&User-Name)  -> TRUE
+(15)       if (&User-Name)  {
+(15)         if (&User-Name =~ / /) {
+(15)         if (&User-Name =~ / /)  -> FALSE
+(15)         if (&User-Name =~ /@[^@]*@/ ) {
+(15)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(15)         if (&User-Name =~ /\.\./ ) {
+(15)         if (&User-Name =~ /\.\./ )  -> FALSE
+(15)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(15)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(15)         if (&User-Name =~ /\.$/)  {
+(15)         if (&User-Name =~ /\.$/)   -> FALSE
+(15)         if (&User-Name =~ /@\./)  {
+(15)         if (&User-Name =~ /@\./)   -> FALSE
+(15)       } # if (&User-Name)  = notfound
+(15)     } # policy filter_username = notfound
+(15)     [preprocess] = ok
+(15)     [chap] = noop
+(15)     [mschap] = noop
+(15)     [digest] = noop
+(15) suffix: Checking for suffix after "@"
+(15) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(15) suffix: No such realm "NULL"
+(15)     [suffix] = noop
+(15) eap: Peer sent EAP Response (code 2) ID 15 length 987
+(15) eap: No EAP Start, assuming it's an on-going EAP conversation
+(15)     [eap] = updated
+(15)     [files] = noop
+(15)     [expiration] = noop
+(15)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(15)     [pap] = noop
+(15)   } # authorize = updated
+(15) Found Auth-Type = eap
+(15) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(15)   authenticate {
+(15) eap: Removing EAP session with state 0x9ae522c997ea1ac8
+(15) eap: Previous EAP request found for state 0x9ae522c997ea1ac8, released from the list
+(15) eap: Peer sent packet with method EAP EDHOC (56)
+(15) eap: Calling submodule eap_edhoc to process data
+(15) eap_edhoc: rlm_eap_edhoc: sent message_4 (1232 bytes), handshake keys derived
+(15) eap: Sending EAP Request (code 1) ID 16 length 1005
+(15) eap: EAP session adding &reply:State = 0x9ae522c994f51ac8
+(15)     [eap] = handled
+(15)   } # authenticate = handled
+(15) Using Post-Auth-Type Challenge
+(15) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(15)   Challenge { ... } # empty sub-section is ignored
+(15) Sent Access-Challenge Id 16 from 127.0.0.1:1812 to 127.0.0.1:37801 length 1069
+(15)   EAP-Message = 0x011003ed38c004d03d1048633954b2ef0938c3caa492ead01b75bde839cfd7d684cb7e4eb79795b88e7be5ee3f49d3775b8e2cd0cb2e4d8fdbdf1d72ce49511b535426e7423a932d1343a5547da3a87b9068bb72a6e920496f58d035b62827a6ce846a23eb560960d6d06e6fcf85d480cc0b8b6d124fce4826750c294df9c7940b54eb3595c6ad0b745d357ff2d772e0c48bb95acb45314e7b8a45e169f030c2a8e8391f706ad7d5c7ea938c1c697731f691008e4496ba8bad470ec833f45040077d0f23f6b66c56108da052d2b5b5626e5140342b1711251d62bc1758a9bd71cb6c4434bc208acea92c8b765fe9287ac6fa64c492e21137e8450d5ef40612b2ac076a57b00d94a002c5ef72433afc478614b37b7a9f0d661fa6cf2d94ea2e39da63e5c21a3e497b89dec22fe425fbcd8255ea91a94e7edc8824893380594ac2a15bc6646aad05e5081a775f2a70a34ad2dc01668183a8c47fb13e16da807a1fcbc125832247a726e0e89e77ef65bccd795f9681e917e7
+(15)   Message-Authenticator = 0x00000000000000000000000000000000
+(15)   State = 0x9ae522c994f51ac824a7207121d060a6
+(15) Finished request
+Waking up in 4.8 seconds.
+(16) Received Access-Request Id 17 from 127.0.0.1:32939 to 127.0.0.1:1812 length 94
+(16)   User-Name = "imsi-999700000000001"
+(16)   Attr-6 = 0x0002
+(16)   Attr-61 = 0x0005
+(16)   State = 0x9ae522c994f51ac824a7207121d060a6
+(16)   EAP-Message = 0x021000063800
+(16)   Message-Authenticator = 0x77667481797223e943f6b8ab4bb5d672
+(16) session-state: No cached attributes
+(16) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(16)   authorize {
+(16)     policy filter_username {
+(16)       if (&User-Name) {
+(16)       if (&User-Name)  -> TRUE
+(16)       if (&User-Name)  {
+(16)         if (&User-Name =~ / /) {
+(16)         if (&User-Name =~ / /)  -> FALSE
+(16)         if (&User-Name =~ /@[^@]*@/ ) {
+(16)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(16)         if (&User-Name =~ /\.\./ ) {
+(16)         if (&User-Name =~ /\.\./ )  -> FALSE
+(16)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(16)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(16)         if (&User-Name =~ /\.$/)  {
+(16)         if (&User-Name =~ /\.$/)   -> FALSE
+(16)         if (&User-Name =~ /@\./)  {
+(16)         if (&User-Name =~ /@\./)   -> FALSE
+(16)       } # if (&User-Name)  = notfound
+(16)     } # policy filter_username = notfound
+(16)     [preprocess] = ok
+(16)     [chap] = noop
+(16)     [mschap] = noop
+(16)     [digest] = noop
+(16) suffix: Checking for suffix after "@"
+(16) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(16) suffix: No such realm "NULL"
+(16)     [suffix] = noop
+(16) eap: Peer sent EAP Response (code 2) ID 16 length 6
+(16) eap: No EAP Start, assuming it's an on-going EAP conversation
+(16)     [eap] = updated
+(16)     [files] = noop
+(16)     [expiration] = noop
+(16)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(16)     [pap] = noop
+(16)   } # authorize = updated
+(16) Found Auth-Type = eap
+(16) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(16)   authenticate {
+(16) eap: Removing EAP session with state 0x9ae522c994f51ac8
+(16) eap: Previous EAP request found for state 0x9ae522c994f51ac8, released from the list
+(16) eap: Peer sent packet with method EAP EDHOC (56)
+(16) eap: Calling submodule eap_edhoc to process data
+(16) eap_edhoc: rlm_eap_edhoc: continued outgoing fragment (0 bytes remaining)
+(16) eap: Sending EAP Request (code 1) ID 17 length 241
+(16) eap: EAP session adding &reply:State = 0x9ae522c995f41ac8
+(16)     [eap] = handled
+(16)   } # authenticate = handled
+(16) Using Post-Auth-Type Challenge
+(16) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(16)   Challenge { ... } # empty sub-section is ignored
+(16) Sent Access-Challenge Id 17 from 127.0.0.1:1812 to 127.0.0.1:32939 length 299
+(16)   EAP-Message = 0x011100f13800a0ae7610a27e13a1bb165d98bd1bb8e201876615e83a42cea2411bc4d3b83c2357c79f95094e814a5178148595fc6ed063da15334e0e8414edff6104b557cdcb631021cf10af30a97f54c4a083a9a42b24f4a98e7d801e81295cb0ed588d34e51dd1459cbfdd4d52cfae1bcd542b3db70abe178b271182f1f1253d3c5ca02553f69c1c8fe753501546e1376e67c218981d40a5c3738f41f66a427f7d8080972bd0156b123ae52c6123365047d4ba7ae7d1d5166e2c2c93aaa3beb916a96bb8fd65a58206342d2ad80e4e3b49584fbe07ac761a8975d3b3c09279cdd9055ca772f0382f66a4ee356080615f
+(16)   Message-Authenticator = 0x00000000000000000000000000000000
+(16)   State = 0x9ae522c995f41ac824a7207121d060a6
+(16) Finished request
+Waking up in 4.8 seconds.
+(17) Received Access-Request Id 18 from 127.0.0.1:40404 to 127.0.0.1:1812 length 94
+(17)   User-Name = "imsi-999700000000001"
+(17)   Attr-6 = 0x0002
+(17)   Attr-61 = 0x0005
+(17)   State = 0x9ae522c995f41ac824a7207121d060a6
+(17)   EAP-Message = 0x021100063800
+(17)   Message-Authenticator = 0xf5d3a637247f6586ea654acb74a8ac64
+(17) session-state: No cached attributes
+(17) # Executing section authorize from file /usr/local/etc/raddb/sites-enabled/default
+(17)   authorize {
+(17)     policy filter_username {
+(17)       if (&User-Name) {
+(17)       if (&User-Name)  -> TRUE
+(17)       if (&User-Name)  {
+(17)         if (&User-Name =~ / /) {
+(17)         if (&User-Name =~ / /)  -> FALSE
+(17)         if (&User-Name =~ /@[^@]*@/ ) {
+(17)         if (&User-Name =~ /@[^@]*@/ )  -> FALSE
+(17)         if (&User-Name =~ /\.\./ ) {
+(17)         if (&User-Name =~ /\.\./ )  -> FALSE
+(17)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))  {
+(17)         if ((&User-Name =~ /@/) && (&User-Name !~ /@(.+)\.(.+)$/))   -> FALSE
+(17)         if (&User-Name =~ /\.$/)  {
+(17)         if (&User-Name =~ /\.$/)   -> FALSE
+(17)         if (&User-Name =~ /@\./)  {
+(17)         if (&User-Name =~ /@\./)   -> FALSE
+(17)       } # if (&User-Name)  = notfound
+(17)     } # policy filter_username = notfound
+(17)     [preprocess] = ok
+(17)     [chap] = noop
+(17)     [mschap] = noop
+(17)     [digest] = noop
+(17) suffix: Checking for suffix after "@"
+(17) suffix: No '@' in User-Name = "imsi-999700000000001", looking up realm NULL
+(17) suffix: No such realm "NULL"
+(17)     [suffix] = noop
+(17) eap: Peer sent EAP Response (code 2) ID 17 length 6
+(17) eap: No EAP Start, assuming it's an on-going EAP conversation
+(17)     [eap] = updated
+(17)     [files] = noop
+(17)     [expiration] = noop
+(17)     [logintime] = noop
+Not doing PAP as Auth-Type is already set.
+(17)     [pap] = noop
+(17)   } # authorize = updated
+(17) Found Auth-Type = eap
+(17) # Executing group from file /usr/local/etc/raddb/sites-enabled/default
+(17)   authenticate {
+(17) eap: Removing EAP session with state 0x9ae522c995f41ac8
+(17) eap: Previous EAP request found for state 0x9ae522c995f41ac8, released from the list
+(17) eap: Peer sent packet with method EAP EDHOC (56)
+(17) eap: Calling submodule eap_edhoc to process data
+(17) eap_edhoc: rlm_eap_edhoc: authentication success, MSK exported
+(17) eap: Sending EAP Success (code 3) ID 17 length 4
+(17) eap: Freeing handler
+(17)     [eap] = ok
+(17)   } # authenticate = ok
+(17) # Executing section post-auth from file /usr/local/etc/raddb/sites-enabled/default
+(17)   post-auth {
+(17)     if (session-state:User-Name && reply:User-Name && request:User-Name && (reply:User-Name == request:User-Name)) {
+(17)     if (session-state:User-Name && reply:User-Name && request:User-Name && (reply:User-Name == request:User-Name))  -> FALSE
+(17)     update {
+(17)       No attributes updated for RHS &session-state:
+(17)     } # update = noop
+(17)     [exec] = noop
+(17)     policy remove_reply_message_if_eap {
+(17)       if (&reply:EAP-Message && &reply:Reply-Message) {
+(17)       if (&reply:EAP-Message && &reply:Reply-Message)  -> FALSE
+(17)       else {
+(17)         [noop] = noop
+(17)       } # else = noop
+(17)     } # policy remove_reply_message_if_eap = noop
+(17)     if (EAP-Key-Name && &reply:EAP-Session-Id) {
+(17)     if (EAP-Key-Name && &reply:EAP-Session-Id)  -> FALSE
+(17)   } # post-auth = noop
+(17) Sent Access-Accept Id 18 from 127.0.0.1:1812 to 127.0.0.1:40404 length 182
+(17)   MS-MPPE-Recv-Key = 0x61b7b67a4ed2fbeed19ec39ab039d0e26e832fd41933e7c1f5731ba26dd6695a
+(17)   MS-MPPE-Send-Key = 0xc6abad07b71e825e92c6c2db2ff9a4ec04afe8250c9db9a97b0cc977bf09bca0
+(17)   EAP-Message = 0x03110004
+(17)   Message-Authenticator = 0x00000000000000000000000000000000
+(17)   User-Name = "imsi-999700000000001"
+(17) Finished request
+Waking up in 4.8 seconds.
+(1) Cleaning up request packet ID 2 with timestamp +61831 due to cleanup_delay was reached
+(2) Cleaning up request packet ID 3 with timestamp +61831 due to cleanup_delay was reached
+(3) Cleaning up request packet ID 4 with timestamp +61831 due to cleanup_delay was reached
+(4) Cleaning up request packet ID 5 with timestamp +61831 due to cleanup_delay was reached
+(5) Cleaning up request packet ID 6 with timestamp +61831 due to cleanup_delay was reached
+(6) Cleaning up request packet ID 7 with timestamp +61831 due to cleanup_delay was reached
+(7) Cleaning up request packet ID 8 with timestamp +61831 due to cleanup_delay was reached
+(8) Cleaning up request packet ID 9 with timestamp +61831 due to cleanup_delay was reached
+(9) Cleaning up request packet ID 10 with timestamp +61831 due to cleanup_delay was reached
+(10) Cleaning up request packet ID 11 with timestamp +61831 due to cleanup_delay was reached
+(11) Cleaning up request packet ID 12 with timestamp +61831 due to cleanup_delay was reached
+(12) Cleaning up request packet ID 13 with timestamp +61831 due to cleanup_delay was reached
+(13) Cleaning up request packet ID 14 with timestamp +61831 due to cleanup_delay was reached
+(14) Cleaning up request packet ID 15 with timestamp +61831 due to cleanup_delay was reached
+(15) Cleaning up request packet ID 16 with timestamp +61831 due to cleanup_delay was reached
+(16) Cleaning up request packet ID 17 with timestamp +61831 due to cleanup_delay was reached
+(17) Cleaning up request packet ID 18 with timestamp +61831 due to cleanup_delay was reached
+Ready to process requests

@@ -13,12 +13,18 @@
  *                           Encaps, Decaps, Signature, Verify) + handshake totals.
  *   handshake-compute.csv : per-method total compute time.
  *
- * EDHOC method matrix (per spesifikasi.md):
+ * EDHOC method matrix (per spesifikasi.md / mermaid.md):
  *   0  SIG(Ed25519)        / SIG(Ed25519)
  *   1  SIG(Ed25519)        / MAC(static-DH X25519)
  *   2  MAC(static-DH X25519)/ SIG(Ed25519)
  *   3  MAC(static-DH X25519)/ MAC(static-DH X25519)
- *   4  MAC(static-XWING)   / MAC(static-XWING)   [X25519 + ML-KEM-768 hybrid]
+ *   4  SIGMA XWING (Initiator: SIGMA, Responder: SIGMA)
+ *      key establishment : XWING KEM = X25519 + ML-KEM-768 hybrid
+ *      authentication    : ML-DSA-44 signatures on BOTH sides (+ MAC)
+ *      XWING op decomposition:
+ *        KeyGen = x25519_keygen + mlkem_keygen
+ *        Encaps = x25519_keygen + x25519_dh + mlkem_encaps
+ *        Decaps = x25519_dh + mlkem_decaps
  */
 
 #define _POSIX_C_SOURCE 199309L
@@ -317,6 +323,8 @@ typedef struct {
     int mlkem_keygen;
     int mlkem_encaps;
     int mlkem_decaps;
+    int mldsa_sign;
+    int mldsa_verify;
 } opcount_t;
 
 typedef struct {
@@ -327,12 +335,18 @@ typedef struct {
 } method_def_t;
 
 static const method_def_t METHODS[] = {
-    { 0, "SIG/SIG Ed25519",            {1,1,1,1,0,0,0}, {1,1,1,1,0,0,0} },
-    { 1, "SIG-Ed25519 / MAC-X25519",   {1,1,1,0,0,0,0}, {1,2,0,1,0,0,0} },
-    { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0}, {1,1,1,0,0,0,0} },
-    { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0}, {1,2,0,0,0,0,0} },
-    { 4, "MAC/MAC XWING (X25519+ML-KEM-768)",
-                                       {1,1,0,0,1,0,2}, {1,2,0,0,0,2,0} },
+    { 0, "SIG/SIG Ed25519",            {1,1,1,1,0,0,0,0,0}, {1,1,1,1,0,0,0,0,0} },
+    { 1, "SIG-Ed25519 / MAC-X25519",   {1,1,1,0,0,0,0,0,0}, {1,2,0,1,0,0,0,0,0} },
+    { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0,0} },
+    { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0,0,0}, {1,2,0,0,0,0,0,0,0} },
+    /* method 4: SIGMA XWING — X25519+ML-KEM-768 hybrid KEM + ML-DSA-44 sig.
+     * XWING KeyGen=xkg+mkg, Encaps=xkg+xdh+me, Decaps=xdh+md.
+     * Initiator: KeyGen(pkX)+Encaps(pkB)+Decaps(cte)+Decaps(ctA)+KeyGen(NpkA)
+     *            + ML-DSA verify(sigma_R) + ML-DSA sign(sigma_I).
+     * Responder: Decaps(ctB)+Encaps(pkX)+Encaps(pkA)+KeyGen(NpkB)
+     *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I). */
+    { 4, "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
+                                       {3,3,0,0,2,1,2,1,1}, {3,3,0,0,1,2,1,1,1} },
 };
 static const int N_METHODS = (int)(sizeof(METHODS) / sizeof(METHODS[0]));
 
@@ -344,7 +358,9 @@ static double role_total(const opcount_t *o)
          + o->ed25519_verify* lookup_mean("Verify_Ed25519")
          + o->mlkem_keygen  * lookup_mean("Keygen_MLKEM768")
          + o->mlkem_encaps  * lookup_mean("Encaps_MLKEM768")
-         + o->mlkem_decaps  * lookup_mean("Decaps_MLKEM768");
+         + o->mlkem_decaps  * lookup_mean("Decaps_MLKEM768")
+         + o->mldsa_sign    * lookup_mean("Signature_MLDSA44")
+         + o->mldsa_verify  * lookup_mean("Verify_MLDSA44");
 }
 
 static void write_breakdown_rows(FILE *f, int method, const char *profile,
@@ -355,8 +371,8 @@ static void write_breakdown_rows(FILE *f, int method, const char *profile,
         { "ScalarMult", o->x25519_dh,    "X25519" },
         { "Encaps",     o->mlkem_encaps, "ML-KEM-768" },
         { "Decaps",     o->mlkem_decaps, "ML-KEM-768" },
-        { "Signature",  o->ed25519_sign, "Ed25519" },
-        { "Verify",     o->ed25519_verify,"Ed25519" },
+        { "Signature",  o->ed25519_sign + o->mldsa_sign, "Ed25519/ML-DSA-44" },
+        { "Verify",     o->ed25519_verify + o->mldsa_verify, "Ed25519/ML-DSA-44" },
     };
     double contrib[6];
     contrib[0] = o->x25519_keygen * lookup_mean("Keygen_X25519")
@@ -364,8 +380,10 @@ static void write_breakdown_rows(FILE *f, int method, const char *profile,
     contrib[1] = o->x25519_dh     * lookup_mean("ScalarMult_X25519");
     contrib[2] = o->mlkem_encaps  * lookup_mean("Encaps_MLKEM768");
     contrib[3] = o->mlkem_decaps  * lookup_mean("Decaps_MLKEM768");
-    contrib[4] = o->ed25519_sign  * lookup_mean("Signature_Ed25519");
-    contrib[5] = o->ed25519_verify* lookup_mean("Verify_Ed25519");
+    contrib[4] = o->ed25519_sign  * lookup_mean("Signature_Ed25519")
+               + o->mldsa_sign    * lookup_mean("Signature_MLDSA44");
+    contrib[5] = o->ed25519_verify* lookup_mean("Verify_Ed25519")
+               + o->mldsa_verify  * lookup_mean("Verify_MLDSA44");
 
     for (int i = 0; i < 6; i++) {
         fprintf(f, "%d,%s,%s,%s,%s,%d,%.1f\n",

@@ -1,0 +1,61 @@
+Open5GS daemon v2.7.2
+
+07/22 16:25:27.605: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/smf.yaml' (../lib/app/ogs-init.c:144)
+07/22 16:25:27.605: [app] INFO: File Logging: 'benchmark-results/logs-live-20260722-162527/smfd.log' (../lib/app/ogs-init.c:147)
+07/22 16:25:27.750: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+07/22 16:25:27.752: [metrics] INFO: metrics_server() [http://127.0.0.4]:9090 (../lib/metrics/prometheus/context.c:300)
+07/22 16:25:27.825: [app] INFO: Polling freeDiameter stats every 60000000 usecs (../lib/diameter/common/stats.c:77)
+07/22 16:25:27.825: [gtp] INFO: gtp_server() [127.0.0.4]:2123 (../lib/gtp/path.c:30)
+07/22 16:25:27.825: [gtp] INFO: gtp_server() [127.0.0.4]:2152 (../lib/gtp/path.c:30)
+07/22 16:25:27.825: [pfcp] INFO: pfcp_server() [127.0.0.4]:8805 (../lib/pfcp/path.c:30)
+07/22 16:25:27.826: [sbi] INFO: NF Service [nsmf-pdusession] (../lib/sbi/context.c:1994)
+07/22 16:25:27.826: [sbi] INFO: nghttp2_server() [http://127.0.0.4]:7777 (../lib/sbi/nghttp2-server.c:439)
+07/22 16:25:27.826: [app] INFO: SMF initialize...done (../src/smf/app.c:31)
+07/22 16:25:27.826: [smf] INFO: PFCP associated [127.0.0.7]:8805 (../src/smf/pfcp-sm.c:188)
+07/22 16:25:27.827: [sbi] INFO: [832f2dea-859e-41f1-afb7-657c5fb65535] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+07/22 16:25:27.828: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:25:27.828: [sbi] INFO: [833c2ac2-859e-41f1-8a51-7b24fed6ea35] Subscription created until 2026-07-23T16:25:27.828181+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/22 16:25:27.830: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:25:27.830: [sbi] INFO: [833c312a-859e-41f1-8a51-7b24fed6ea35] Subscription created until 2026-07-23T16:25:27.828338+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/22 16:25:27.830: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:25:27.830: [sbi] INFO: [833c3454-859e-41f1-8a51-7b24fed6ea35] Subscription created until 2026-07-23T16:25:27.828452+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/22 16:25:27.830: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:25:27.830: [sbi] INFO: [833c3382-859e-41f1-8a51-7b24fed6ea35] Subscription created until 2026-07-23T16:25:27.828370+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/22 16:25:27.830: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+07/22 16:25:27.830: [sbi] INFO: [833c3b2a-859e-41f1-8a51-7b24fed6ea35] Subscription created until 2026-07-23T16:25:27.829260+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+07/22 16:25:27.831: [sbi] INFO: [83122be6-859e-41f1-be4d-ab67c7fde2d3] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:80] (../lib/sbi/context.c:2374)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.831: [sbi] INFO: [831ad25a-859e-41f1-a403-1d6f8aa42ab6] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.5:80] (../lib/sbi/context.c:2374)
+07/22 16:25:27.831: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.5:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.831: [sbi] INFO: [8323407a-859e-41f1-947d-416fe46c5b34] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+07/22 16:25:27.832: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:2374)
+07/22 16:25:27.832: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.832: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+07/22 16:25:27.832: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+07/22 16:26:11.138: [smf] INFO: [Added] Number of SMF-UEs is now 1 (../src/smf/context.c:1033)
+07/22 16:26:11.138: [smf] INFO: [Added] Number of SMF-Sessions is now 1 (../src/smf/context.c:3190)
+07/22 16:26:11.138: [smf] INFO: Setup NF EndPoint(addr) [127.0.0.5:7777] (../src/smf/nsmf-handler.c:270)
+07/22 16:26:11.138: [sbi] INFO: [83122be6-859e-41f1-be4d-ab67c7fde2d3] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+07/22 16:26:11.141: [smf] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/smf/nudm-handler.c:461)
+07/22 16:26:11.141: [sbi] INFO: [8323407a-859e-41f1-947d-416fe46c5b34] Setup NF Instance [type:PCF] (../lib/sbi/path.c:307)
+07/22 16:26:11.144: [smf] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../src/smf/npcf-handler.c:367)
+07/22 16:26:11.144: [smf] INFO: UE SUPI[imsi-999700000000001] DNN[internet] IPv4[10.45.0.2] IPv6[] (../src/smf/npcf-handler.c:580)
+07/22 16:26:11.145: [gtp] INFO: gtp_connect() [127.0.0.7]:2152 (../lib/gtp/path.c:60)
+07/22 16:26:11.145: [sbi] INFO: [831ad25a-859e-41f1-a403-1d6f8aa42ab6] Setup NF Instance [type:AMF] (../lib/sbi/path.c:307)
+07/22 16:26:11.145: [smf] INFO: [1] Starting secondary authentication via EAP-EDHOC (../src/smf/gsm-sm.c:106)
+07/22 16:26:11.148: [smf] FATAL: Unexpected state [2] (../src/smf/namf-handler.c:178)
+07/22 16:26:11.148: [smf] FATAL: smf_namf_comm_handle_n1_n2_message_transfer: should not be reached. (../src/smf/namf-handler.c:179)
+07/22 16:26:11.149: [core] FATAL: backtrace() returned 10 addresses (../lib/core/ogs-abort.c:37)
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/open5gs-smfd(+0x8d957) [0x5e77696fa957]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/open5gs-smfd(+0x31b05) [0x5e776969eb05]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/../../lib/core/libogscore.so.2(ogs_fsm_dispatch+0x119) [0x7cf185aa1382]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/open5gs-smfd(+0x2a610) [0x5e7769697610]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/../../lib/core/libogscore.so.2(ogs_fsm_dispatch+0x119) [0x7cf185aa1382]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/open5gs-smfd(+0x10767) [0x5e776967d767]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/smf/../../lib/core/libogscore.so.2(+0x119a4) [0x7cf185a919a4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9caa4) [0x7cf18489caa4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129c6c) [0x7cf184929c6c]

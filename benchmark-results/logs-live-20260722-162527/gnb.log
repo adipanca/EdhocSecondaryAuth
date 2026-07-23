@@ -1,0 +1,21 @@
+nohup: ignoring input
+UERANSIM v3.2.7
+[2026-07-22 16:25:27.592] [sctp] [info] Trying to establish SCTP connection... (127.0.0.5:38412)
+[2026-07-22 16:25:27.709] [sctp] [info] SCTP connection established (127.0.0.5:38412)
+[2026-07-22 16:25:27.747] [sctp] [debug] SCTP association setup ascId[19]
+[2026-07-22 16:25:27.752] [ngap] [debug] Sending NG Setup Request
+[2026-07-22 16:25:27.781] [ngap] [debug] NG Setup Response received
+[2026-07-22 16:25:27.781] [ngap] [info] NG Setup procedure is successful
+[2026-07-22 16:26:10.873] [rrc] [debug] UE[1] new signal detected
+[2026-07-22 16:26:10.875] [rrc] [info] RRC Setup for UE[1]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:26:10.876] [ngap] [debug] Initial NAS message received from UE[1]
+[2026-07-22 16:26:10.932] [ngap] [debug] Initial Context Setup Request received
+[2026-07-22 16:26:11.148] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[2026-07-22 16:26:11.149] [ngap] [error] Error indication received. Cause: radio-network/unknown-PDU-session-ID
+[2026-07-22 16:28:12.866] [rls] [debug] UE[1] signal lost
+[2026-07-22 16:31:22.696] [sctp] [debug] SCTP association shutdown (clientId: 2)
+[2026-07-22 16:31:22.697] [sctp] [warning] Unhandled SCTP notification received
+[2026-07-22 16:31:22.697] [ngap] [error] Association terminated for AMF[2]
+[2026-07-22 16:31:22.697] [ngap] [debug] Removing AMF context[2]

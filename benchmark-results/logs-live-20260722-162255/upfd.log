@@ -1,0 +1,10 @@
+Open5GS daemon v2.7.2
+
+07/22 16:22:55.478: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/upf.yaml' (../lib/app/ogs-init.c:144)
+07/22 16:22:55.478: [app] INFO: File Logging: 'benchmark-results/logs-live-20260722-162255/upfd.log' (../lib/app/ogs-init.c:147)
+07/22 16:22:55.548: [metrics] ERROR: Cannot start Prometheus HTTP server (../lib/metrics/prometheus/context.c:283)
+07/22 16:22:55.549: [pfcp] INFO: pfcp_server() [127.0.0.7]:8805 (../lib/pfcp/path.c:30)
+07/22 16:22:55.549: [gtp] INFO: gtp_server() [127.0.0.7]:2152 (../lib/gtp/path.c:30)
+07/22 16:22:55.550: [upf] ERROR: upf_eap_relay_start: bind() failed (98) (../src/upf/eap-relay.c:856)
+07/22 16:22:55.550: [app] ERROR: Failed to initialize UPF (../src/upf/app.c:28)
+07/22 16:22:55.550: [app] FATAL: Open5GS initialization failed. Aborted (../src/main.c:228)

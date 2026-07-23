@@ -8,3 +8,5 @@ size_Ed25519_signature,PASS,expected=64 actual=64
 size_MAC_AES_CCM_16_64,PASS,expected=8 actual=8
 size_MLKEM768_encap_key,PASS,expected=1184 actual=1184
 size_MLKEM768_ciphertext,PASS,expected=1088 actual=1088
+size_MLDSA44_verify_key,PASS,expected=1312 actual=1312
+size_MLDSA44_signature,PASS,expected=2420 actual=2420

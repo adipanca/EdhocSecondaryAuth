@@ -125,8 +125,9 @@ def section_mtu(rd):
     if frag:
         methods = sorted({r["method"] for r in frag})
         note = (f"\nPesan yang memerlukan fragmentasi terdapat pada "
-                f"method {', '.join(methods)} (profil PQC XWING), karena "
-                f"ML-KEM-768 menambah ~1–1.2 KB per pesan.\n")
+                f"method {', '.join(methods)} (profil SIGMA XWING PQC), karena "
+                f"XWING (X25519+ML-KEM-768) menambah ~1.1–1.2 KB per elemen KEM "
+                f"dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan.\n")
     return ("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi\n\n"
             "Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP "
             "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya.\n\n"
@@ -161,7 +162,7 @@ def main():
               "| 1 | SIG (Ed25519) | MAC (static-DH X25519) | Ed25519 + X25519 |\n"
               "| 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |\n"
               "| 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |\n"
-              "| 4 | MAC (static-XWING) | MAC (static-XWING) | X25519 + ML-KEM-768 (PQC) |\n")
+              "| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |\n")
 
     sections = [
         header,

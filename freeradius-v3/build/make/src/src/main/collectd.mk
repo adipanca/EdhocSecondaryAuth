@@ -1,0 +1,12 @@
+${BUILD_DIR}/objs/src/main/collectd.${OBJ_EXT}: src/main/collectd.c \
+ src/freeradius-devel/autoconf.h \
+ src/freeradius-devel/automask.h src/freeradius-devel/build.h \
+ src/freeradius-devel/autoconf.h src/freeradius-devel/features.h \
+ src/freeradius-devel/radpaths.h \
+
+src/main/collectd.c :
+ src/freeradius-devel/autoconf.h :
+ src/freeradius-devel/automask.h src/freeradius-devel/build.h :
+ src/freeradius-devel/autoconf.h src/freeradius-devel/features.h :
+ src/freeradius-devel/radpaths.h :
+ :

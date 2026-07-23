@@ -1,0 +1,5 @@
+/* config.h.  Generated from config.h.in by configure.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the `dl_iterate_phdr' function. */
+/* #undef HAVE_DL_ITERATE_PHDR */

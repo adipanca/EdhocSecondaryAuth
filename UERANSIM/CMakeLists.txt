@@ -6,6 +6,9 @@ set(CMAKE_C_STANDARD 11)
 
 include_directories(src)
 
+# Shared EAP-EDHOC method-4 (SIGMA XWING) core header (../edhoc4/edhoc4.h)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4)
+
 #################### SUB DIRECTORIES ####################
 
 add_subdirectory(src/ext)
@@ -38,6 +41,9 @@ target_compile_options(nr-ue PRIVATE -Wall -Wextra -pedantic)
 
 target_link_libraries(nr-ue common-lib)
 target_link_libraries(nr-ue ue)
+
+# EAP-EDHOC method-4 core (must be built first: make -C ../edhoc4)
+target_link_libraries(nr-ue ${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4/libedhoc4.a sodium)
 
 ###################### IF BINDER ######################
 add_library(devbnd SHARED src/binder.cpp)

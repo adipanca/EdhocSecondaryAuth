@@ -47,7 +47,10 @@ def run_responder(sock: socket.socket, sizes: dict, loss: float, stop: threading
         if tag == b"\x01":                      # received message_1
             reply = b"\x02" + b"\x00" * (sizes["message_2"] - 1)
         elif tag == b"\x03":                    # received message_3
-            reply = b"\x04" + b"\x00" * 3       # short EAP-Success
+            # EAP-Success = message_4 when the method defines one (method 4
+            # carries EAD4=NpkB), otherwise a short EAP-Success.
+            m4len = sizes.get("message_4", 4)
+            reply = b"\x04" + b"\x00" * (m4len - 1)
         else:
             continue
         if random.random() >= loss:             # emulate downstream loss

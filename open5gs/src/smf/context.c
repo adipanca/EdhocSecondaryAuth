@@ -1477,6 +1477,11 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
 
     sess->smf_ue_id = smf_ue->id;
 
+    /* Secondary authentication (EAP-EDHOC) deferred-start timer */
+    sess->sec_auth.t_start = ogs_timer_add(ogs_app()->timer_mgr,
+            smf_timer_sec_auth_start, OGS_UINT_TO_POINTER(sess->id));
+    ogs_assert(sess->sec_auth.t_start);
+
     ogs_list_add(&smf_ue->sess_list, sess);
 
     smf_metrics_inst_global_inc(SMF_METR_GLOB_GAUGE_PFCP_SESSIONS_ACTIVE);
@@ -1697,6 +1702,11 @@ void smf_sess_remove(smf_sess_t *sess)
             sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
     ogs_list_remove(&smf_ue->sess_list, sess);
+
+    if (sess->sec_auth.t_start) {
+        ogs_timer_delete(sess->sec_auth.t_start);
+        sess->sec_auth.t_start = NULL;
+    }
 
     memset(&e, 0, sizeof(e));
     e.sess_id = sess->id;

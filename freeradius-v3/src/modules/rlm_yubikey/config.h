@@ -1,0 +1,8 @@
+/* config.h.  Generated from config.h.in by configure.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Build with yubicloud support from ykclient */
+/* #undef HAVE_YKCLIENT */
+
+/* Build with yubikey token decryption support support from yubikey */
+/* #undef HAVE_YUBIKEY */

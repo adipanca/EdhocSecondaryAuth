@@ -24,7 +24,9 @@
 
 #define EAP_RELAY_MAX_USER_LEN 255
 #define EAP_RELAY_MAX_STATE_LEN 2048
-#define EAP_RELAY_MAX_EAP_LEN 4096
+/* EAP-EDHOC method 4 (SIGMA XWING) messages are large: message_2 ~6000 B and
+ * message_3 ~4975 B, so the relay must accommodate multi-kilobyte EAP payloads. */
+#define EAP_RELAY_MAX_EAP_LEN 8192
 
 static uint16_t get_port_from_env(const char *name, uint16_t default_port)
 {
@@ -56,9 +58,9 @@ int smf_eap_relay_exchange(const char *username,
     uint16_t relay_port = get_port_from_env("OPEN5GS_EAP_RELAY_PORT",
             EAP_RELAY_DEFAULT_PORT);
     struct timeval tv;
-    uint8_t req[8192];
+    uint8_t req[16384];
     size_t req_len = 0;
-    uint8_t resp[8192];
+    uint8_t resp[16384];
     ssize_t rcv_len = 0;
     uint32_t v32 = 0;
     uint16_t v16 = 0;

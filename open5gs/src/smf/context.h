@@ -282,6 +282,15 @@ typedef struct smf_sess_s {
     uint8_t         psi; /* PDU session identity */
     uint8_t         pti; /* 5GS-NAS : Procedure transaction identity */
 
+#define SMF_SEC_AUTH_STATE_MAX 4096
+    struct {
+        bool in_progress;
+        uint8_t eap_id;
+        uint8_t state[SMF_SEC_AUTH_STATE_MAX];
+        size_t state_len;
+        ogs_timer_t *t_start;
+    } sec_auth;
+
     char            *sm_context_status_uri; /* SmContextStatusNotification */
     struct {
         ogs_sbi_client_t *client;

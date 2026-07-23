@@ -1,0 +1,16 @@
+Open5GS daemon v2.7.2
+
+07/22 16:25:27.573: [app] INFO: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/upf.yaml' (../lib/app/ogs-init.c:144)
+07/22 16:25:27.573: [app] INFO: File Logging: 'benchmark-results/logs-live-20260722-162527/upfd.log' (../lib/app/ogs-init.c:147)
+07/22 16:25:27.672: [metrics] INFO: metrics_server() [http://127.0.0.7]:9090 (../lib/metrics/prometheus/context.c:300)
+07/22 16:25:27.672: [pfcp] INFO: pfcp_server() [127.0.0.7]:8805 (../lib/pfcp/path.c:30)
+07/22 16:25:27.672: [gtp] INFO: gtp_server() [127.0.0.7]:2152 (../lib/gtp/path.c:30)
+07/22 16:25:27.683: [upf] INFO: UPF EAP relay started on 127.0.0.1:3870 (../src/upf/eap-relay.c:871)
+07/22 16:25:27.713: [app] INFO: UPF initialize...done (../src/upf/app.c:31)
+07/22 16:25:27.826: [upf] INFO: PFCP associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:168)
+07/22 16:26:11.144: [upf] INFO: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+07/22 16:26:11.145: [gtp] INFO: gtp_connect() [127.0.0.4]:2152 (../lib/gtp/path.c:60)
+07/22 16:26:11.145: [upf] INFO: UE F-SEID[UP:0xf22 CP:0x5b4] APN[internet] PDN-Type[1] IPv4[10.45.0.2] IPv6[] (../src/upf/context.c:495)
+07/22 16:26:19.352: [pfcp] WARNING: [5] LOCAL  No Reponse. Give up! for step 1 type 1 peer [127.0.0.4]:8805 (../lib/pfcp/xact.c:602)
+07/22 16:26:19.352: [upf] WARNING: No Heartbeat from SMF [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:309)
+07/22 16:26:19.352: [upf] INFO: PFCP de-associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:184)

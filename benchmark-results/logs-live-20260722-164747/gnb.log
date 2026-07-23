@@ -1,0 +1,28 @@
+nohup: ignoring input
+UERANSIM v3.2.7
+[2026-07-22 16:47:47.669] [sctp] [info] Trying to establish SCTP connection... (127.0.0.5:38412)
+[2026-07-22 16:47:47.671] [sctp] [info] SCTP connection established (127.0.0.5:38412)
+[2026-07-22 16:47:47.672] [sctp] [debug] SCTP association setup ascId[61]
+[2026-07-22 16:47:47.672] [ngap] [debug] Sending NG Setup Request
+[2026-07-22 16:47:47.676] [ngap] [debug] NG Setup Response received
+[2026-07-22 16:47:47.676] [ngap] [info] NG Setup procedure is successful
+[2026-07-22 16:48:16.025] [rrc] [debug] UE[1] new signal detected
+[2026-07-22 16:48:16.028] [rrc] [info] RRC Setup for UE[1]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:48:16.029] [ngap] [debug] Initial NAS message received from UE[1]
+[2026-07-22 16:48:16.052] [ngap] [debug] Initial Context Setup Request received
+[2026-07-22 16:48:16.270] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[2026-07-22 16:48:16.270] [ngap] [error] Unhandled NGAP initiating-message received (17)
+[2026-07-22 16:50:47.998] [rls] [debug] UE[1] signal lost
+[2026-07-22 16:51:33.339] [rrc] [debug] UE[2] new signal detected
+[2026-07-22 16:51:33.340] [rrc] [info] RRC Setup for UE[2]
+[DecodeViaBuilder] Start decoding stream at offset 3
+[DecodeViaBuilder] Successfully decoded message.
+[2026-07-22 16:51:33.346] [ngap] [debug] Initial NAS message received from UE[2]
+[2026-07-22 16:51:33.377] [ngap] [debug] UE Context Release Command received
+[2026-07-22 16:51:33.378] [rrc] [info] Releasing RRC connection for UE[1]
+[2026-07-22 16:51:33.387] [ngap] [debug] Initial Context Setup Request received
+[2026-07-22 16:51:33.601] [ngap] [info] PDU session resource(s) setup for UE[2] count[1]
+[2026-07-22 16:51:33.601] [ngap] [error] Unhandled NGAP initiating-message received (17)
+[2026-07-22 16:53:05.189] [rls] [debug] UE[2] signal lost

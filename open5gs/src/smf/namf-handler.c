@@ -45,7 +45,9 @@ bool smf_namf_comm_handle_n1_n2_message_transfer(
         break;
 
     case SMF_NETWORK_TRIGGERED_SERVICE_REQUEST:
+    case SMF_NETWORK_REQUESTED_PDU_SESSION_MODIFICATION:
     case SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION:
+    case SMF_NETWORK_REQUESTED_SECONDARY_AUTHENTICATION:
         N1N2MessageTransferRspData = recvmsg->N1N2MessageTransferRspData;
         if (!N1N2MessageTransferRspData) {
             ogs_error("No N1N2MessageTransferRspData [status:%d]",

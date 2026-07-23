@@ -122,6 +122,8 @@ def check_sizes():
         ("MAC_AES_CCM_16_64", 8, es.MAC_LEN),
         ("MLKEM768_encap_key", 1184, es.MLKEM768_EK),
         ("MLKEM768_ciphertext", 1088, es.MLKEM768_CT),
+        ("MLDSA44_verify_key", 1312, es.MLDSA44_PK),
+        ("MLDSA44_signature", 2420, es.MLDSA44_SIG),
     ]
     return rows
 

@@ -477,6 +477,42 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             return OGS_ERROR;
         }
 
+        /*
+         * EAP-EDHOC secondary authentication:
+         *
+         * The SMF delivers a PDU Session Authentication Command / Result as an
+         * N1-only N1N2MessageTransfer (no N2 container). Unlike a session
+         * establishment failure, this must NOT tear the session down and must
+         * be delivered to the UE over a plain DL NAS Transport (NGAP
+         * DownlinkNASTransport), which UERANSIM's gNB supports (a
+         * PDUSessionResourceModifyRequest would be silently dropped by it).
+         *
+         * The N1 SM NAS header is:
+         *   [0] extended protocol discriminator
+         *   [1] PDU session identity
+         *   [2] procedure transaction identity
+         *   [3] message type
+         */
+        if (n1buf->len > 3 &&
+            (n1buf->data[3] ==
+                    OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_COMMAND ||
+             n1buf->data[3] ==
+                    OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_RESULT)) {
+
+            ogs_info("[%s][%d:%d] Secondary authentication N1 "
+                    "(msg_type=%d) -> DL NAS transport",
+                    amf_ue->supi, sess->psi, sess->pti, n1buf->data[3]);
+
+            r = nas_5gs_send_dl_nas_transport(
+                    ran_ue_find_by_id(sess->ran_ue_id), sess,
+                    OGS_NAS_PAYLOAD_CONTAINER_N1_SM_INFORMATION,
+                    n1buf, 0, 0);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+
+            break;
+        }
+
         ogs_error("[%d:%d] PDU session establishment reject",
                 sess->psi, sess->pti);
 

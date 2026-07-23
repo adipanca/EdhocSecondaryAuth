@@ -278,6 +278,56 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_reject(
     return ogs_nas_5gs_plain_encode(&message);
 }
 
+ogs_pkbuf_t *gsm_build_pdu_session_authentication_command(
+        smf_sess_t *sess, const uint8_t *eap, uint16_t eap_len)
+{
+    ogs_nas_5gs_message_t message;
+    ogs_nas_5gs_pdu_session_authentication_command_t *cmd =
+        &message.gsm.pdu_session_authentication_command;
+
+    ogs_assert(sess);
+    ogs_assert(eap);
+    ogs_assert(eap_len > 0);
+
+    memset(&message, 0, sizeof(message));
+    message.gsm.h.extended_protocol_discriminator =
+            OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GSM;
+    message.gsm.h.pdu_session_identity = sess->psi;
+    message.gsm.h.procedure_transaction_identity = sess->pti;
+    message.gsm.h.message_type = OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_COMMAND;
+
+    cmd->eap_message.length = eap_len;
+    cmd->eap_message.buffer = (void *)eap;
+
+    return ogs_nas_5gs_plain_encode(&message);
+}
+
+ogs_pkbuf_t *gsm_build_pdu_session_authentication_result(
+        smf_sess_t *sess, const uint8_t *eap, uint16_t eap_len)
+{
+    ogs_nas_5gs_message_t message;
+    ogs_nas_5gs_pdu_session_authentication_result_t *result =
+        &message.gsm.pdu_session_authentication_result;
+
+    ogs_assert(sess);
+
+    memset(&message, 0, sizeof(message));
+    message.gsm.h.extended_protocol_discriminator =
+            OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GSM;
+    message.gsm.h.pdu_session_identity = sess->psi;
+    message.gsm.h.procedure_transaction_identity = sess->pti;
+    message.gsm.h.message_type = OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_RESULT;
+
+    if (eap && eap_len > 0) {
+        result->presencemask |=
+            OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_RESULT_EAP_MESSAGE_PRESENT;
+        result->eap_message.length = eap_len;
+        result->eap_message.buffer = (void *)eap;
+    }
+
+    return ogs_nas_5gs_plain_encode(&message);
+}
+
 static void encode_qos_rule_packet_filter(
         ogs_nas_qos_rule_t *qos_rule, smf_bearer_t *qos_flow)
 {

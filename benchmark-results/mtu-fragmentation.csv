@@ -11,6 +11,7 @@ method,profile,message,size_bytes,eap_message_attrs,eap_fragments,ip_datagram_by
 3,MAC/MAC static-DH X25519,message_1,38,1,1,66,1,no
 3,MAC/MAC static-DH X25519,message_2,46,1,1,74,1,no
 3,MAC/MAC static-DH X25519,message_3,20,1,1,48,1,no
-4,MAC/MAC XWING (X25519+ML-KEM-768),message_1,1223,5,2,1251,1,no
-4,MAC/MAC XWING (X25519+ML-KEM-768),message_2,1135,5,2,1163,1,no
-4,MAC/MAC XWING (X25519+ML-KEM-768),message_3,20,1,1,48,1,no
+4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),message_1,2355,10,3,2383,2,yes
+4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),message_2,5998,24,6,6026,5,yes
+4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),message_3,4967,20,5,4995,4,yes
+4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),message_4,1227,5,2,1255,1,no
