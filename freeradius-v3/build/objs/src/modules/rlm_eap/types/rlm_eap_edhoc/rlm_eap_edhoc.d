@@ -1,4 +1,4 @@
-/home/admin-vb/EdhocSecondaryAuth/freeradius-v3/build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
+build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
  src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.c \
  /usr/include/stdc-predef.h src/freeradius-devel/autoconf.h \
  src/freeradius-devel/automask.h src/freeradius-devel/build.h \
@@ -214,4 +214,5 @@
  src/freeradius-devel/process.h src/freeradius-devel/listen.h \
  /usr/include/pwd.h /usr/include/grp.h src/freeradius-devel/modules.h \
  src/freeradius-devel/rad_assert.h src/modules/rlm_eap/libeap/eap_types.h \
- /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc4.h
+ /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc4.h \
+ /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc03.h

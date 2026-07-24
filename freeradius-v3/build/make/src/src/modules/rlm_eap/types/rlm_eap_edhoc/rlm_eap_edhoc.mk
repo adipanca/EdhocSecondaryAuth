@@ -1,4 +1,4 @@
-${top_srcdir}/build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.${OBJ_EXT}: \
+${BUILD_DIR}/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.${OBJ_EXT}: \
  src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.c \
  src/freeradius-devel/autoconf.h \
  src/freeradius-devel/automask.h src/freeradius-devel/build.h \
@@ -37,7 +37,8 @@ ${top_srcdir}/build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.$
  src/freeradius-devel/process.h src/freeradius-devel/listen.h \
  src/freeradius-devel/modules.h \
  src/freeradius-devel/rad_assert.h src/modules/rlm_eap/libeap/eap_types.h \
- ${top_srcdir}/../edhoc4/edhoc4.h
+ ${top_srcdir}/../edhoc4/edhoc4.h \
+ ${top_srcdir}/../edhoc4/edhoc03.h
  :
  src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.c :
  src/freeradius-devel/autoconf.h :

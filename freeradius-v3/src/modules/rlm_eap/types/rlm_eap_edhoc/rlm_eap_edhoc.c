@@ -28,16 +28,24 @@ RCSID("$Id$")
 #include <freeradius-devel/rad_assert.h>
 
 #include "edhoc4.h"
+#include "edhoc03.h"
 
 typedef struct rlm_eap_edhoc_t {
-	char const	*creds_path;	//!< server.creds (responder credentials)
-	char const	*peer_pub_path;	//!< ue.pub (UE static XWING public key)
+	char const	*creds_path;	//!< server.creds (responder credentials, method 4)
+	char const	*peer_pub_path;	//!< ue.pub (UE static XWING public key, method 4)
+	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
+	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
 	edhoc4_creds	server;
 	uint8_t		ue_pub[E4_XWING_PK];
+	edhoc03_creds	server03;
+	edhoc03_peer	ue03_pub;
+	int		have03;		//!< classical creds loaded
 } rlm_eap_edhoc_t;
 
 typedef struct edhoc_session_t {
-	edhoc4_ctx	ctx;
+	edhoc4_ctx	ctx;		//!< method 4 state
+	edhoc03_ctx	ctx03;		//!< methods 0-3 state
+	int		mode;		//!< 0 = undetermined, 3 = classical, 4 = pqc
 	int		round;		//!< 0 = start sent, 1 = msg2 sent, 2 = msg4 sent
 	uint8_t		in[E4_MAX_MSG];
 	size_t		in_len;
@@ -50,6 +58,8 @@ typedef struct edhoc_session_t {
 static CONF_PARSER module_config[] = {
 	{ "creds", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, creds_path), NULL },
 	{ "peer_pub", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub_path), NULL },
+	{ "creds03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, creds03_path), NULL },
+	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };
 
@@ -77,6 +87,20 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 	}
 
 	INFO("rlm_eap_edhoc: loaded method-4 SIGMA XWING credentials");
+
+	/* Classical methods 0-3 credentials are optional. */
+	if (inst->creds03_path && inst->peer_pub03_path) {
+		if (edhoc03_creds_load(inst->creds03_path, &inst->server03) != E3_OK) {
+			ERROR("rlm_eap_edhoc: failed to load classical creds from %s", inst->creds03_path);
+			return -1;
+		}
+		if (edhoc03_pub_load(inst->peer_pub03_path, &inst->ue03_pub) != E3_OK) {
+			ERROR("rlm_eap_edhoc: failed to load classical peer key from %s", inst->peer_pub03_path);
+			return -1;
+		}
+		inst->have03 = 1;
+		INFO("rlm_eap_edhoc: loaded classical methods 0-3 credentials");
+	}
 	return 0;
 }
 
@@ -85,14 +109,16 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
  */
 static int mod_session_init(void *instance, eap_handler_t *handler)
 {
-	rlm_eap_edhoc_t	*inst = (rlm_eap_edhoc_t *) instance;
 	EAP_DS		*eap_ds = handler->eap_ds;
 	edhoc_session_t	*sess;
+
+	(void) instance;
 
 	sess = talloc_zero(handler, edhoc_session_t);
 	if (!sess) return 0;
 
-	edhoc4_init_responder(&sess->ctx, &inst->server, inst->ue_pub);
+	/* Responder core is chosen once message_1 reveals the method. */
+	sess->mode = 0;
 	sess->round = 0;
 	sess->in_len = 0;
 	sess->in_pos = 0;
@@ -310,18 +336,62 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 
 	switch (sess->round) {
 	case 0:	/* expect message_1 -> build message_2 */
-		rc = edhoc4_r_handle_msg1(&sess->ctx, msg, msg_len, out, sizeof(out), &out_len);
-		if (rc != E4_OK) {
-			REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));
-			eap_ds->request->code = PW_EAP_FAILURE;
-			return 0;
+		if (sess->mode == 0) {
+			if (msg_len == (size_t)(1 + E3_X_PK + E3_CONN_ID) && msg[0] <= 3) {
+				sess->mode = 3;
+			} else {
+				sess->mode = 4;
+			}
+		}
+		if (sess->mode == 3) {
+			rlm_eap_edhoc_t *inst3 = (rlm_eap_edhoc_t *) instance;
+			if (!inst3->have03) {
+				REDEBUG("rlm_eap_edhoc: classical method requested but creds03 not configured");
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
+			edhoc03_init_responder(&sess->ctx03, &inst3->server03, &inst3->ue03_pub);
+			rc = edhoc03_r_handle_msg1(&sess->ctx03, msg, msg_len, out, sizeof(out), &out_len);
+			if (rc != E3_OK) {
+				REDEBUG("rlm_eap_edhoc: message_1 (classical) failed: %s", edhoc03_strerror(rc));
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
+		} else {
+			rlm_eap_edhoc_t *inst4 = (rlm_eap_edhoc_t *) instance;
+			edhoc4_init_responder(&sess->ctx, &inst4->server, inst4->ue_pub);
+			rc = edhoc4_r_handle_msg1(&sess->ctx, msg, msg_len, out, sizeof(out), &out_len);
+			if (rc != E4_OK) {
+				REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
-		RDEBUG2("rlm_eap_edhoc: sent message_2 (%zu bytes)", out_len);
+		RDEBUG2("rlm_eap_edhoc: sent message_2 (%zu bytes, mode %d)", out_len, sess->mode);
 		return 1;
 
-	case 1:	/* expect message_3 -> build message_4, derive MSK/EMSK */
+	case 1:	/* expect message_3 -> derive MSK/EMSK */
+		if (sess->mode == 3) {
+			rc = edhoc03_r_handle_msg3(&sess->ctx03, msg, msg_len, out, sizeof(out), &out_len);
+			if (rc != E3_OK) {
+				REDEBUG("rlm_eap_edhoc: message_3 (classical) failed: %s", edhoc03_strerror(rc));
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
+			if (!sess->ctx03.done) {
+				REDEBUG("rlm_eap_edhoc: classical handshake not complete");
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
+			/* Classical EDHOC has no message_4: succeed right after message_3. */
+			eap_ds->request->code = PW_EAP_SUCCESS;
+			eap_add_reply(request, "MS-MPPE-Recv-Key", sess->ctx03.msk, 32);
+			eap_add_reply(request, "MS-MPPE-Send-Key", sess->ctx03.msk + 32, 32);
+			RDEBUG2("rlm_eap_edhoc: classical authentication success, MSK exported");
+			return 1;
+		}
 		rc = edhoc4_r_handle_msg3(&sess->ctx, msg, msg_len, out, sizeof(out), &out_len);
 		if (rc != E4_OK) {
 			REDEBUG("rlm_eap_edhoc: message_3 processing failed: %s", edhoc4_strerror(rc));
