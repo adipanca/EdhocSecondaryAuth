@@ -35,6 +35,8 @@ METHOD_NAMES = {
     2: "STAT/SIG",
     3: "STAT/STAT",
     4: "SIGMA-XWING-PQC",
+    5: "EAP-TLS-Classic",
+    6: "EAP-TLS-Hybrid-PQC",
 }
 EAP_ATTR = 253      # RFC 3579 EAP-Message attribute payload
 MTU = 1500          # IP MTU
@@ -111,10 +113,17 @@ def main():
     L.append("Setiap method 0..4 diimplementasikan penuh dan interoperable: method 0..3 "
              "(klasik: Ed25519 SIG / static-DH X25519 MAC, core `edhoc03`) dan method 4 "
              "(SIGMA XWING PQC, core `edhoc4`). Method 0..3 memakai 3 pesan (tanpa message_4), "
-             "method 4 memakai 4 pesan dengan fragmentasi EAP.")
+             "method 4 memakai 4 pesan dengan fragmentasi EAP. Method 5 (EAP-TLS Classic) "
+             "menjalankan handshake mutual-TLS **nyata** (RFC 5216) melalui OpenSSL "
+             "(`benchmark/eap_tls_bench.c`) melawan `rlm_eap_tls` yang hidup, dengan negosiasi "
+             "EAP-Nak dari `edhoc` (default_eap_type) ke tipe TLS (13). Method 6 (EAP-TLS "
+             "Hybrid PQC) menjalankan handshake mutual-TLS 1.3 **nyata** juga (grup KEM hybrid "
+             "X25519MLKEM768 + sertifikat ML-DSA-44, via `benchmark/eap_tls_hybrid_bench.c` "
+             "dan `oqs-provider`) melawan `rlm_eap_tls` yang sama — lihat catatan metodologi "
+             "di bawah untuk cara pengukurannya.")
     L.append("")
 
-    # ---- Method matrix (identical to analysis.md) ----
+    # ---- Method matrix (identical to analysis.md, plus methods 5 & 6) ----
     L.append("Method matrix:")
     L.append("")
     L.append("| Method | Initiator | Responder | Profil kripto |")
@@ -124,14 +133,41 @@ def main():
     L.append("| 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |")
     L.append("| 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |")
     L.append("| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |")
+    L.append("| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |")
+    L.append("| 6 | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |")
+    L.append("")
+    L.append("> **Catatan metodologi — bagaimana method 5 dan method 6 diukur:** Method "
+             "**0-6 seluruhnya** diukur end-to-end secara **live** di atas EAP-over-RADIUS "
+             "nyata terhadap `rlm_eap_tls`/`rlm_eap_edhoc` yang hidup. Method 5 (klasik, "
+             "RSA-2048) dan method 6 (hybrid-PQC, ML-DSA-44 + grup KEM X25519MLKEM768) memakai "
+             "`rlm_eap_tls` yang SAMA, tetapi satu instance `tls {}` hanya bisa memegang satu "
+             "pasangan sertifikat/grup pada satu waktu — jadi keduanya diukur **berurutan, "
+             "bukan bersamaan**: `benchmark/switch_tls_config.sh classic|hybrid` menukar "
+             "`tls-config` yang dipakai lalu me-restart radiusd (untuk method 6, ditambah "
+             "variabel lingkungan `OPENSSL_CONF`/`OPENSSL_MODULES` yang mengaktifkan "
+             "`oqs-provider`, lihat `pqc-tls/openssl-hybrid.cnf`). Method 6 memerlukan OpenSSL "
+             ">= 3.2 untuk sertifikat/tanda tangan ML-DSA-44 di TLS1.3 (`oqs-provider` belum "
+             "mendukung ini di versi OpenSSL yang lebih lama); lingkungan ini memakai OpenSSL "
+             "3.0.13 secara default, sehingga sebuah build OpenSSL 3.2.6 privat "
+             "(`pqc-tls/openssl32/`) dipakai lewat `LD_LIBRARY_PATH` khusus untuk radiusd dan "
+             "harness method 6 saja — `rlm_eap_tls`/radiusd sendiri tidak diubah kodenya untuk "
+             "ini (hanya linking runtime-nya), kecuali satu pengecekan versi OpenSSL di "
+             "`src/main/version.c` yang direlaksasi agar tidak menolak kombinasi minor-version "
+             "3.0/3.2 ini (OpenSSL menjamin stabilitas ABI/API di seluruh seri 3.x). Setiap "
+             "handshake method 6 diverifikasi (bukan cuma diasumsikan) benar-benar memakai grup "
+             "`X25519MLKEM768` dan sertifikat `mldsa44` lewat `SSL_get0_group_name()`/"
+             "`EVP_PKEY_get0_type_name()` — kalau sampai jatuh diam-diam ke classical, harness "
+             "menandainya FAIL, bukan PASS.")
     L.append("")
 
     # ---- 1c. Handshake end-to-end per method (identical column set to analysis.md 1c) ----
     L.append("## 1c. Handshake secondary authentication P2P (end-to-end EAP-over-RADIUS)")
     L.append("")
     n_iter = len(by_m[0]) if by_m else 0
-    L.append(f"Jalur live EAP-over-RADIUS (harness UE initiator -> FreeRADIUS rlm_eap_edhoc "
-             f"responder). {n_iter} iterasi per method, tanpa loss.")
+    L.append(f"Jalur live EAP-over-RADIUS (harness UE initiator -> FreeRADIUS `rlm_eap_edhoc` "
+             f"untuk method 0..4, `rlm_eap_tls` untuk method 5 dan 6). {n_iter} iterasi per "
+             f"method, tanpa loss. Method 5 dan 6 diukur berurutan (lihat catatan metodologi "
+             f"di atas), tetapi keduanya live.")
     L.append("")
     L.append("Baris perwakilan (satu handshake sukses per method), kolom identik dengan "
              "`analysis.md` bagian 1c (`duration_ms` menggantikan `duration_sec`; nilai adalah "
@@ -186,9 +222,10 @@ def main():
     L.append("## 2. Performa pada jaringan lossy (end-to-end EAP-over-RADIUS)")
     L.append("")
     trials = len(by_ml[(0, 0.0)]) if (0, 0.0) in by_ml else 0
-    L.append(f"Handshake EAP-EDHOC nyata melalui RADIUS dengan retransmisi gaya EAP "
+    L.append(f"Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP "
              f"(RTO 40 ms, maks 6 retransmisi per pertukaran); loss diemulasi di level "
-             f"aplikasi pada tiap datagram UDP nyata. {trials} percobaan per sel.")
+             f"aplikasi pada tiap datagram UDP nyata. {trials} percobaan per sel, semua "
+             f"method (0..6) live.")
     L.append("")
     L.append("| Method | Loss % | Success % | Mean (ms) | p95 (ms) | Mean retx |")
     L.append("| --- | --- | --- | --- | --- | --- |")
@@ -216,16 +253,17 @@ def main():
     L.append("")
 
     # ---- 4. Fragmentation observed end-to-end (identical columns to analysis.md 4) ----
-    L.append("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi (observasi nyata)")
+    L.append("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi")
     L.append("")
-    L.append("Ukuran pesan dan jumlah fragmen EAP di bawah ini adalah **hasil observasi "
-             "langsung** dari byte yang benar-benar dikirim harness (bukan perkiraan). "
-             "`EAP frags` = fragmen EDHOC (wrapper 1000 B) yang teramati; `EAP attrs` = "
-             "atribut EAP-Message 253 B (RFC 3579); `IP frags` dan `>MTU` diturunkan dari "
-             "byte teramati pada MTU 1500.")
+    L.append("Ukuran pesan dan jumlah fragmen EAP untuk method 0..6 di bawah ini adalah "
+             "**hasil observasi langsung** dari byte yang benar-benar dikirim/diterima harness "
+             "(bukan perkiraan) — termasuk method 6, yang sekarang live sama seperti method "
+             "lainnya. `EAP frags` = fragmen EDHOC/TLS yang teramati; `EAP attrs` = atribut "
+             "EAP-Message 253 B (RFC 3579); `IP frags` dan `>MTU` diturunkan dari byte teramati "
+             "pada MTU 1500.")
     L.append("")
-    L.append("| Method | Pesan | Bytes | EAP attrs | EAP frags | IP frags | >MTU |")
-    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    L.append("| Method | Pesan | Bytes | EAP attrs | EAP frags | IP frags | >MTU | Sumber |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
     for m in sorted(by_m):
         r = by_m[m][0]
         msgs = [("message_1", int(r["msg1_bytes"]), int(r["msg1_frags"])),
@@ -240,11 +278,15 @@ def main():
             attrs = (wire + EAP_ATTR - 1) // EAP_ATTR
             ipf = (nbytes + MTU - 1) // MTU
             over = "yes" if nbytes > MTU else "no"
-            L.append(f"| {m} | {name} | {nbytes} | {attrs} | {frags} | {ipf} | {over} |")
-    L.append("Pesan yang memerlukan fragmentasi hanya pada method 4 (profil SIGMA XWING PQC): "
-             "XWING (X25519+ML-KEM-768) menambah ~1.1–1.2 KB per elemen KEM dan tanda tangan "
-             "ML-DSA-44 menambah ~2.4 KB per pesan, sehingga method 4 memerlukan banyak "
-             "round-trip fragmentasi EAP sedangkan method 0..3 selalu muat dalam satu fragmen.")
+            L.append(f"| {m} | {name} | {nbytes} | {attrs} | {frags} | {ipf} | {over} | observasi nyata |")
+
+    L.append("")
+    L.append("Pesan yang memerlukan fragmentasi pada method 4 (SIGMA XWING PQC) dan method 6 "
+             "(EAP-TLS Hybrid PQC) — keduanya observasi nyata: XWING/hybrid-KEM "
+             "(X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda tangan "
+             "ML-DSA-44 menambah ~2.4 KB per pesan, sehingga keduanya memerlukan banyak "
+             "round-trip fragmentasi EAP sedangkan method 0, 1, 2, 3 dan 5 (klasik) selalu "
+             "muat dalam sedikit fragmen.")
     L.append("")
 
     with open(OUT, "w") as f:

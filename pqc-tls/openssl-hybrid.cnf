@@ -1,0 +1,43 @@
+#
+# openssl-hybrid.cnf — process-local OpenSSL config that activates
+# oqs-provider (alongside the default provider) and sets the TLS1.3
+# default group list to the hybrid X25519+ML-KEM-768 group, so that ANY
+# unmodified OpenSSL-based app (including FreeRADIUS's rlm_eap_tls, which
+# has no groups= config directive of its own) offers/accepts the hybrid
+# group by default.
+#
+# Usage: set both of these env vars before launching the process:
+#   OPENSSL_CONF=<path to this file>
+#   OPENSSL_MODULES=<dir containing oqsprovider.so>
+# (OPENSSL_MODULES here is pqc-tls/oqs-provider-install/lib; also needs
+#  LD_LIBRARY_PATH pointed at pqc-tls/openssl32-install/lib64 first, see
+#  benchmark/switch_tls_config.sh for the exact paths used in this repo
+#  checkout — it sets all of these automatically.)
+#
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+ssl_conf = ssl_module
+
+[provider_sect]
+default = default_sect
+oqsprovider = oqsprovider_sect
+
+[default_sect]
+activate = 1
+
+[oqsprovider_sect]
+activate = 1
+
+[ssl_module]
+system_default = system_default_sect
+
+[system_default_sect]
+Groups = X25519MLKEM768:x25519
+# OpenSSL's generic cert/security-level checks (ssl_security_default_callback)
+# don't recognize PQC signature algorithms (e.g. mldsa44) and treat them as
+# security-bits=0 ("ca md too weak" / cert-loading failures) unless the
+# default security level is relaxed. Level 0 disables these checks entirely
+# process-wide (this process only, via OPENSSL_CONF — not the system default).
+CipherString = DEFAULT:@SECLEVEL=0

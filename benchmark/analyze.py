@@ -123,11 +123,16 @@ def section_mtu(rd):
     frag = [r for r in rows if int(r["eap_fragments"]) > 1 or r["exceeds_mtu"] == "yes"]
     note = ""
     if frag:
-        methods = sorted({r["method"] for r in frag})
+        methods = sorted({r["method"] for r in frag}, key=int)
         note = (f"\nPesan yang memerlukan fragmentasi terdapat pada "
-                f"method {', '.join(methods)} (profil SIGMA XWING PQC), karena "
-                f"XWING (X25519+ML-KEM-768) menambah ~1.1–1.2 KB per elemen KEM "
-                f"dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan.\n")
+                f"method {', '.join(methods)} (profil PQC — XWING/ML-KEM-768 hybrid "
+                f"key establishment, ML-DSA-44 signatures), karena XWING/hybrid-KEM "
+                f"(X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda "
+                f"tangan ML-DSA-44 menambah ~2.4 KB per pesan. Method 6's baris di sini "
+                f"adalah hasil komputasi/model (`compute_tls_hybrid.py`), konsisten dengan "
+                f"bagaimana method 0-4 di tabel ini juga dihitung, bukan diobservasi live — "
+                f"lihat `analisys2.md` section 4 untuk ukuran pesan method 6 yang benar-benar "
+                f"diobservasi dari handshake live.\n")
     return ("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi\n\n"
             "Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP "
             "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya.\n\n"
@@ -162,7 +167,19 @@ def main():
               "| 1 | SIG (Ed25519) | MAC (static-DH X25519) | Ed25519 + X25519 |\n"
               "| 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |\n"
               "| 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |\n"
-              "| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |\n")
+              "| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |\n"
+              "| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |\n"
+              "| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |\n\n"
+              "> **Catatan metodologi:** `analysis.md` (dokumen ini) adalah pandangan "
+              "primitif/komputasi murni, independen terhadap transport, untuk SEMUA method "
+              "0-6 secara konsisten (section 1a/1b/4 di bawah memakai model/komputasi, bukan "
+              "byte yang benar-benar diobservasi di kabel, untuk method manapun) — ini "
+              "pilihan desain dokumen ini, bukan keterbatasan. Method 6 (EAP-TLS Hybrid PQC) "
+              "SEKARANG JUGA diukur end-to-end secara live melalui EAP-over-RADIUS nyata "
+              "(liboqs + oqs-provider terpasang, tls-config ML-DSA-44 + grup hybrid "
+              "X25519MLKEM768 dipakai oleh `rlm_eap_tls`) — lihat `analisys2.md` untuk angka "
+              "live-nya (section 1c/2), yang membandingkannya langsung dengan method 4 "
+              "(SIGMA-XWING PQC) dan method 5 (EAP-TLS Classic).\n")
 
     sections = [
         header,

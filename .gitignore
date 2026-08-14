@@ -7,3 +7,21 @@ subprojects/prometheus-client-c
 subprojects/usrsctp
 
 webui/.next
+
+# copied from raddb/certs (root-owned) so eap_tls_bench can read it without
+# sudo; client.pem contains a private key, don't commit it
+benchmark/certs/
+
+# ML-DSA-44 test CA/server/client keypairs for method 6 (EAP-TLS Hybrid PQC),
+# generated locally by this task; contains private keys, don't commit
+benchmark/certs-pqc/
+
+# liboqs + oqs-provider build trees (large, built from source locally for
+# method 6's live hybrid-PQC EAP-TLS handshake) — see pqc-tls/README-ish
+# notes in the final report for exact build commands to reproduce
+pqc-tls/liboqs/
+pqc-tls/liboqs-install/
+pqc-tls/oqs-provider/
+pqc-tls/oqs-provider-install/
+pqc-tls/openssl32/
+pqc-tls/openssl32-install/

@@ -1,0 +1,723 @@
+/*
+ * eap_tls_bench.c — real end-to-end EAP-TLS (RFC 5216) benchmark harness.
+ *
+ * Method 5 = "EAP-TLS Classic": drives a *real* mutual-TLS EAP-over-RADIUS
+ * handshake against the live FreeRADIUS rlm_eap_tls responder
+ * (127.0.0.1:1812), using OpenSSL (libssl/libcrypto) to run an actual TLS
+ * client state machine (memory-BIO wired) — not a simulation.
+ *
+ * The RADIUS/EAP/UDP plumbing (packet build/parse, loss emulation, EAP-style
+ * retransmission, CLI contract, CSV schema) mirrors benchmark/e2e_radius_bench.c
+ * exactly, so method 5 rows are directly comparable to methods 0..4. Only the
+ * "engine" driving the EAP type-data differs: instead of EDHOC, this file
+ * runs an OpenSSL client SSL object through RFC 5216 fragmentation.
+ *
+ * Negotiation: this RADIUS server's default_eap_type is "edhoc", so the very
+ * first EAP-Request the server sends offers EAP-Type=56 (EDHOC). This
+ * harness immediately replies with EAP-Response/Nak (type 3) with a single
+ * desired type = 13 (TLS), which makes the server switch to offering
+ * EAP-Type=13 for the remainder of the exchange (see rlm_eap's normal
+ * multi-type negotiation, RFC 3748 §5.3.1). This dance was verified in
+ * isolation against the live radiusd debug log before writing the full TLS
+ * state machine below.
+ *
+ * Identity: this harness authenticates as "tls-ue" (distinct from the EDHOC
+ * harness's "edhoc-ue"), purely for clarity in RADIUS/EAP debug logs — the
+ * FreeRADIUS "default" site does not branch on User-Name for EAP method
+ * selection here, so any identity string works.
+ *
+ * Certificates: /usr/local/etc/raddb/certs/{ca,client}.pem are root:root
+ * with restrictive modes (needs sudo to read). Rather than run this whole
+ * harness under sudo, a plain read-only copy of the SAME ca.pem/client.pem
+ * (identical bytes, not regenerated) lives at benchmark/certs/ so the
+ * harness runs as a normal user, consistent with how e2e_radius_bench reads
+ * its EDHOC credentials from the world-readable /usr/local/etc/edhoc/.
+ *
+ * EAP-TLS message-flight -> CSV column mapping (RFC 5216 naturally produces
+ * more than 3-4 logical flights when reassembled from fragments, but we
+ * observed exactly this 4-flight shape against the live server and it maps
+ * cleanly onto the existing msg1..msg4 columns):
+ *   message_1 (UE->AAA) = ClientHello                     (first outbound flight)
+ *   message_2 (AAA->UE) = ServerHello..Certificate..Finished (first inbound flight,
+ *                          the big one; typically fragmented over several
+ *                          EAP round trips because it carries the RSA-2048
+ *                          server certificate chain)
+ *   message_3 (UE->AAA) = Client Certificate+CertificateVerify+Finished
+ *                          (second outbound flight)
+ *   message_4 (AAA->UE) = any remaining small inbound flights (typically a
+ *                          single bare empty EAP-Request/TLS "ack" that
+ *                          FreeRADIUS sends just before EAP-Success; if the
+ *                          server ever sends more than one such flight —
+ *                          e.g. a post-handshake NewSessionTicket — their
+ *                          bytes/fragments are summed into this same slot)
+ *
+ * This is a benchmark / interoperability harness, not production code.
+ */
+#define _POSIX_C_SOURCE 200809L
+
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <openssl/md5.h>
+#include <openssl/ssl.h>
+
+/* ------------------------------------------------------------------ */
+/* RADIUS / EAP constants (identical to e2e_radius_bench.c)           */
+/* ------------------------------------------------------------------ */
+#define RAD_ACCESS_REQUEST    1
+#define RAD_ACCESS_ACCEPT     2
+#define RAD_ACCESS_REJECT     3
+#define RAD_ACCESS_CHALLENGE 11
+
+#define RAD_ATTR_USER_NAME          1
+#define RAD_ATTR_NAS_IP_ADDRESS     4
+#define RAD_ATTR_NAS_PORT           5
+#define RAD_ATTR_STATE             24
+#define RAD_ATTR_EAP_MESSAGE       79
+#define RAD_ATTR_MESSAGE_AUTH      80
+
+#define EAP_CODE_REQUEST   1
+#define EAP_CODE_RESPONSE  2
+#define EAP_CODE_SUCCESS   3
+#define EAP_CODE_FAILURE   4
+
+#define EAP_TYPE_IDENTITY  1
+#define EAP_TYPE_NAK       3
+#define EAP_TYPE_EDHOC     56
+#define EAP_TYPE_TLS       13
+
+#define RAD_MAX_PKT   4096
+#define EAP_CHUNK      253
+
+/* RFC 5216 §2.1.5 flag bits */
+#define TLS_FLAG_L 0x80  /* Length included            */
+#define TLS_FLAG_M 0x40  /* More fragments follow      */
+#define TLS_FLAG_S 0x20  /* EAP-TLS start               */
+
+/* Max TLS-data payload bytes carried per EAP-Response/TLS fragment
+ * (excludes the 1-byte flags octet and optional 4-byte length field).
+ * Kept safely under the server's ~1024-byte fragment_size default. */
+#define TLS_FRAG_MAX 1020
+#define WIRE_BUF     (TLS_FRAG_MAX + 5)
+
+/* Reassembly buffer for one full TLS flight (ClientHello .. Finished etc). */
+#define TLS_MAX_MSG 16384
+
+/* ------------------------------------------------------------------ */
+/* configuration                                                      */
+/* ------------------------------------------------------------------ */
+static const char *g_secret   = "testing123";
+static const char *g_server   = "127.0.0.1";
+static int         g_port     = 1812;
+static const char *g_identity = "tls-ue";
+/* raddb/certs/{ca,client}.pem are root:root, mode-restricted (needs sudo to
+ * read); we keep a plain read-only copy under benchmark/certs/ so this
+ * harness can run as a normal user. Same cert bytes, just relocated for
+ * permissions — see benchmark/eap_tls_bench.c header comment / final report
+ * for how/why. Override with --ca-file/--client-cert if needed. */
+static const char *g_ca_file     = "certs/ca.pem";
+static const char *g_client_file = "certs/client.pem";
+static const char *g_key_pass    = "whatever";
+static double      g_loss     = 0.0;
+static int         g_verbose  = 0;
+static int         g_max_retx = 6;
+static double      g_rto_ms   = 40.0;
+
+/* ------------------------------------------------------------------ */
+/* small helpers                                                      */
+/* ------------------------------------------------------------------ */
+static double now_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1.0e6;
+}
+
+static void rand_bytes(uint8_t *b, size_t n)
+{
+    for (size_t i = 0; i < n; i++) b[i] = (uint8_t)(rand() & 0xff);
+}
+
+/* ------------------------------------------------------------------ */
+/* OpenSSL EAP-TLS client engine                                      */
+/* ------------------------------------------------------------------ */
+typedef struct {
+    SSL_CTX *ctx;
+    SSL     *ssl;
+    BIO     *rbio, *wbio;   /* ssl owns these once SSL_set_bio() is called */
+
+    uint8_t out[TLS_MAX_MSG]; size_t out_len, out_pos;
+    uint8_t in[TLS_MAX_MSG];  size_t in_pos;
+    int     in_flight_active;
+
+    int out_done;      /* number of complete outbound flights fully sent   */
+    int in_done;        /* number of complete inbound flights fully received */
+    int cur_out_slot;
+    int cur_in_slot;
+
+    int done;    /* SSL_is_init_finished() observed true */
+    int failed;
+
+    size_t msg_bytes[5];
+    int    msg_frags[5];
+} tls_eng_t;
+
+static int pem_passwd_cb(char *buf, int size, int rwflag, void *u)
+{
+    (void)rwflag;
+    const char *pass = (const char *)u;
+    size_t n = strlen(pass);
+    if ((int)n > size) n = (size_t)size;
+    memcpy(buf, pass, n);
+    return (int)n;
+}
+
+static int tls_setup(tls_eng_t *e)
+{
+    memset(e, 0, sizeof(*e));
+
+    e->ctx = SSL_CTX_new(TLS_client_method());
+    if (!e->ctx) return -1;
+
+    SSL_CTX_set_verify(e->ctx, SSL_VERIFY_PEER, NULL);
+    if (SSL_CTX_load_verify_locations(e->ctx, g_ca_file, NULL) != 1) {
+        fprintf(stderr, "load CA %s failed\n", g_ca_file);
+        return -1;
+    }
+    SSL_CTX_set_default_passwd_cb(e->ctx, pem_passwd_cb);
+    SSL_CTX_set_default_passwd_cb_userdata(e->ctx, (void *)g_key_pass);
+    if (SSL_CTX_use_certificate_file(e->ctx, g_client_file, SSL_FILETYPE_PEM) != 1) {
+        fprintf(stderr, "load client cert %s failed\n", g_client_file);
+        return -1;
+    }
+    if (SSL_CTX_use_PrivateKey_file(e->ctx, g_client_file, SSL_FILETYPE_PEM) != 1) {
+        fprintf(stderr, "load client key %s failed\n", g_client_file);
+        return -1;
+    }
+    if (!SSL_CTX_check_private_key(e->ctx)) {
+        fprintf(stderr, "client cert/key mismatch\n");
+        return -1;
+    }
+    /* Avoid TLS-1.3 session-ticket/PSK extension bookkeeping; not needed
+     * for a one-shot benchmark handshake and keeps the post-Finished
+     * flight shape simple (single bare ack instead of NewSessionTicket). */
+    SSL_CTX_set_options(e->ctx, SSL_OP_NO_TICKET);
+
+    e->ssl = SSL_new(e->ctx);
+    if (!e->ssl) return -1;
+    e->rbio = BIO_new(BIO_s_mem());
+    e->wbio = BIO_new(BIO_s_mem());
+    if (!e->rbio || !e->wbio) return -1;
+    BIO_set_mem_eof_return(e->rbio, -1);
+    BIO_set_mem_eof_return(e->wbio, -1);
+    SSL_set_bio(e->ssl, e->rbio, e->wbio);   /* ssl now owns rbio/wbio */
+    SSL_set_connect_state(e->ssl);
+    /* No SNI / hostname verification: the test CA's server cert CN is not a
+     * real hostname; chain-of-trust verification against ca.pem alone is
+     * sufficient here, matching a supplicant configured with a private CA. */
+    return 0;
+}
+
+static void tls_teardown(tls_eng_t *e)
+{
+    if (e->ssl) SSL_free(e->ssl);  /* frees rbio/wbio too */
+    if (e->ctx) SSL_CTX_free(e->ctx);
+}
+
+/* Pull any pending bytes out of wbio into e->out, resetting out_pos. */
+static size_t drain_wbio(tls_eng_t *e)
+{
+    int pending = BIO_pending(e->wbio);
+    if (pending <= 0) return 0;
+    if ((size_t)pending > sizeof(e->out)) pending = (int)sizeof(e->out);
+    int n = BIO_read(e->wbio, e->out, pending);
+    if (n <= 0) return 0;
+    e->out_len = (size_t)n;
+    e->out_pos = 0;
+    return e->out_len;
+}
+
+/* Emit one outbound EAP-TLS fragment from e->out into wire[]. */
+static size_t tls_send_fragment(tls_eng_t *e, uint8_t *wire)
+{
+    size_t remaining = e->out_len - e->out_pos;
+    int    first = (e->out_pos == 0);
+    size_t frag_len = remaining < TLS_FRAG_MAX ? remaining : TLS_FRAG_MAX;
+    int    more = (remaining > frag_len);
+    size_t pos = 0;
+
+    wire[pos++] = (uint8_t)((more ? TLS_FLAG_M : 0) | ((first && more) ? TLS_FLAG_L : 0));
+    if (first && more) {
+        uint32_t tot = htonl((uint32_t)e->out_len);
+        memcpy(wire + pos, &tot, 4);
+        pos += 4;
+    }
+    memcpy(wire + pos, e->out + e->out_pos, frag_len);
+    pos += frag_len;
+    e->out_pos += frag_len;
+    e->msg_frags[e->cur_out_slot]++;
+
+    if (e->out_pos >= e->out_len) {
+        e->out_len = 0; e->out_pos = 0;
+        e->out_done++;
+    }
+    return pos;
+}
+
+/* Begin sending a freshly-drained outbound flight (assigns its byte total
+ * to the current slot, then emits the first fragment). */
+static size_t tls_queue_and_send(tls_eng_t *e, uint8_t *wire)
+{
+    e->cur_out_slot = (e->out_done == 0) ? 1 : 3;
+    e->msg_bytes[e->cur_out_slot] += e->out_len;
+    return tls_send_fragment(e, wire);
+}
+
+/*
+ * React to one inbound EAP-Request/TLS type-data payload (in/in_len).
+ * Fills wire[] with the outbound EAP-Response/TLS type-data and returns its
+ * length. Returns -1 on a fatal TLS/protocol error.
+ */
+static long tls_react(tls_eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
+{
+    /* Still fragmenting our own outbound flight: whatever the server just
+     * sent is the "ack, send next fragment" signal (should carry no data). */
+    if (e->out_pos < e->out_len) {
+        return (long)tls_send_fragment(e, wire);
+    }
+
+    if (in_len < 1) return -1;
+    uint8_t flags = in[0];
+    size_t  pos = 1;
+    int L = flags & TLS_FLAG_L, M = flags & TLS_FLAG_M, S = flags & TLS_FLAG_S;
+
+    if (L) {
+        if (in_len < 5) return -1;
+        pos += 4; /* TLS Message Length field: informational only, skip */
+    }
+    const uint8_t *payload = (in_len > pos) ? in + pos : NULL;
+    size_t payload_len = (in_len > pos) ? in_len - pos : 0;
+
+    if (S) {
+        /* EAP-Request/TLS Start: kick off the handshake (generates
+         * ClientHello into wbio). Any accidental payload is ignored. */
+        SSL_do_handshake(e->ssl);
+        if (drain_wbio(e) == 0) {
+            fprintf(stderr, "tls_react: TLS-Start produced no ClientHello\n");
+            return -1;
+        }
+        return (long)tls_queue_and_send(e, wire);
+    }
+
+    /* Inbound reassembly of a (possibly fragmented) server flight. */
+    if (!e->in_flight_active) {
+        e->in_flight_active = 1;
+        e->in_pos = 0;
+        e->cur_in_slot = (e->in_done == 0) ? 2 : 4;
+    }
+    if (payload_len > 0) {
+        if (e->in_pos + payload_len > sizeof(e->in)) {
+            fprintf(stderr, "tls_react: inbound flight too large\n");
+            return -1;
+        }
+        memcpy(e->in + e->in_pos, payload, payload_len);
+        e->in_pos += payload_len;
+    }
+    e->msg_frags[e->cur_in_slot]++;
+    e->msg_bytes[e->cur_in_slot] += payload_len;
+
+    if (M) {
+        wire[0] = 0x00;  /* empty ack requesting the next fragment */
+        return 1;
+    }
+
+    /* Flight complete (may be zero-length: a bare ack from the server). */
+    e->in_flight_active = 0;
+    e->in_done++;
+
+    if (e->in_pos > 0) {
+        BIO_write(e->rbio, e->in, e->in_pos);
+        e->in_pos = 0;
+        int rc = SSL_do_handshake(e->ssl);
+        if (rc <= 0) {
+            int err = SSL_get_error(e->ssl, rc);
+            if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE) {
+                fprintf(stderr, "SSL_do_handshake failed (err=%d)\n", err);
+                ERR_print_errors_fp(stderr);
+                return -1;
+            }
+        }
+    }
+
+    if (drain_wbio(e) > 0) {
+        return (long)tls_queue_and_send(e, wire);
+    }
+
+    /* Nothing new to send: either the handshake is done on our side and
+     * we're waiting for Access-Accept, or (rare) we need more inbound data
+     * before we can produce output — either way, empty-ack and keep going. */
+    if (SSL_is_init_finished(e->ssl)) e->done = 1;
+    wire[0] = 0x00;
+    return 1;
+}
+
+/* ------------------------------------------------------------------ */
+/* RADIUS packet assembly / parsing (identical to e2e_radius_bench.c) */
+/* ------------------------------------------------------------------ */
+static void put_attr(uint8_t *buf, size_t *len, uint8_t type,
+                     const uint8_t *val, size_t vlen)
+{
+    buf[(*len)++] = type;
+    buf[(*len)++] = (uint8_t)(vlen + 2);
+    memcpy(buf + *len, val, vlen);
+    *len += vlen;
+}
+
+static size_t build_access_request(uint8_t id, const uint8_t auth[16],
+                                   const uint8_t *eap, size_t eap_len,
+                                   const uint8_t *state, size_t state_len,
+                                   uint8_t *pkt)
+{
+    uint8_t attrs[RAD_MAX_PKT];
+    size_t  alen = 0;
+    uint8_t nas_ip[4] = { 127, 0, 0, 1 };
+    uint8_t nas_port[4] = { 0, 0, 0, 1 };
+    size_t  ma_off_in_attrs;
+    uint8_t zero16[16] = {0};
+
+    put_attr(attrs, &alen, RAD_ATTR_USER_NAME,
+             (const uint8_t *)g_identity, strlen(g_identity));
+    put_attr(attrs, &alen, RAD_ATTR_NAS_IP_ADDRESS, nas_ip, 4);
+    put_attr(attrs, &alen, RAD_ATTR_NAS_PORT, nas_port, 4);
+    if (state && state_len)
+        put_attr(attrs, &alen, RAD_ATTR_STATE, state, state_len);
+
+    {
+        size_t off = 0;
+        do {
+            size_t chunk = eap_len - off;
+            if (chunk > EAP_CHUNK) chunk = EAP_CHUNK;
+            put_attr(attrs, &alen, RAD_ATTR_EAP_MESSAGE, eap + off, chunk);
+            off += chunk;
+        } while (off < eap_len);
+    }
+
+    ma_off_in_attrs = alen;
+    put_attr(attrs, &alen, RAD_ATTR_MESSAGE_AUTH, zero16, 16);
+
+    size_t plen = 20 + alen;
+    pkt[0] = RAD_ACCESS_REQUEST;
+    pkt[1] = id;
+    pkt[2] = (uint8_t)(plen >> 8);
+    pkt[3] = (uint8_t)(plen & 0xff);
+    memcpy(pkt + 4, auth, 16);
+    memcpy(pkt + 20, attrs, alen);
+
+    {
+        unsigned int mdlen = 16;
+        uint8_t mac[16];
+        HMAC(EVP_md5(), g_secret, (int)strlen(g_secret), pkt, plen, mac, &mdlen);
+        memcpy(pkt + 20 + ma_off_in_attrs + 2, mac, 16);
+    }
+    return plen;
+}
+
+static int parse_reply(const uint8_t *pkt, size_t plen, uint8_t *code,
+                       uint8_t *eap, size_t *eap_len,
+                       uint8_t *state, size_t *state_len)
+{
+    if (plen < 20) return -1;
+    *code = pkt[0];
+    *eap_len = 0;
+    *state_len = 0;
+    size_t pos = 20;
+    while (pos + 2 <= plen) {
+        uint8_t t = pkt[pos];
+        uint8_t l = pkt[pos + 1];
+        if (l < 2 || pos + l > plen) break;
+        const uint8_t *v = pkt + pos + 2;
+        size_t vl = l - 2;
+        if (t == RAD_ATTR_EAP_MESSAGE) {
+            memcpy(eap + *eap_len, v, vl);
+            *eap_len += vl;
+        } else if (t == RAD_ATTR_STATE) {
+            memcpy(state, v, vl);
+            *state_len = vl;
+        }
+        pos += l;
+    }
+    return 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* UDP send/recv with loss emulation + RADIUS retransmit              */
+/* ------------------------------------------------------------------ */
+static int g_retx;
+
+static int rad_exchange(int sock, const uint8_t *req, size_t req_len,
+                        uint8_t *resp, size_t *resp_len)
+{
+    const int max_try = g_max_retx + 1;
+    for (int t = 0; t < max_try; t++) {
+        int drop_out = (g_loss > 0.0) && ((rand() / (double)RAND_MAX) < g_loss);
+        if (!drop_out) {
+            if (send(sock, req, req_len, 0) < 0) return -1;
+        } else {
+            g_retx++;
+        }
+
+        if (!drop_out) {
+            ssize_t n = recv(sock, resp, RAD_MAX_PKT, 0);
+            if (n > 0) {
+                int drop_in = (g_loss > 0.0) && ((rand() / (double)RAND_MAX) < g_loss);
+                if (!drop_in) { *resp_len = (size_t)n; return 0; }
+                g_retx++;
+            } else {
+                g_retx++;
+            }
+        }
+        if (g_rto_ms > 0.0) {
+            struct timespec bo = { (time_t)(g_rto_ms / 1000.0),
+                                   (long)((g_rto_ms - ((long)(g_rto_ms / 1000.0)) * 1000.0) * 1e6) };
+            nanosleep(&bo, NULL);
+        }
+    }
+    return -1;
+}
+
+/* ------------------------------------------------------------------ */
+/* one full handshake                                                 */
+/* ------------------------------------------------------------------ */
+typedef struct {
+    int    ok;
+    double duration_ms;
+    int    radius_rt;
+    int    eap_rt;
+    int    access_req, access_chal, access_accept, access_reject;
+    int    retx;
+    size_t msg_bytes[5];
+    int    msg_frags[5];
+} result_t;
+
+static int run_handshake(result_t *r)
+{
+    tls_eng_t e;
+    memset(r, 0, sizeof(*r));
+
+    if (tls_setup(&e) != 0) return -1;
+
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) { tls_teardown(&e); return -1; }
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons((uint16_t)g_port);
+    inet_pton(AF_INET, g_server, &sa.sin_addr);
+    if (connect(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+        close(sock); tls_teardown(&e); return -1;
+    }
+    struct timeval tv = { 2, 0 };
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+    uint8_t rad_id = (uint8_t)(rand() & 0xff);
+    uint8_t auth[16];
+    uint8_t state[256]; size_t state_len = 0;
+    uint8_t eap[RAD_MAX_PKT];   size_t eap_len;
+    uint8_t req[RAD_MAX_PKT];   size_t req_len;
+    uint8_t resp[RAD_MAX_PKT];  size_t resp_len;
+    uint8_t reap[RAD_MAX_PKT];  size_t reap_len;
+    uint8_t rstate[256];        size_t rstate_len;
+    uint8_t code;
+    int nak_sent = 0;
+    int guard = 0;   /* safety cap on EAP round trips */
+
+    g_retx = 0;
+    double t0 = now_ms();
+
+    /* ---- 1. EAP-Response/Identity ---- */
+    eap_len = 0;
+    eap[eap_len++] = EAP_CODE_RESPONSE;
+    eap[eap_len++] = 1;
+    eap[eap_len++] = 0; eap[eap_len++] = 0;
+    eap[eap_len++] = EAP_TYPE_IDENTITY;
+    memcpy(eap + eap_len, g_identity, strlen(g_identity));
+    eap_len += strlen(g_identity);
+    eap[2] = (uint8_t)(eap_len >> 8); eap[3] = (uint8_t)(eap_len & 0xff);
+
+    rand_bytes(auth, 16);
+    req_len = build_access_request(rad_id, auth, eap, eap_len, NULL, 0, req);
+    r->access_req++; r->radius_rt++; r->eap_rt++;
+    if (rad_exchange(sock, req, req_len, resp, &resp_len) != 0) {
+        close(sock); tls_teardown(&e); return -1;
+    }
+
+    for (;;) {
+        if (++guard > 60) { e.failed = 1; break; }
+        if (parse_reply(resp, resp_len, &code, reap, &reap_len, rstate, &rstate_len) != 0) {
+            close(sock); tls_teardown(&e); return -1;
+        }
+        if (code == RAD_ACCESS_ACCEPT) { r->access_accept++; e.done = 1; break; }
+        if (code == RAD_ACCESS_REJECT) { r->access_reject++; e.failed = 1; break; }
+        if (code != RAD_ACCESS_CHALLENGE) { close(sock); tls_teardown(&e); return -1; }
+        r->access_chal++;
+
+        if (rstate_len) { memcpy(state, rstate, rstate_len); state_len = rstate_len; }
+
+        if (reap_len < 5 || reap[0] != EAP_CODE_REQUEST) { close(sock); tls_teardown(&e); return -1; }
+        uint8_t eap_id = reap[1];
+        uint8_t eap_type = reap[4];
+        const uint8_t *in = reap + 5;
+        size_t in_len = reap_len - 5;
+
+        uint8_t wire[WIRE_BUF];
+        long wlen;
+        uint8_t resp_eap_type;
+
+        if (eap_type == EAP_TYPE_EDHOC && !nak_sent) {
+            /* Server's default_eap_type is edhoc; Nak it to request TLS. */
+            nak_sent = 1;
+            wire[0] = EAP_TYPE_TLS;
+            wlen = 1;
+            resp_eap_type = EAP_TYPE_NAK;
+        } else if (eap_type == EAP_TYPE_TLS) {
+            wlen = tls_react(&e, in, in_len, wire);
+            if (wlen < 0) { e.failed = 1; break; }
+            resp_eap_type = EAP_TYPE_TLS;
+        } else {
+            fprintf(stderr, "unexpected EAP type %d from server\n", eap_type);
+            close(sock); tls_teardown(&e); return -1;
+        }
+
+        eap_len = 0;
+        eap[eap_len++] = EAP_CODE_RESPONSE;
+        eap[eap_len++] = eap_id;
+        eap[eap_len++] = 0; eap[eap_len++] = 0;
+        eap[eap_len++] = resp_eap_type;
+        memcpy(eap + eap_len, wire, (size_t)wlen);
+        eap_len += (size_t)wlen;
+        eap[2] = (uint8_t)(eap_len >> 8); eap[3] = (uint8_t)(eap_len & 0xff);
+
+        rad_id++;
+        rand_bytes(auth, 16);
+        req_len = build_access_request(rad_id, auth, eap, eap_len, state, state_len, req);
+        r->access_req++; r->radius_rt++; r->eap_rt++;
+        if (rad_exchange(sock, req, req_len, resp, &resp_len) != 0) {
+            close(sock); tls_teardown(&e); return -1;
+        }
+    }
+
+    r->duration_ms = now_ms() - t0;
+    r->retx = g_retx;
+    close(sock);
+
+    r->ok = (e.done && !e.failed);
+    for (int i = 0; i < 5; i++) { r->msg_bytes[i] = e.msg_bytes[i]; r->msg_frags[i] = e.msg_frags[i]; }
+    tls_teardown(&e);
+    return r->ok ? 0 : -1;
+}
+
+/* ------------------------------------------------------------------ */
+/* main                                                               */
+/* ------------------------------------------------------------------ */
+static const char *method_name(int m)
+{
+    (void)m;
+    return "EAP-TLS-Classic";
+}
+
+int main(int argc, char **argv)
+{
+    int method = -1, iters = 1;
+    const char *csv = NULL;
+    const char *label = "e2e";
+
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--method") && i + 1 < argc) method = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--iters") && i + 1 < argc) iters = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--server") && i + 1 < argc) g_server = argv[++i];
+        else if (!strcmp(argv[i], "--port") && i + 1 < argc) g_port = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--secret") && i + 1 < argc) g_secret = argv[++i];
+        else if (!strcmp(argv[i], "--ca-file") && i + 1 < argc) g_ca_file = argv[++i];
+        else if (!strcmp(argv[i], "--client-cert") && i + 1 < argc) g_client_file = argv[++i];
+        else if (!strcmp(argv[i], "--loss") && i + 1 < argc) g_loss = atof(argv[++i]) / 100.0;
+        else if (!strcmp(argv[i], "--max-retx") && i + 1 < argc) g_max_retx = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--rto-ms") && i + 1 < argc) g_rto_ms = atof(argv[++i]);
+        else if (!strcmp(argv[i], "--csv") && i + 1 < argc) csv = argv[++i];
+        else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
+        else if (!strcmp(argv[i], "-v")) g_verbose = 1;
+        else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
+    }
+    if (method != 5) {
+        fprintf(stderr, "usage: %s --method 5 [--iters N] [--loss PCT] [--csv F] [--label L]\n", argv[0]);
+        return 2;
+    }
+
+    srand((unsigned)(time(NULL) ^ getpid()));
+
+    FILE *cf = NULL;
+    if (csv) {
+        int existed = access(csv, F_OK) == 0;
+        cf = fopen(csv, "a");
+        if (cf && !existed)
+            fprintf(cf, "label,timestamp,method,method_name,iteration,status,duration_ms,"
+                        "radius_round_trips,eap_round_trips,access_req,access_challenge,"
+                        "access_accept,access_reject,retransmits,loss_pct,"
+                        "msg1_bytes,msg2_bytes,msg3_bytes,msg4_bytes,"
+                        "msg1_frags,msg2_frags,msg3_frags,msg4_frags\n");
+    }
+
+    int pass = 0;
+    double sum = 0, best = 1e18, worst = 0;
+    for (int it = 1; it <= iters; it++) {
+        result_t r;
+        int rc = run_handshake(&r);
+
+        time_t now = time(NULL);
+        char ts[64];
+        strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S%z", localtime(&now));
+
+        const char *st = (rc == 0) ? "PASS" : "FAIL";
+        if (rc == 0) {
+            pass++; sum += r.duration_ms;
+            if (r.duration_ms < best) best = r.duration_ms;
+            if (r.duration_ms > worst) worst = r.duration_ms;
+        }
+        printf("[m5 %-16s] iter %2d: %s  %.3f ms  radius_rt=%d eap_rt=%d "
+               "req=%d chal=%d accept=%d reject=%d retx=%d "
+               "bytes(1..4)=%zu/%zu/%zu/%zu frags=%d/%d/%d/%d\n",
+               method_name(method), it, st, r.duration_ms,
+               r.radius_rt, r.eap_rt, r.access_req, r.access_chal,
+               r.access_accept, r.access_reject, r.retx,
+               r.msg_bytes[1], r.msg_bytes[2], r.msg_bytes[3], r.msg_bytes[4],
+               r.msg_frags[1], r.msg_frags[2], r.msg_frags[3], r.msg_frags[4]);
+
+        if (cf) {
+            fprintf(cf, "%s,%s,%d,%s,%d,%s,%.3f,%d,%d,%d,%d,%d,%d,%d,%.1f,"
+                        "%zu,%zu,%zu,%zu,%d,%d,%d,%d\n",
+                    label, ts, method, method_name(method), it, st, r.duration_ms,
+                    r.radius_rt, r.eap_rt, r.access_req, r.access_chal,
+                    r.access_accept, r.access_reject, r.retx, g_loss * 100.0,
+                    r.msg_bytes[1], r.msg_bytes[2], r.msg_bytes[3], r.msg_bytes[4],
+                    r.msg_frags[1], r.msg_frags[2], r.msg_frags[3], r.msg_frags[4]);
+        }
+    }
+
+    printf("== method %d (%s): %d/%d PASS", method, method_name(method), pass, iters);
+    if (pass) printf("  mean=%.3f ms best=%.3f worst=%.3f", sum / pass, best, worst);
+    printf(" ==\n");
+
+    if (cf) fclose(cf);
+    return (pass == iters) ? 0 : 1;
+}

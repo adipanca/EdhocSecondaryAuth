@@ -57,6 +57,27 @@ int ssl_check_consistency(void)
 	ssl_linked = SSLeay();
 
 	/*
+	 *	benchmark task addition (method 6, EAP-TLS Hybrid PQC): OpenSSL's
+	 *	own published ABI/API stability policy guarantees no breaking
+	 *	changes within the 3.x series (see
+	 *	https://openssl-library.org/policies/releasestrat/), so a 3.x
+	 *	build running against a *newer* 3.x runtime (major version
+	 *	match, linked minor >= built minor) is safe -- this lets
+	 *	radiusd, built against the system OpenSSL 3.0.13 headers, run
+	 *	against a separately-built OpenSSL 3.2.6 libssl/libcrypto
+	 *	(loaded via LD_LIBRARY_PATH, see benchmark/switch_tls_config.sh)
+	 *	so that oqs-provider's TLS1.3 provider-based signature-algorithm
+	 *	support (only present for OpenSSL >= 3.2) is available for the
+	 *	ML-DSA-44 hybrid-PQC tls-config. Behaviour for every other
+	 *	OpenSSL major/minor combination (including the ordinary
+	 *	build==link 3.0.13 case used by method 5 / all other methods)
+	 *	is completely unchanged.
+	 */
+	if (((ssl_linked & 0xf0000000) == 0x30000000) &&
+	    ((ssl_built & 0xf0000000) == 0x30000000) &&
+	    ((ssl_linked & 0xfff00000) >= (ssl_built & 0xfff00000))) return 0;
+
+	/*
 	 *	Major and minor versions mismatch, that's bad.
 	 */
 	if ((ssl_linked & 0xfff00000) != (ssl_built & 0xfff00000)) goto mismatch;

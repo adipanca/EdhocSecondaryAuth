@@ -22,7 +22,21 @@ CC      ?= cc
 CFLAGS  ?= -O2 -Wall -Wextra -std=c11
 LDLIBS  += -lsodium -lmbedcrypto -lm
 
-BIN := crypto_bench interop_vec
+EDHOC4_DIR := $(ROOT_DIR)/edhoc4
+EDHOC4_LIB := $(EDHOC4_DIR)/libedhoc4.a
+
+BIN := crypto_bench interop_vec e2e_radius_bench eap_tls_bench eap_tls_hybrid_bench
+
+# Method 6 (EAP-TLS Hybrid PQC) needs OpenSSL >= 3.2 headers/libs for
+# oqs-provider's TLS1.3 provider-based signature-algorithm support (ML-DSA-44
+# certs) -- system OpenSSL here is 3.0.13, so this links against the private
+# OpenSSL 3.2.6 built from source under pqc-tls/openssl32-install/ (see
+# benchmark/switch_tls_config.sh header comment / final report for why).
+# Running eap_tls_hybrid_bench requires the matching runtime libs on
+# LD_LIBRARY_PATH -- switch_tls_config.sh sets this up.
+PQC_ROOT     := $(ROOT_DIR)/pqc-tls
+OSSL32_INC   := $(PQC_ROOT)/openssl32-install/include
+OSSL32_LIB   := $(PQC_ROOT)/openssl32-install/lib64
 
 all: $(BIN)
 
@@ -35,11 +49,28 @@ $(MLKEM_LIB):
 $(MLDSA_LIB):
 	$(MAKE) -C $(MLDSA_DIR)
 
+$(EDHOC4_LIB):
+	$(MAKE) -C $(EDHOC4_DIR) libedhoc4.a
+
 crypto_bench: crypto_bench.c $(MLKEM_LIB) $(MLDSA_LIB) $(PQ_COMMON_OBJ)
 	$(CC) $(CFLAGS) -o $@ crypto_bench.c $(MLKEM_LIB) $(MLDSA_LIB) $(PQ_COMMON_OBJ) $(LDLIBS)
 
 interop_vec: interop_vec.c $(MLKEM_LIB) $(PQ_COMMON_OBJ)
 	$(CC) $(CFLAGS) -o $@ interop_vec.c $(MLKEM_LIB) $(PQ_COMMON_OBJ) $(LDLIBS)
+
+# Live end-to-end EAP-over-RADIUS harnesses (methods 0..4 EDHOC / method 5 TLS).
+# Not part of `all` PQClean bootstrap chain requirements beyond libedhoc4.a;
+# link convention mirrors how the already-built e2e_radius_bench binary in
+# this tree was produced (-lsodium -lcrypto -lm, -I../edhoc4).
+e2e_radius_bench: e2e_radius_bench.c $(EDHOC4_LIB)
+	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lcrypto -lm
+
+eap_tls_bench: eap_tls_bench.c
+	$(CC) $(CFLAGS) -o $@ eap_tls_bench.c -lssl -lcrypto -lm
+
+eap_tls_hybrid_bench: eap_tls_hybrid_bench.c
+	$(CC) $(CFLAGS) -I$(OSSL32_INC) -o $@ eap_tls_hybrid_bench.c \
+		-L$(OSSL32_LIB) -Wl,-rpath,$(OSSL32_LIB) -lssl -lcrypto -lm
 
 clean:
 	rm -f $(BIN) $(PQ_COMMON_OBJ)
