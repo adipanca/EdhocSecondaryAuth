@@ -9,7 +9,13 @@
 #   e2e-lossy.csv       per-iteration results across method x loss-rate
 #
 # radiusd must already be running, e.g.:
-#   echo admin | sudo -S /usr/local/sbin/radiusd -X > /tmp/radiusd.log 2>&1 &
+#   echo admin | sudo -S /usr/local/sbin/radiusd -f > /tmp/radiusd.log 2>&1 &
+#
+# Use -f (quiet foreground), NOT -X (full debug): under sustained
+# high-throughput iteration, -X's per-attribute logging overhead makes
+# radiusd intermittently fall behind, causing real UDP packet delay that the
+# harness's 2s socket timeout turns into spurious ~2000ms outliers -- see
+# switch_tls_config.sh's header comment for the full A/B-tested writeup.
 #
 set -uo pipefail
 

@@ -8,24 +8,40 @@ between reruns of this benchmark suite -- e.g. one run had 2 < 1 < 3 < 0,
 another had 1 < 0 < 3 < 2. Since their real compute-cost difference is only
 tens of microseconds (handshake-compute.csv: 147.6-179.6 us total), far
 below the millisecond-scale wall-clock noise floor, this script asks: does a
-MUCH larger sample (5000 iterations/method instead of 100) resolve a real,
-statistically stable ranking, or does it stay noise?
+MUCH larger sample resolve a real, statistically stable ranking, or does it
+stay noise?
 
-Reads benchmark-results/e2e-handshake-highn.csv (produced separately, e.g.:
-  for m in 0 1 2 3; do
-    ./e2e_radius_bench --method $m --iters 5000 --loss 0 \
-      --csv ../benchmark-results/e2e-handshake-highn.csv --label highn
-  done
+ROOT CAUSE FOUND AND FIXED (first pass at N=5000 with radiusd -X): the first
+attempt at this test, with radiusd running in full debug mode (-X, every
+attribute/policy branch logged per request), showed 14-63 outliers per
+method up to ~2123ms among 5000 samples. Root cause: -X's logging overhead
+made radiusd intermittently fall behind under sustained high-throughput
+iteration, causing REAL UDP packet delay -- which the harness's 2-second
+SO_RCVTIMEO then turned into a ~2000ms stall. Confirmed by A/B test: rerunning
+the identical sweep with radiusd -f (quiet foreground, no debug logging, see
+switch_tls_config.sh) produced ZERO such outliers across 20000 combined
+samples (max ~23ms). All e2e-handshake*/e2e-lossy*.csv data in this suite
+(including the main 100-iter/method sweep) is now collected with radiusd -f.
 
-Uses the MEDIAN (not mean) as the primary central-tendency estimator because
-the raw samples contain rare, extreme outliers (up to ~2s among 5000
-samples/method -- almost certainly transient system hiccups: GC-like pauses,
-scheduler contention, or a dropped-and-recovered UDP datagram even at
-loss=0, not a per-method property) that would otherwise dominate a plain
-mean. A bootstrap 95% CI is computed on the median (resampling-based, no
-normality assumption) so pairwise method comparisons are statistically
-honest: if two methods' CIs overlap, their difference is NOT
-distinguishable from noise at this sample size.
+A second, smaller effect remained even after the -X fix: a reversed-order
+rerun (3,2,1,0 instead of 0,1,2,3) shifted each method's median by up to
+~20us and even flipped part of the ranking (1<3<0<2 forwards vs 0<1<2~3
+reversed) -- smaller than the -X artifact by two orders of magnitude, but
+still a real order-dependency at this precision. To control for it,
+e2e-handshake-highn.csv pools TWO 5000-iteration/method runs in opposite
+orders (0,1,2,3 then 3,2,1,0), giving each method balanced exposure to
+"ran early" vs "ran late" position effects -- N=10000/method after pooling.
+
+Uses the MEDIAN (not mean) as the primary central-tendency estimator --
+more robust to the residual rare outliers that remain even without -X. A
+bootstrap 95% CI is computed on the median (resampling-based, no normality
+assumption) so pairwise method comparisons are statistically honest: if two
+methods' CIs overlap, their difference is NOT distinguishable from noise at
+this sample size.
+
+Reads benchmark-results/e2e-handshake-highn.csv (produced by running
+e2e_radius_bench for methods 0..3 at --iters 5000 --loss 0 in BOTH orders
+and concatenating, per the pooling rationale above).
 
 Writes benchmark-results/stability-0-3.csv.
 """

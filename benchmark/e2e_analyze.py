@@ -252,17 +252,31 @@ def main():
     stab_path = os.path.join(RESULTS, "stability-0-3.csv")
     if os.path.exists(stab_path):
         stab_rows = load_rows(stab_path)
-        L.append("### Uji stabilitas statistik method 0-3 (N=5000/method, bootstrap CI)")
+        L.append("### Uji stabilitas statistik method 0-3 (N=10000/method, bootstrap CI)")
         L.append("")
         L.append("Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 "
                  "(beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup "
                  "untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute "
                  "cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah "
-                 "antar rerun benchmark ini. Untuk menjawabnya, `benchmark/stability_0_3.py` "
-                 "menjalankan **5000 iterasi/method** (bukan 100) dan menghitung **median** "
-                 "(bukan mean — beberapa outlier ekstrem sampai ~2 detik dari ribuan sampel "
-                 "membuat mean tidak representatif) beserta **bootstrap 95% CI** (5000x "
-                 "resampling) supaya perbandingan antar-method jujur secara statistik.")
+                 "antar rerun benchmark ini.")
+        L.append("")
+        L.append("> **Bug pengukuran ditemukan dan diperbaiki selama investigasi ini:** "
+                 "percobaan pertama (`radiusd -X`, mode debug penuh) menunjukkan 14-63 "
+                 "outlier ekstrem (~2000ms) per method dari 5000 sampel. Root cause: logging "
+                 "`-X` yang sangat verbose (setiap atribut/cabang policy dicetak per request) "
+                 "membuat `radiusd` sesekali tertinggal memproses di bawah beban tinggi, "
+                 "menyebabkan delay paket UDP nyata — yang lalu diperbesar jadi stall ~2 detik "
+                 "oleh socket timeout harness (`SO_RCVTIMEO=2s`). Dikonfirmasi lewat A/B test: "
+                 "sweep identik dengan `radiusd -f` (foreground tanpa debug, lihat "
+                 "`switch_tls_config.sh`) menghasilkan **nol** outlier semacam itu dari 20000 "
+                 "sampel gabungan (maksimum ~23ms). Seluruh data live di dokumen ini (termasuk "
+                 "sweep utama 100/720-iterasi di atas) sekarang dikumpulkan dengan `radiusd -f`. "
+                 "Efek order kedua yang lebih kecil (median bergeser ±20µs dan sebagian urutan "
+                 "terbalik antar rerun dengan urutan method dibalik) masih ada meski `-X` sudah "
+                 "dimatikan — untuk mengontrolnya, data di bawah menggabungkan **dua run 5000 "
+                 "iterasi/method dengan urutan berlawanan** (0,1,2,3 lalu 3,2,1,0), sehingga tiap "
+                 "method dapat eksposur seimbang terhadap efek posisi \"jalan duluan\" vs "
+                 "\"belakangan\" — N=10000/method setelah digabung.")
         L.append("")
         L.append("| Method | Profil | N | Mean (ms) | Median (ms) | Trimmed mean (ms) | Stddev (ms) | Outlier >5ms | Median 95% CI (ms) |")
         L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
@@ -274,20 +288,24 @@ def main():
         L.append("")
         by_med = sorted(stab_rows, key=lambda r: float(r["median_ms"]))
         order_str = " < ".join(f"method {r['method']} ({float(r['median_ms']):.3f} ms)" for r in by_med)
-        L.append(f"- Urutan median (N=5000): **{order_str}**.")
-        L.append("- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik "
-                 "pada N ini): method 2 vs method 3. Semua pasangan lain terpisah signifikan.")
-        L.append("- **Temuan yang mengejutkan:** urutan N-tinggi ini TIDAK mengikuti urutan "
-                 "compute-only (section 1b memprediksi method 3 termurah, method 0 termahal — "
-                 "kebalikan dari yang terjadi di live: method 0 malah tercepat). Ini berarti "
-                 "ada faktor lain di implementasi live (kemungkinan: overhead lookup kredensial "
-                 "kunci statis untuk method static-DH/MAC di `rlm_eap_edhoc`, bukan biaya "
-                 "kriptonya sendiri) yang lebih dominan daripada selisih compute murni di skala "
-                 "puluhan µs ini — **hipotesis**, belum diverifikasi lewat profiling kode modul.")
-        L.append("- Method 1/2/3 juga punya jauh lebih banyak outlier >5ms (14-63 dari 5000) "
-                 "dibanding method 0 (20) — pola yang konsisten dengan dugaan di atas: ada jalur "
-                 "kode tambahan (lookup statis) di method static-DH yang sesekali melambat "
-                 "jauh lebih drastis daripada jalur murni-signature method 0.")
+        L.append(f"- Urutan median (N=10000, dua arah digabung): **{order_str}**.")
+        L.append("- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): "
+                 "method 0 vs 1, dan method 2 vs 3. Pasangan lintas-kelompok (0/1 vs 2/3) "
+                 "semuanya terpisah signifikan.")
+        L.append("- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan "
+                 "dikontrol, method 0-3 terbagi jadi dua kelompok yang stabil dan reproducible: "
+                 "**{0,1} (~0.87ms, initiator melakukan SIGNATURE) sedikit lebih cepat dari "
+                 "{2,3} (~0.88ms, initiator melakukan static-DH/MAC)** — selisihnya cuma "
+                 "~10-15µs, jauh lebih kecil dari klaim awal (~30-60µs) dan TIDAK mengikuti "
+                 "urutan compute-only (section 1b memprediksi method 3 termurah, method 0 "
+                 "termahal). Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali "
+                 "saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "
+                 "\"lookup kredensial\" sebelumnya **terbukti salah**. Kode `edhoc03.c` memang "
+                 "punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk "
+                 "hitungan section 1b) tapi itu juga terlalu kecil untuk menjelaskan selisih "
+                 "10-15µs yang teramati. **Mekanisme pasti di balik pengelompokan {0,1} vs "
+                 "{2,3} yang tersisa ini belum ditemukan** — kemungkinan perlu `strace`/profiling "
+                 "langsung ke proses `radiusd` untuk memastikan, bukan cuma pembacaan kode.")
         L.append("")
 
     # ---- carry 1a and 1b from analysis.md (method-independent) ----

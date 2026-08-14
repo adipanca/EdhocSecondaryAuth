@@ -16,8 +16,25 @@
 #   sudo benchmark/switch_tls_config.sh hybrid    # tls = tls-hybrid-pqc, oqs-provider env
 #   sudo benchmark/switch_tls_config.sh status    # show current mode + radiusd state
 #
-# Both modes (re)start radiusd in -X debug mode, log to /tmp/radiusd-<mode>.log,
-# backgrounded, and wait until it is listening on UDP/1812 before returning.
+# Both modes (re)start radiusd in QUIET foreground mode (-f, NOT -X), log to
+# /tmp/radiusd-<mode>.log, backgrounded, and wait until it is listening on
+# UDP/1812 before returning.
+#
+# IMPORTANT (found via a real benchmark bug, fixed here): radiusd -X (full
+# debug logging, every attribute/policy branch printed per request) was used
+# here originally. Under the sustained high-throughput load a statistical
+# benchmark needs (thousands of iterations/method), -X's logging overhead
+# made radiusd intermittently fall behind, causing real (not
+# harness-simulated) UDP packet delay/loss -- which the harness's 2-second
+# SO_RCVTIMEO then turned into massive ~2000ms outliers, at a rate high
+# enough (tens of samples per 5000 iterations) to distort mean/ranking
+# comparisons between methods. Confirmed by A/B test: same 5000-iter sweep,
+# -X had 14-63 outliers >5ms per method (up to ~2123ms); -f (this script) had
+# zero such outliers across 20000 combined samples (max ~23ms). -f keeps
+# radiusd's own request-handling code path identical (same modules, same
+# policy evaluation) -- only the verbose per-attribute debug printf calls are
+# skipped, so this does not change what is being measured, only removes a
+# logging-induced measurement artifact.
 #
 set -uo pipefail
 
@@ -75,7 +92,7 @@ case "$mode" in
     grep -n "tls = tls-" "$EAP_CONF" | head -1
     stop_radiusd
     ( unset OPENSSL_CONF OPENSSL_MODULES
-      "$RADIUSD" -X > /tmp/radiusd-classic.log 2>&1 & )
+      "$RADIUSD" -f > /tmp/radiusd-classic.log 2>&1 & )
     if wait_listening; then
         echo "[switch_tls_config] radiusd (classic / tls-common) listening on :1812"
     else
@@ -90,7 +107,7 @@ case "$mode" in
     ( export OPENSSL_CONF="$OQS_OPENSSL_CONF"
       export OPENSSL_MODULES="$OQS_OPENSSL_MODULES"
       export LD_LIBRARY_PATH="$OQS_LD_LIBRARY_PATH:${LD_LIBRARY_PATH:-}"
-      "$RADIUSD" -X > /tmp/radiusd-hybrid.log 2>&1 & )
+      "$RADIUSD" -f > /tmp/radiusd-hybrid.log 2>&1 & )
     if wait_listening; then
         echo "[switch_tls_config] radiusd (hybrid-pqc / tls-hybrid-pqc, oqs-provider env) listening on :1812"
     else
