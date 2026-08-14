@@ -78,7 +78,7 @@ detailnya.
 
 ---
 
-## 2. Rencana Pengukuran Fase Key Bootstrapping
+## 2. Rencana Pengukuran Fase Key Bootstrapping dan buat analisys3.md
 
 Struktur paralel dengan benchmark EAP-EDHOC yang sudah ada (success rate heatmap, retransmission vs packet loss, handshake latency vs packet loss, computation time per method, communication breakdown, percentile latency per packet loss, primitive cryptography time), ditambah metrik baru yang spesifik untuk fase ini.
 
