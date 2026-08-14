@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T14:21:21._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T14:49:45._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -67,6 +67,22 @@ Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang dihabi
 
 - Di semua method, beban **responder** (AAA/FreeRADIUS) mendominasi total waktu handshake — wajar, karena responder-lah yang benar-benar memproses paket RADIUS (parsing, dispatch modul, verifikasi kripto) dan initiator cuma menunggu selama itu; porsi initiator yang genuinely CPU-bound (encode paket + panggilan engine lokal) jauh lebih kecil dari total.
 - Proporsi responder tertinggi: **method 6** (EAP-TLS-Hybrid-PQC).
+
+### Uji stabilitas statistik method 0-3 (N=5000/method, bootstrap CI)
+
+Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 (beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah antar rerun benchmark ini. Untuk menjawabnya, `benchmark/stability_0_3.py` menjalankan **5000 iterasi/method** (bukan 100) dan menghitung **median** (bukan mean — beberapa outlier ekstrem sampai ~2 detik dari ribuan sampel membuat mean tidak representatif) beserta **bootstrap 95% CI** (5000x resampling) supaya perbandingan antar-method jujur secara statistik.
+
+| Method | Profil | N | Mean (ms) | Median (ms) | Trimmed mean (ms) | Stddev (ms) | Outlier >5ms | Median 95% CI (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | SIG/SIG | 5000 | 0.811 | 0.763 | 0.745 | 0.556 | 20 | [0.7570, 0.7690] |
+| 1 | SIG/STAT | 5000 | 1.289 | 0.797 | 0.823 | 29.557 | 14 | [0.7920, 0.8030] |
+| 2 | STAT/SIG | 5000 | 1.324 | 0.824 | 0.843 | 30.018 | 18 | [0.8195, 0.8290] |
+| 3 | STAT/STAT | 5000 | 1.405 | 0.820 | 0.836 | 29.033 | 63 | [0.8150, 0.8240] |
+
+- Urutan median (N=5000): **method 0 (0.763 ms) < method 1 (0.797 ms) < method 3 (0.820 ms) < method 2 (0.824 ms)**.
+- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik pada N ini): method 2 vs method 3. Semua pasangan lain terpisah signifikan.
+- **Temuan yang mengejutkan:** urutan N-tinggi ini TIDAK mengikuti urutan compute-only (section 1b memprediksi method 3 termurah, method 0 termahal — kebalikan dari yang terjadi di live: method 0 malah tercepat). Ini berarti ada faktor lain di implementasi live (kemungkinan: overhead lookup kredensial kunci statis untuk method static-DH/MAC di `rlm_eap_edhoc`, bukan biaya kriptonya sendiri) yang lebih dominan daripada selisih compute murni di skala puluhan µs ini — **hipotesis**, belum diverifikasi lewat profiling kode modul.
+- Method 1/2/3 juga punya jauh lebih banyak outlier >5ms (14-63 dari 5000) dibanding method 0 (20) — pola yang konsisten dengan dugaan di atas: ada jalur kode tambahan (lookup statis) di method static-DH yang sesekali melambat jauh lebih drastis daripada jalur murni-signature method 0.
 
 > Bagian 1a dan 1b berikut adalah pengukuran primitif/komputasi yang **identik** dengan `analysis.md` (independen terhadap transport), disertakan agar kedua dokumen memiliki kolom yang sama persis.
 

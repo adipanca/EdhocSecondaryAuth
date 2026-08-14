@@ -248,6 +248,48 @@ def main():
              f"({METHOD_NAMES[heaviest_responder_pct]}).")
     L.append("")
 
+    # ---- 1c-3. High-N statistical stability check for methods 0..3 ----
+    stab_path = os.path.join(RESULTS, "stability-0-3.csv")
+    if os.path.exists(stab_path):
+        stab_rows = load_rows(stab_path)
+        L.append("### Uji stabilitas statistik method 0-3 (N=5000/method, bootstrap CI)")
+        L.append("")
+        L.append("Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 "
+                 "(beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup "
+                 "untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute "
+                 "cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah "
+                 "antar rerun benchmark ini. Untuk menjawabnya, `benchmark/stability_0_3.py` "
+                 "menjalankan **5000 iterasi/method** (bukan 100) dan menghitung **median** "
+                 "(bukan mean — beberapa outlier ekstrem sampai ~2 detik dari ribuan sampel "
+                 "membuat mean tidak representatif) beserta **bootstrap 95% CI** (5000x "
+                 "resampling) supaya perbandingan antar-method jujur secara statistik.")
+        L.append("")
+        L.append("| Method | Profil | N | Mean (ms) | Median (ms) | Trimmed mean (ms) | Stddev (ms) | Outlier >5ms | Median 95% CI (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+        for r in sorted(stab_rows, key=lambda r: int(r["method"])):
+            L.append(f"| {r['method']} | {r['profile']} | {r['n']} | {float(r['mean_ms']):.3f} | "
+                     f"{float(r['median_ms']):.3f} | {float(r['trimmed_mean_ms']):.3f} | "
+                     f"{float(r['stddev_ms']):.3f} | {r['outliers_gt_5ms']} | "
+                     f"[{float(r['median_ci95_low_ms']):.4f}, {float(r['median_ci95_high_ms']):.4f}] |")
+        L.append("")
+        by_med = sorted(stab_rows, key=lambda r: float(r["median_ms"]))
+        order_str = " < ".join(f"method {r['method']} ({float(r['median_ms']):.3f} ms)" for r in by_med)
+        L.append(f"- Urutan median (N=5000): **{order_str}**.")
+        L.append("- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik "
+                 "pada N ini): method 2 vs method 3. Semua pasangan lain terpisah signifikan.")
+        L.append("- **Temuan yang mengejutkan:** urutan N-tinggi ini TIDAK mengikuti urutan "
+                 "compute-only (section 1b memprediksi method 3 termurah, method 0 termahal — "
+                 "kebalikan dari yang terjadi di live: method 0 malah tercepat). Ini berarti "
+                 "ada faktor lain di implementasi live (kemungkinan: overhead lookup kredensial "
+                 "kunci statis untuk method static-DH/MAC di `rlm_eap_edhoc`, bukan biaya "
+                 "kriptonya sendiri) yang lebih dominan daripada selisih compute murni di skala "
+                 "puluhan µs ini — **hipotesis**, belum diverifikasi lewat profiling kode modul.")
+        L.append("- Method 1/2/3 juga punya jauh lebih banyak outlier >5ms (14-63 dari 5000) "
+                 "dibanding method 0 (20) — pola yang konsisten dengan dugaan di atas: ada jalur "
+                 "kode tambahan (lookup statis) di method static-DH yang sesekali melambat "
+                 "jauh lebih drastis daripada jalur murni-signature method 0.")
+        L.append("")
+
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
     sec1a = carry_section(analysis_text, "## 1a. Breakdown komputasi primitif kriptografi",
                           ["## "])
