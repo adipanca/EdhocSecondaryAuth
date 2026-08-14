@@ -52,6 +52,13 @@ def section_breakdown(rd):
     comp = read_csv(os.path.join(rd, "handshake-compute.csv"))
     if not rows:
         return None
+    # rows/comp are appended by different scripts at different times (0..4 by
+    # crypto_bench.c, 5 by rsa_bench.py, 6 by compute_tls_hybrid.py), so file
+    # order isn't numeric method order -- sort for a readable table (stable
+    # sort preserves each method's own initiator/responder row order).
+    rows = sorted(rows, key=lambda r: int(r["method"]))
+    if comp:
+        comp = sorted(comp, key=lambda r: int(r["method"]))
     parts = ["## 1b. Breakdown komputasi per method (Keygen, Scalar mult, "
              "Encaps, Decaps, Signature, Verify)\n",
              "Kontribusi waktu komputasi tiap operasi dalam satu handshake "
@@ -97,21 +104,31 @@ def section_lossy(rd):
     rows = read_csv(os.path.join(rd, "lossy-network.csv"))
     if not rows:
         return None
+    rows = sorted(rows, key=lambda r: (int(r["method"]), float(r["loss_pct"])))
     body = md_table(
         rows,
         ["method", "loss_pct", "success_rate_pct", "mean_handshake_ms",
          "p95_handshake_ms", "mean_retransmits"],
         ["Method", "Loss %", "Success %", "Mean (ms)", "p95 (ms)", "Mean retx"])
-    return ("## 2. Performa pada jaringan lossy\n\n"
-            "Handshake 3-pesan EDHOC dengan retransmisi gaya EAP; loss "
-            "diemulasi di level aplikasi pada socket UDP nyata.\n\n"
+    return ("## 2. Performa pada jaringan lossy (simulasi 2-round-trip, semua method)\n\n"
+            "Handshake 2-round-trip (message_1→message_2, message_3→message_4/ack) "
+            "gaya EAP dengan retransmisi, di atas socket UDP nyata; ukuran payload "
+            "per method sesuai `edhoc_sizes.py` (method 0-4 model dari elemen kripto, "
+            "method 5-6 byte nyata hasil observasi live), loss diemulasi di level "
+            "aplikasi. Mencakup method 0-6.\n\n"
             + body +
-            "\n> Bagian ini hanya mencakup method 0-4 (EDHOC), dari simulasi "
-            "lokal `lossy_bench.py` yang independen dari harness RADIUS live. "
-            "Perilaku lossy method 5 dan 6 (EAP-TLS Classic/Hybrid PQC) "
-            "diukur live sungguhan lewat RADIUS di `analisys2.md` section 2 "
-            "(bukan bagian ini) — di sana method 6 adalah yang paling rapuh "
-            "terhadap packet loss.\n")
+            "\n> **Keterbatasan penting:** skrip ini SELALU 2 round-trip jaringan "
+            "berapa pun ukuran pesannya — TIDAK memodelkan fragmentasi EAP (RFC "
+            "3579/5216), sehingga TIDAK menangkap efek amplifikasi paparan-loss dari "
+            "pesan besar yang sebenarnya terpecah jadi banyak fragmen/round-trip "
+            "(tiap fragmen = satu kesempatan tambahan kena loss). Efek itu justru "
+            "yang paling penting untuk method 4/6 (pesan besar, banyak fragmen) — "
+            "lihat perbedaannya sendiri: method 6 di sini terlihat *tangguh* (95.8% "
+            "sukses di loss 30%) padahal live sungguhan lewat RADIUS (`analisys2.md` "
+            "section 2, dengan fragmentasi EAP nyata dan 28 round-trip) cuma ~79% di "
+            "loss yang sama. Bagian ini berguna sebagai pembanding \"loss resilience "
+            "pada ukuran payload asli, RTT tetap\" — bukan pengganti section 2 di "
+            "`analisys2.md` yang memasukkan efek fragmentasi nyata.\n")
 
 
 def section_interop(rd):
@@ -127,36 +144,58 @@ def section_interop(rd):
             f"Lolos {n_pass}/{len(rows)} pemeriksaan.\n\n" + body + "\n")
 
 
+_MSG_ORDER = {"message_1": 1, "message_2": 2, "message_3": 3, "message_4": 4}
+
+
 def section_mtu(rd):
     rows = read_csv(os.path.join(rd, "mtu-fragmentation.csv"))
     if not rows:
         return None
+    rows = sorted(rows, key=lambda r: (int(r["method"]),
+                                       _MSG_ORDER.get(r["message"], 9)))
     body = md_table(
         rows,
         ["method", "message", "size_bytes", "eap_message_attrs",
          "eap_fragments", "ip_fragments", "exceeds_mtu"],
         ["Method", "Pesan", "Bytes", "EAP attrs", "EAP frags",
          "IP frags", ">MTU"])
-    frag = [r for r in rows if int(r["eap_fragments"]) > 1 or r["exceeds_mtu"] == "yes"]
+    # Split fragmenting methods into "heavy" (multi-fragment, PQC-driven: 4, 6)
+    # vs "light" (fragments once or twice at most, nothing to do with PQC: 5,
+    # whose Ed25519 certs are just slightly bigger than raw EDHOC's CBOR) so
+    # the explanation doesn't misattribute method 5's mild fragmentation to
+    # XWING/ML-DSA elements it doesn't even use.
+    by_method_max_frag = {}
+    for r in rows:
+        m = r["method"]
+        by_method_max_frag[m] = max(by_method_max_frag.get(m, 1), int(r["eap_fragments"]))
+    heavy = sorted((m for m, f in by_method_max_frag.items() if f >= 3), key=int)
+    light = sorted((m for m, f in by_method_max_frag.items() if 1 < f < 3), key=int)
     note = ""
-    if frag:
-        methods = sorted({r["method"] for r in frag}, key=int)
-        note = (f"\nPesan yang memerlukan fragmentasi terdapat pada "
-                f"method {', '.join(methods)} (profil PQC — XWING/ML-KEM-768 hybrid "
-                f"key establishment, ML-DSA-44 signatures), karena XWING/hybrid-KEM "
-                f"(X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda "
-                f"tangan ML-DSA-44 menambah ~2.4 KB per pesan. Method 6's baris di sini "
-                f"adalah hasil komputasi/model (`compute_tls_hybrid.py`), konsisten dengan "
-                f"bagaimana method 0-4 di tabel ini juga dihitung, bukan diobservasi live — "
-                f"lihat `analisys2.md` section 4 untuk ukuran pesan method 6 yang benar-benar "
-                f"diobservasi dari handshake live.\n")
+    if heavy:
+        note += (f"\nFragmentasi berat (banyak fragmen EAP) terjadi pada method "
+                 f"{', '.join(heavy)} — profil PQC (XWING/ML-KEM-768 hybrid key "
+                 f"establishment dan/atau sertifikat ML-DSA-44), karena elemen "
+                 f"KEM/tanda-tangan PQC menambah ~1.1-2.4 KB per elemen. Method 6's "
+                 f"baris di sini memakai byte yang **benar-benar diobservasi** dari "
+                 f"handshake live (bukan model — `edhoc_sizes.py`, sama seperti "
+                 f"method 5), karena model murni sebelumnya meleset cukup jauh "
+                 f"(~2.5x lebih kecil dari yang sebenarnya, akibat framing X.509 "
+                 f"penuh yang sulit dimodelkan tanpa observasi langsung).\n")
+    if light:
+        note += (f"\nFragmentasi ringan (2 fragmen EAP maksimum) terjadi pada method "
+                 f"{', '.join(light)} — ini **bukan** soal PQC: method 5 memakai "
+                 f"Ed25519 (bukan ML-KEM/ML-DSA sama sekali), fragmentasinya semata "
+                 f"karena framing TLS record + X.509 (rantai sertifikat CA+server) "
+                 f"sedikit lebih besar dari CBOR EDHOC yang sangat ringkas.\n")
     return ("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi\n\n"
-            "Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP "
-            "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. "
-            "Method 5 (EAP-TLS Classic, sertifikat Ed25519) memakai byte yang "
-            "benar-benar diobservasi dari handshake live (`rsa_bench.py`), "
-            "sama seperti method 6 — lihat `analisys2.md` section 4 untuk versi "
-            "yang diobservasi langsung dari seluruh handshake live method 0-5.\n\n"
+            "Ukuran pesan method 0-4 dihitung dari elemen kripto nyata (model, "
+            "`edhoc_sizes.py`); method 5-6 memakai byte yang **benar-benar "
+            "diobservasi** dari handshake live (`rsa_bench.py` / "
+            "`compute_tls_hybrid.py`, sama-sama bersumber dari "
+            "`e2e-handshake.csv`). Fragmentasi EAP (RFC 3579, atribut 253 B) "
+            "dan IP (MTU 1500) diturunkan darinya untuk semua method. Lihat "
+            "`analisys2.md` section 4 untuk tabel yang sama persis, sepenuhnya "
+            "diobservasi langsung dari handshake live method 0-6.\n\n"
             + body + note)
 
 

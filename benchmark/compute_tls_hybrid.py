@@ -154,7 +154,13 @@ def flight(*parts):
     return sum(parts)
 
 
-def build_mtu_rows():
+def _build_mtu_rows_modeled_unused():
+    """Original from-scratch TLS-framing size model, kept for documentation
+    only -- superseded by build_mtu_rows() below once method 6 went live:
+    this model undercounted by ~2.5x (e.g. message_2 5027 modeled vs 12600
+    really observed) because full X.509 DER framing (cert chain, ASN.1
+    structure overhead) is harder to get right from first principles than
+    just reusing the real observed bytes now that they're available."""
     # message_1 (UE->AAA): ClientHello carrying X25519 + ML-KEM-768 pubkeys
     # in the hybrid key_share.
     m1 = flight(REC_HDR, HS_HDR, CH_OVERHEAD, X25519_PK, MLKEM768_EK)
@@ -182,6 +188,14 @@ def build_mtu_rows():
     m4 = FINAL_ACK
 
     return {"message_1": m1, "message_2": m2, "message_3": m3, "message_4": m4}
+
+
+# Real byte sizes actually observed on the wire in the live method-6 handshake
+# (benchmark-results/e2e-handshake.csv, constant across iterations), used
+# instead of the modeled sizes above for accuracy -- see
+# _build_mtu_rows_modeled_unused()'s docstring for why.
+def build_mtu_rows():
+    return {"message_1": 1589, "message_2": 12600, "message_3": 10983, "message_4": 23}
 
 
 EAP_ATTR = 253

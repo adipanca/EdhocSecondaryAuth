@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 """
-edhoc_sizes.py — EDHOC (RFC 9528) message-size model for EAP-EDHOC methods 0..4.
+edhoc_sizes.py — per-method message-size table for the MTU/fragmentation and
+lossy-network benchmarks (methods 0..6).
 
-Computes the on-wire size of message_1 / message_2 / message_3 for each method
-from real cryptographic element sizes, so the MTU/fragmentation and lossy-network
-benchmarks operate on realistic payloads.
+Methods 0..4 (EDHOC, RFC 9528 style): sizes are a genuine model, computed from
+real cryptographic element sizes (CBOR framing etc.), not observed on any
+wire.
+
+Methods 5..6 (EAP-TLS Classic / Hybrid PQC): sizes are the real byte counts
+actually observed on the wire in the live handshake
+(benchmark-results/e2e-handshake.csv), reused here rather than modeled --
+TLS/X.509 framing overhead is complex enough (cert chains, ASN.1 structure)
+that a from-scratch model was previously off by ~2.5x for method 6; real
+observed bytes are simply more accurate and cheap to reuse now that both
+methods are live end-to-end elsewhere in this suite.
 
 Element sizes (bytes):
   X25519 public key (G_X/G_Y)      : 32
@@ -74,7 +83,18 @@ PROFILE = {
     2: "MAC-X25519 / SIG-Ed25519",
     3: "MAC/MAC static-DH X25519",
     4: "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
+    5: "EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",
+    6: "EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",
 }
+
+# Method 5/6 are EAP-TLS (RFC 5216/9190), not raw EDHOC/CBOR, so their sizes
+# aren't derived from the same element-size model above -- they're the real
+# byte counts actually observed on the wire in the live handshake
+# (benchmark-results/e2e-handshake.csv, method 5/6; identical every
+# iteration since there's no variable-length data in either exchange), reused
+# here rather than re-modeled, same spirit as rsa_bench.py's MTU row.
+_TLS_CLASSIC_SIZES = {"message_1": 289, "message_2": 1148, "message_3": 990, "message_4": 51}
+_TLS_HYBRID_SIZES = {"message_1": 1589, "message_2": 12600, "message_3": 10983, "message_4": 23}
 
 
 def _message_sizes_sigma_xwing() -> dict:
@@ -115,6 +135,10 @@ def message_sizes(method: int) -> dict:
     """Return {'message_1','message_2','message_3'} sizes in bytes."""
     if method == 4:
         return _message_sizes_sigma_xwing()
+    if method == 5:
+        return dict(_TLS_CLASSIC_SIZES)
+    if method == 6:
+        return dict(_TLS_HYBRID_SIZES)
 
     init_auth, resp_auth = _AUTH[method]
 
@@ -135,7 +159,7 @@ def message_sizes(method: int) -> dict:
     return {"message_1": m1, "message_2": m2, "message_3": m3}
 
 
-METHODS = [0, 1, 2, 3, 4]
+METHODS = [0, 1, 2, 3, 4, 5, 6]
 
 
 if __name__ == "__main__":

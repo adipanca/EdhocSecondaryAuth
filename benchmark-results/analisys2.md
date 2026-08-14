@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T13:59:06._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T14:21:21._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -90,9 +90,9 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 | Keygen_MLDSA44 | PQClean | 3000 | 57264.4 | 49737.0 | 100359.0 | 207756.0 | 39540.4 |
 | Signature_MLDSA44 | PQClean | 3000 | 237660.0 | 185264.0 | 583052.0 | 976302.0 | 203541.2 |
 | Verify_MLDSA44 | PQClean | 3000 | 62322.5 | 53773.0 | 121024.0 | 196086.0 | 41195.9 |
-| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 121835084.6 | 112639921.0 | 212098736.2 | 232936779.6 | 55131841.2 |
-| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 442925.7 | 362334.0 | 740862.3 | 1621179.1 | 247948.5 |
-| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 23481.5 | 20138.5 | 30472.5 | 105832.6 | 20127.1 |
+| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 107049255.0 | 102318402.0 | 189754320.6 | 202904756.9 | 44155227.4 |
+| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 387713.9 | 350887.0 | 503803.9 | 959024.5 | 219517.6 |
+| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 25334.4 | 20013.5 | 29807.4 | 144692.5 | 34113.2 |
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
@@ -160,18 +160,6 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 4 | responder | Decaps | ML-KEM-768 | 1 | 47707.7 |
 | 4 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
 | 4 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 58586.4 |
-| 6 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
-| 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 6 | initiator | Decaps | ML-KEM-768 | 1 | 47707.7 |
-| 6 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 6 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 6 | responder | ScalarMult | X25519 | 1 | 24888.8 |
-| 6 | responder | Encaps | ML-KEM-768 | 1 | 39528.4 |
-| 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
 | 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
 | 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
 | 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
@@ -184,6 +172,18 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
 | 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
+| 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 58586.4 |
+| 6 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
+| 6 | initiator | Decaps | ML-KEM-768 | 1 | 47707.7 |
+| 6 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
+| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
+| 6 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
+| 6 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 6 | responder | Encaps | ML-KEM-768 | 1 | 39528.4 |
+| 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
+| 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
+| 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
 
 ### Total komputasi handshake per method
 
@@ -194,8 +194,8 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 2 | MAC-X25519 / SIG-Ed25519 | 103.475 | 60.119 | 163.593 |
 | 3 | MAC/MAC static-DH X25519 | 73.782 | 73.782 | 147.563 |
 | 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 650.770 | 608.008 | 1258.778 |
-| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 431.165 | 388.404 | 819.569 |
 | 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 89.812 | 89.812 | 179.623 |
+| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 431.165 | 388.404 | 819.569 |
 
 - Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 147.563 us).
 - Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 1258.778 us).

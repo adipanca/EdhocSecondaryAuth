@@ -3,14 +3,28 @@
 lossy_bench.py — Point 2: secondary-authentication handshake performance on a
 lossy network.
 
-Runs the 3-message EDHOC handshake (message_1/2/3, sized per method via
-edhoc_sizes) over a real localhost UDP socket pair with EAP-style reliable
-retransmission, while emulating packet loss at the application layer. Loss is
-applied only to the benchmark's own packets, so it never disturbs the 5G core
-loopback traffic (mongodb / Open5GS NFs).
+Runs a fixed 2-round-trip handshake (message_1 -> message_2, message_3 ->
+message_4/ack; payload sized per method via edhoc_sizes, real bytes but
+dummy/zero-filled content -- no real crypto or RADIUS framing) over a real
+localhost UDP socket pair with EAP-style reliable retransmission, while
+emulating packet loss at the application layer. Loss is applied only to the
+benchmark's own packets, so it never disturbs the 5G core loopback traffic
+(mongodb / Open5GS NFs).
 
 For each method x loss-rate it reports handshake completion time, retransmit
 count and success rate.
+
+Covers methods 0..6. IMPORTANT LIMITATION for methods 4/5/6: this script
+always does exactly 2 network round trips regardless of message size -- it
+does NOT model EAP-layer fragmentation (RFC 3579/5216), so it does not
+capture the loss-exposure amplification that comes from a large message
+actually being split into many fragments/round-trips (each an extra chance
+to lose a packet). That real effect IS captured in the live measurement
+(benchmark-results/analisys2.md section 2, over the genuine RADIUS harness
+with real fragmentation) -- this script's numbers here should be read as
+"loss resilience of a fixed-round-trip exchange at each method's real
+payload size", a narrower, complementary view, not a replacement for the
+live fragmentation-aware numbers.
 
 Writes <outdir>/lossy-network.csv
 """
