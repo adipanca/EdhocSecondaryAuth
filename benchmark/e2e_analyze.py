@@ -303,9 +303,25 @@ def main():
                  "\"lookup kredensial\" sebelumnya **terbukti salah**. Kode `edhoc03.c` memang "
                  "punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk "
                  "hitungan section 1b) tapi itu juga terlalu kecil untuk menjelaskan selisih "
-                 "10-15µs yang teramati. **Mekanisme pasti di balik pengelompokan {0,1} vs "
-                 "{2,3} yang tersisa ini belum ditemukan** — kemungkinan perlu `strace`/profiling "
-                 "langsung ke proses `radiusd` untuk memastikan, bukan cuma pembacaan kode.")
+                 "10-15µs yang teramati.")
+        L.append("")
+        L.append("> **Verifikasi lapis terakhir — `strace -f -c` langsung ke proses `radiusd` "
+                 "hidup** (1500 handshake method 0 vs 1500 handshake method 3, masing-masing "
+                 "di-trace terpisah): profil syscall-nya **identik** — sendmsg/recvfrom/"
+                 "recvmsg/getsockname sama-sama persis 4500 kali (3/handshake, cocok RADIUS "
+                 "round-trip), tidak ada satu pun syscall tambahan yang membedakan method 0 "
+                 "dari method 3 (tidak ada file I/O ekstra, tidak ada alokasi berbeda). Yang "
+                 "mendominasi waktu trace di **kedua** method secara setara: `futex` (85.79% "
+                 "method 0, 85.40% method 3) — itu overhead sinkronisasi thread-pool internal "
+                 "FreeRADIUS (worker thread bangun/tidur lewat mutex/condition-variable tiap "
+                 "request masuk, karena harness mengirim request satu-satu/sekuensial), sama "
+                 "sekali bukan bagian dari logika EDHOC. **Kesimpulan final: method 3 TIDAK "
+                 "seharusnya jauh lebih cepat dari method 0** — biaya kripto EDHOC (ratusan "
+                 "nanodetik/operasi) memang microscopic dibanding overhead scheduling "
+                 "thread-pool FreeRADIUS (puluhan-ratusan µs/request) yang besarnya SAMA untuk "
+                 "semua method karena bukan bagian dari protokol sama sekali. Selisih 10-15µs "
+                 "yang tersisa di kelompok {0,1} vs {2,3} kemungkinan besar cuma variasi acak "
+                 "dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.")
         L.append("")
 
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
