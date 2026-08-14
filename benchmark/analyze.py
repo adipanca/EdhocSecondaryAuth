@@ -77,6 +77,17 @@ def section_breakdown(rd):
             parts.append(
                 f"- Termahal secara komputasi: **method {srt[-1]['method']}** "
                 f"({srt[-1]['profile']}, {srt[-1]['total_compute_us']} us).")
+            parts.append(
+                "\n> **Peringatan baca:** urutan termurah/termahal di atas HANYA "
+                "waktu komputasi kripto murni (µs) — TIDAK termasuk round-trip "
+                "jaringan RADIUS/fragmentasi EAP. Urutan itu BUKAN urutan "
+                "kecepatan handshake end-to-end nyata. Untuk urutan yang "
+                "sebenarnya dialami pengguna (termasuk RTT), lihat "
+                "`analisys2.md` section 1c — di sana method 6 (EAP-TLS Hybrid "
+                "PQC) adalah yang paling lambat secara live, bukan method 4, "
+                "justru karena jumlah round-trip fragmentasi EAP-nya yang jauh "
+                "lebih banyak, sesuatu yang tidak tertangkap oleh tabel compute "
+                "murni ini.")
         except (ValueError, KeyError):
             pass
     return "\n".join(parts) + "\n"
@@ -94,7 +105,13 @@ def section_lossy(rd):
     return ("## 2. Performa pada jaringan lossy\n\n"
             "Handshake 3-pesan EDHOC dengan retransmisi gaya EAP; loss "
             "diemulasi di level aplikasi pada socket UDP nyata.\n\n"
-            + body + "\n")
+            + body +
+            "\n> Bagian ini hanya mencakup method 0-4 (EDHOC), dari simulasi "
+            "lokal `lossy_bench.py` yang independen dari harness RADIUS live. "
+            "Perilaku lossy method 5 dan 6 (EAP-TLS Classic/Hybrid PQC) "
+            "diukur live sungguhan lewat RADIUS di `analisys2.md` section 2 "
+            "(bukan bagian ini) — di sana method 6 adalah yang paling rapuh "
+            "terhadap packet loss.\n")
 
 
 def section_interop(rd):
@@ -135,7 +152,13 @@ def section_mtu(rd):
                 f"diobservasi dari handshake live.\n")
     return ("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi\n\n"
             "Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP "
-            "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya.\n\n"
+            "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. "
+            "Method 5 (EAP-TLS Classic) tidak punya baris model di sini karena "
+            "ukuran rantai sertifikat RSA klasik bergantung pada CA/panjang "
+            "rantai yang dipakai (tidak sekonsisten primitif PQC berukuran "
+            "tetap), sehingga tidak dimodelkan di dokumen ini — lihat "
+            "`analisys2.md` section 4 untuk ukuran pesan method 5 yang "
+            "diobservasi langsung dari handshake live.\n\n"
             + body + note)
 
 

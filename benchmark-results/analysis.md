@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication
 
-_Dibuat otomatis oleh benchmark/analyze.py pada 2026-08-14T10:42:45._
+_Dibuat otomatis oleh benchmark/analyze.py pada 2026-08-14T10:47:43._
 
 Method matrix:
 
@@ -156,6 +156,8 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 - Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 147.563 us).
 - Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 1258.778 us).
 
+> **Peringatan baca:** urutan termurah/termahal di atas HANYA waktu komputasi kripto murni (µs) — TIDAK termasuk round-trip jaringan RADIUS/fragmentasi EAP. Urutan itu BUKAN urutan kecepatan handshake end-to-end nyata. Untuk urutan yang sebenarnya dialami pengguna (termasuk RTT), lihat `analisys2.md` section 1c — di sana method 6 (EAP-TLS Hybrid PQC) adalah yang paling lambat secara live, bukan method 4, justru karena jumlah round-trip fragmentasi EAP-nya yang jauh lebih banyak, sesuatu yang tidak tertangkap oleh tabel compute murni ini.
+
 ## 2. Performa pada jaringan lossy
 
 Handshake 3-pesan EDHOC dengan retransmisi gaya EAP; loss diemulasi di level aplikasi pada socket UDP nyata.
@@ -192,6 +194,7 @@ Handshake 3-pesan EDHOC dengan retransmisi gaya EAP; loss diemulasi di level apl
 | 4 | 10.0 | 100.0 | 25.407 | 90.185 | 0.517 |
 | 4 | 20.0 | 100.0 | 51.347 | 133.888 | 1.133 |
 | 4 | 30.0 | 99.2 | 76.473 | 221.57 | 1.775 |
+> Bagian ini hanya mencakup method 0-4 (EDHOC), dari simulasi lokal `lossy_bench.py` yang independen dari harness RADIUS live. Perilaku lossy method 5 dan 6 (EAP-TLS Classic/Hybrid PQC) diukur live sungguhan lewat RADIUS di `analisys2.md` section 2 (bukan bagian ini) — di sana method 6 adalah yang paling rapuh terhadap packet loss.
 
 ## 3. Interoperabilitas dengan implementasi EDHOC
 
@@ -215,7 +218,7 @@ Lolos 11/11 pemeriksaan.
 
 ## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi
 
-Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya.
+Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. Method 5 (EAP-TLS Classic) tidak punya baris model di sini karena ukuran rantai sertifikat RSA klasik bergantung pada CA/panjang rantai yang dipakai (tidak sekonsisten primitif PQC berukuran tetap), sehingga tidak dimodelkan di dokumen ini — lihat `analisys2.md` section 4 untuk ukuran pesan method 5 yang diobservasi langsung dari handshake live.
 
 | Method | Pesan | Bytes | EAP attrs | EAP frags | IP frags | >MTU |
 | --- | --- | --- | --- | --- | --- | --- |
