@@ -505,6 +505,7 @@ static int parse_reply(const uint8_t *pkt, size_t plen, uint8_t *code,
 /* UDP send/recv with loss emulation + RADIUS retransmit              */
 /* ------------------------------------------------------------------ */
 static int g_retx;
+static double g_wire_ms;
 
 static int rad_exchange(int sock, const uint8_t *req, size_t req_len,
                         uint8_t *resp, size_t *resp_len)
@@ -543,6 +544,9 @@ static int rad_exchange(int sock, const uint8_t *req, size_t req_len,
 typedef struct {
     int    ok;
     double duration_ms;
+    double initiator_ms;  /* duration_ms minus every rad_exchange() wait --
+                            * local packet build/HMAC/TLS engine time */
+    double responder_ms;  /* sum of all rad_exchange() durations */
     int    radius_rt;
     int    eap_rt;
     int    access_req, access_chal, access_accept, access_reject;
@@ -586,6 +590,7 @@ static int run_handshake(result_t *r)
     int guard = 0;   /* safety cap on EAP round trips */
 
     g_retx = 0;
+    g_wire_ms = 0.0;
     double t0 = now_ms();
 
     /* ---- 1. EAP-Response/Identity ---- */
@@ -601,8 +606,11 @@ static int run_handshake(result_t *r)
     rand_bytes(auth, 16);
     req_len = build_access_request(rad_id, auth, eap, eap_len, NULL, 0, req);
     r->access_req++; r->radius_rt++; r->eap_rt++;
-    if (rad_exchange(sock, req, req_len, resp, &resp_len) != 0) {
-        close(sock); tls_teardown(&e); return -1;
+    {
+        double tw0 = now_ms();
+        int rc = rad_exchange(sock, req, req_len, resp, &resp_len);
+        g_wire_ms += now_ms() - tw0;
+        if (rc != 0) { close(sock); tls_teardown(&e); return -1; }
     }
 
     for (;;) {
@@ -655,12 +663,17 @@ static int run_handshake(result_t *r)
         rand_bytes(auth, 16);
         req_len = build_access_request(rad_id, auth, eap, eap_len, state, state_len, req);
         r->access_req++; r->radius_rt++; r->eap_rt++;
-        if (rad_exchange(sock, req, req_len, resp, &resp_len) != 0) {
-            close(sock); tls_teardown(&e); return -1;
+        {
+            double tw0 = now_ms();
+            int rc = rad_exchange(sock, req, req_len, resp, &resp_len);
+            g_wire_ms += now_ms() - tw0;
+            if (rc != 0) { close(sock); tls_teardown(&e); return -1; }
         }
     }
 
     r->duration_ms = now_ms() - t0;
+    r->responder_ms = g_wire_ms;
+    r->initiator_ms = r->duration_ms - g_wire_ms;
     r->retx = g_retx;
     close(sock);
 
@@ -724,7 +737,8 @@ int main(int argc, char **argv)
                         "radius_round_trips,eap_round_trips,access_req,access_challenge,"
                         "access_accept,access_reject,retransmits,loss_pct,"
                         "msg1_bytes,msg2_bytes,msg3_bytes,msg4_bytes,"
-                        "msg1_frags,msg2_frags,msg3_frags,msg4_frags\n");
+                        "msg1_frags,msg2_frags,msg3_frags,msg4_frags,"
+                        "initiator_ms,responder_ms\n");
     }
 
     int pass = 0;
@@ -755,12 +769,13 @@ int main(int argc, char **argv)
 
         if (cf) {
             fprintf(cf, "%s,%s,%d,%s,%d,%s,%.3f,%d,%d,%d,%d,%d,%d,%d,%.1f,"
-                        "%zu,%zu,%zu,%zu,%d,%d,%d,%d\n",
+                        "%zu,%zu,%zu,%zu,%d,%d,%d,%d,%.3f,%.3f\n",
                     label, ts, method, method_name(method), it, st, r.duration_ms,
                     r.radius_rt, r.eap_rt, r.access_req, r.access_chal,
                     r.access_accept, r.access_reject, r.retx, g_loss * 100.0,
                     r.msg_bytes[1], r.msg_bytes[2], r.msg_bytes[3], r.msg_bytes[4],
-                    r.msg_frags[1], r.msg_frags[2], r.msg_frags[3], r.msg_frags[4]);
+                    r.msg_frags[1], r.msg_frags[2], r.msg_frags[3], r.msg_frags[4],
+                    r.initiator_ms, r.responder_ms);
         }
     }
 

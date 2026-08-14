@@ -211,6 +211,43 @@ def main():
              f"round-trip RADIUS dibanding {int(by_m[cheapest][0]['radius_round_trips'])} untuk method klasik.")
     L.append("")
 
+    # ---- 1c-2. Initiator vs responder wall-clock split (live, real) ----
+    L.append("### Pembagian beban initiator vs responder (live, wall-clock nyata)")
+    L.append("")
+    L.append("Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang "
+             "dihabiskan **menunggu balasan** (`send()` sampai `recv()` kembali) secara "
+             "terpisah dari waktu yang dihabiskan **mengerjakan sendiri** (membangun paket "
+             "RADIUS/EAP, HMAC-MD5 Message-Authenticator, dan menjalankan engine "
+             "EDHOC/TLS-nya sendiri) di antara round-trip. `responder_ms` = total waktu "
+             "menunggu (mendominasi oleh pemrosesan penuh di sisi FreeRADIUS — parsing, "
+             "dispatch modul, kripto, serialisasi balasan — karena transit jaringan nyata "
+             "di loopback nyaris nol); `initiator_ms` = `duration_ms` dikurangi itu, murni "
+             "kerja lokal UE. Ini pengukuran **live nyata** per handshake, bukan model — "
+             "berbeda dari section 1b yang cuma menghitung compute kripto murni tanpa "
+             "overhead RADIUS/TLS-framing sama sekali.")
+    L.append("")
+    L.append("| Method | Profil | Initiator mean (ms) | Responder mean (ms) | Initiator % | Responder % | Total mean (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for m in sorted(by_m):
+        rows = [r for r in by_m[m] if r["status"] == "PASS"]
+        ini = statistics.mean([float(r["initiator_ms"]) for r in rows])
+        res = statistics.mean([float(r["responder_ms"]) for r in rows])
+        tot = ini + res
+        L.append(f"| {m} | {METHOD_NAMES[m]} | {ini:.3f} | {res:.3f} | "
+                 f"{100.0*ini/tot:.1f}% | {100.0*res/tot:.1f}% | {tot:.3f} |")
+    L.append("")
+    heaviest_responder_pct = max(
+        by_m, key=lambda m: statistics.mean([float(r["responder_ms"]) for r in by_m[m] if r["status"] == "PASS"])
+        / statistics.mean([float(r["duration_ms"]) for r in by_m[m] if r["status"] == "PASS"]))
+    L.append(f"- Di semua method, beban **responder** (AAA/FreeRADIUS) mendominasi total "
+             f"waktu handshake — wajar, karena responder-lah yang benar-benar memproses "
+             f"paket RADIUS (parsing, dispatch modul, verifikasi kripto) dan initiator "
+             f"cuma menunggu selama itu; porsi initiator yang genuinely CPU-bound (encode "
+             f"paket + panggilan engine lokal) jauh lebih kecil dari total.")
+    L.append(f"- Proporsi responder tertinggi: **method {heaviest_responder_pct}** "
+             f"({METHOD_NAMES[heaviest_responder_pct]}).")
+    L.append("")
+
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
     sec1a = carry_section(analysis_text, "## 1a. Breakdown komputasi primitif kriptografi",
                           ["## "])
