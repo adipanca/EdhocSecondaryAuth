@@ -59,18 +59,6 @@ method,profile,role,operation,primitive,op_count,compute_ns
 4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),responder,Decaps,ML-KEM-768,1,47707.7
 4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),responder,Signature,Ed25519/ML-DSA-44,1,237660.0
 4,SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768),responder,Verify,Ed25519/ML-DSA-44,1,62322.5
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,Keygen,X25519/ML-KEM-768,1,24004.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,ScalarMult,X25519,1,24888.8
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,Encaps,ML-KEM-768,0,0.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,Decaps,ML-KEM-768,0,0.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,Signature,Ed25519/ML-DSA-44/RSA-2048,1,394245.6
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",initiator,Verify,Ed25519/ML-DSA-44/RSA-2048,1,20433.3
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,Keygen,X25519/ML-KEM-768,1,24004.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,ScalarMult,X25519,1,24888.8
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,Encaps,ML-KEM-768,0,0.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,Decaps,ML-KEM-768,0,0.0
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,Signature,Ed25519/ML-DSA-44/RSA-2048,1,394245.6
-5,"EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual)",responder,Verify,Ed25519/ML-DSA-44/RSA-2048,1,20433.3
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",initiator,Keygen,X25519/ML-KEM-768,2,58586.4
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",initiator,ScalarMult,X25519,1,24888.8
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",initiator,Encaps,ML-KEM-768,0,0.0
@@ -83,3 +71,15 @@ method,profile,role,operation,primitive,op_count,compute_ns
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",responder,Decaps,ML-KEM-768,0,0.0
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",responder,Signature,Ed25519/ML-DSA-44,1,237660.0
 6,"EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert)",responder,Verify,Ed25519/ML-DSA-44,1,62322.5
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,Keygen,X25519/ML-KEM-768,1,24004.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,ScalarMult,X25519,1,24888.8
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,Encaps,ML-KEM-768,0,0.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,Decaps,ML-KEM-768,0,0.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,Signature,Ed25519/ML-DSA-44,1,11225.8
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",initiator,Verify,Ed25519/ML-DSA-44,1,29693.1
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,Keygen,X25519/ML-KEM-768,1,24004.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,ScalarMult,X25519,1,24888.8
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,Encaps,ML-KEM-768,0,0.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,Decaps,ML-KEM-768,0,0.0
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,Signature,Ed25519/ML-DSA-44,1,11225.8
+5,"EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual)",responder,Verify,Ed25519/ML-DSA-44,1,29693.1

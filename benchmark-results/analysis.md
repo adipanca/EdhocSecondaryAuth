@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication
 
-_Dibuat otomatis oleh benchmark/analyze.py pada 2026-08-14T10:47:43._
+_Dibuat otomatis oleh benchmark/analyze.py pada 2026-08-14T12:10:44._
 
 Method matrix:
 
@@ -11,7 +11,7 @@ Method matrix:
 | 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |
 | 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |
 | 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |
-| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |
+| 5 | EAP-TLS Classic (mutual, Ed25519) | EAP-TLS Classic (mutual, Ed25519) | X25519 ECDHE + Ed25519 (classical TLS) |
 | 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |
 
 > **Catatan metodologi:** `analysis.md` (dokumen ini) adalah pandangan primitif/komputasi murni, independen terhadap transport, untuk SEMUA method 0-6 secara konsisten (section 1a/1b/4 di bawah memakai model/komputasi, bukan byte yang benar-benar diobservasi di kabel, untuk method manapun) — ini pilihan desain dokumen ini, bukan keterbatasan. Method 6 (EAP-TLS Hybrid PQC) SEKARANG JUGA diukur end-to-end secara live melalui EAP-over-RADIUS nyata (liboqs + oqs-provider terpasang, tls-config ML-DSA-44 + grup hybrid X25519MLKEM768 dipakai oleh `rlm_eap_tls`) — lihat `analisys2.md` untuk angka live-nya (section 1c/2), yang membandingkannya langsung dengan method 4 (SIGMA-XWING PQC) dan method 5 (EAP-TLS Classic).
@@ -46,9 +46,9 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 | Keygen_MLDSA44 | PQClean | 3000 | 57264.4 | 49737.0 | 100359.0 | 207756.0 | 39540.4 |
 | Signature_MLDSA44 | PQClean | 3000 | 237660.0 | 185264.0 | 583052.0 | 976302.0 | 203541.2 |
 | Verify_MLDSA44 | PQClean | 3000 | 62322.5 | 53773.0 | 121024.0 | 196086.0 | 41195.9 |
-| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 104872119.9 | 97656191.5 | 195124792.8 | 223465944.8 | 52104213.0 |
-| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 394245.6 | 352154.5 | 518293.4 | 888279.2 | 181477.2 |
-| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 20433.3 | 20154.0 | 21038.8 | 27888.4 | 1898.1 |
+| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 121835084.6 | 112639921.0 | 212098736.2 | 232936779.6 | 55131841.2 |
+| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 442925.7 | 362334.0 | 740862.3 | 1621179.1 | 247948.5 |
+| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 23481.5 | 20138.5 | 30472.5 | 105832.6 | 20127.1 |
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
@@ -116,18 +116,6 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 4 | responder | Decaps | ML-KEM-768 | 1 | 47707.7 |
 | 4 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
 | 4 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
-| 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | initiator | Signature | Ed25519/ML-DSA-44/RSA-2048 | 1 | 394245.6 |
-| 5 | initiator | Verify | Ed25519/ML-DSA-44/RSA-2048 | 1 | 20433.3 |
-| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | responder | ScalarMult | X25519 | 1 | 24888.8 |
-| 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | responder | Signature | Ed25519/ML-DSA-44/RSA-2048 | 1 | 394245.6 |
-| 5 | responder | Verify | Ed25519/ML-DSA-44/RSA-2048 | 1 | 20433.3 |
 | 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 58586.4 |
 | 6 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
 | 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
@@ -140,6 +128,18 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
 | 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
+| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
+| 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
+| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
+| 5 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
 
 ### Total komputasi handshake per method
 
@@ -150,8 +150,8 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 2 | MAC-X25519 / SIG-Ed25519 | 103.475 | 60.119 | 163.593 |
 | 3 | MAC/MAC static-DH X25519 | 73.782 | 73.782 | 147.563 |
 | 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 650.770 | 608.008 | 1258.778 |
-| 5 | EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual) | 463.572 | 463.572 | 927.143 |
 | 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 431.165 | 388.404 | 819.569 |
+| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 89.812 | 89.812 | 179.623 |
 
 - Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 147.563 us).
 - Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 1258.778 us).
@@ -218,7 +218,7 @@ Lolos 11/11 pemeriksaan.
 
 ## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi
 
-Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. Method 5 (EAP-TLS Classic) tidak punya baris model di sini karena ukuran rantai sertifikat RSA klasik bergantung pada CA/panjang rantai yang dipakai (tidak sekonsisten primitif PQC berukuran tetap), sehingga tidak dimodelkan di dokumen ini — lihat `analisys2.md` section 4 untuk ukuran pesan method 5 yang diobservasi langsung dari handshake live.
+Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. Method 5 (EAP-TLS Classic, sertifikat Ed25519) memakai byte yang benar-benar diobservasi dari handshake live (`rsa_bench.py`), sama seperti method 6 — lihat `analisys2.md` section 4 untuk versi yang diobservasi langsung dari seluruh handshake live method 0-5.
 
 | Method | Pesan | Bytes | EAP attrs | EAP frags | IP frags | >MTU |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -242,5 +242,8 @@ Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atrib
 | 6 | message_2 | 5027 | 20 | 5 | 4 | yes |
 | 6 | message_3 | 3819 | 16 | 4 | 3 | yes |
 | 6 | message_4 | 50 | 1 | 1 | 1 | no |
-Pesan yang memerlukan fragmentasi terdapat pada method 4, 6 (profil PQC — XWING/ML-KEM-768 hybrid key establishment, ML-DSA-44 signatures), karena XWING/hybrid-KEM (X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan. Method 6's baris di sini adalah hasil komputasi/model (`compute_tls_hybrid.py`), konsisten dengan bagaimana method 0-4 di tabel ini juga dihitung, bukan diobservasi live — lihat `analisys2.md` section 4 untuk ukuran pesan method 6 yang benar-benar diobservasi dari handshake live.
-..
+| 5 | message_1 | 289 | 2 | 1 | 1 | no |
+| 5 | message_2 | 1148 | 5 | 2 | 1 | no |
+| 5 | message_3 | 990 | 4 | 1 | 1 | no |
+| 5 | message_4 | 51 | 1 | 1 | 1 | no |
+Pesan yang memerlukan fragmentasi terdapat pada method 4, 5, 6 (profil PQC — XWING/ML-KEM-768 hybrid key establishment, ML-DSA-44 signatures), karena XWING/hybrid-KEM (X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan. Method 6's baris di sini adalah hasil komputasi/model (`compute_tls_hybrid.py`), konsisten dengan bagaimana method 0-4 di tabel ini juga dihitung, bukan diobservasi live — lihat `analisys2.md` section 4 untuk ukuran pesan method 6 yang benar-benar diobservasi dari handshake live.

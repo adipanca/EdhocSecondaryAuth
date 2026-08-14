@@ -153,12 +153,10 @@ def section_mtu(rd):
     return ("## 4. Pengaruh ukuran paket terhadap MTU dan fragmentasi\n\n"
             "Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP "
             "(RFC 3579, atribut 253 B) dan IP (MTU 1500) diturunkan darinya. "
-            "Method 5 (EAP-TLS Classic) tidak punya baris model di sini karena "
-            "ukuran rantai sertifikat RSA klasik bergantung pada CA/panjang "
-            "rantai yang dipakai (tidak sekonsisten primitif PQC berukuran "
-            "tetap), sehingga tidak dimodelkan di dokumen ini — lihat "
-            "`analisys2.md` section 4 untuk ukuran pesan method 5 yang "
-            "diobservasi langsung dari handshake live.\n\n"
+            "Method 5 (EAP-TLS Classic, sertifikat Ed25519) memakai byte yang "
+            "benar-benar diobservasi dari handshake live (`rsa_bench.py`), "
+            "sama seperti method 6 — lihat `analisys2.md` section 4 untuk versi "
+            "yang diobservasi langsung dari seluruh handshake live method 0-5.\n\n"
             + body + note)
 
 
@@ -191,7 +189,7 @@ def main():
               "| 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |\n"
               "| 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |\n"
               "| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |\n"
-              "| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |\n"
+              "| 5 | EAP-TLS Classic (mutual, Ed25519) | EAP-TLS Classic (mutual, Ed25519) | X25519 ECDHE + Ed25519 (classical TLS) |\n"
               "| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | EAP-TLS Hybrid PQC (X25519MLKEM768 + ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |\n\n"
               "> **Catatan metodologi:** `analysis.md` (dokumen ini) adalah pandangan "
               "primitif/komputasi murni, independen terhadap transport, untuk SEMUA method "

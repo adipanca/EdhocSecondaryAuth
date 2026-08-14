@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T10:47:47._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T12:10:44._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -15,10 +15,10 @@ Method matrix:
 | 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |
 | 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |
 | 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |
-| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |
+| 5 | EAP-TLS Classic (mutual, Ed25519) | EAP-TLS Classic (mutual, Ed25519) | X25519 ECDHE + Ed25519 (classical TLS) |
 | 6 | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |
 
-> **Catatan metodologi — bagaimana method 5 dan method 6 diukur:** Method **0-6 seluruhnya** diukur end-to-end secara **live** di atas EAP-over-RADIUS nyata terhadap `rlm_eap_tls`/`rlm_eap_edhoc` yang hidup. Method 5 (klasik, RSA-2048) dan method 6 (hybrid-PQC, ML-DSA-44 + grup KEM X25519MLKEM768) memakai `rlm_eap_tls` yang SAMA, tetapi satu instance `tls {}` hanya bisa memegang satu pasangan sertifikat/grup pada satu waktu — jadi keduanya diukur **berurutan, bukan bersamaan**: `benchmark/switch_tls_config.sh classic|hybrid` menukar `tls-config` yang dipakai lalu me-restart radiusd (untuk method 6, ditambah variabel lingkungan `OPENSSL_CONF`/`OPENSSL_MODULES` yang mengaktifkan `oqs-provider`, lihat `pqc-tls/openssl-hybrid.cnf`). Method 6 memerlukan OpenSSL >= 3.2 untuk sertifikat/tanda tangan ML-DSA-44 di TLS1.3 (`oqs-provider` belum mendukung ini di versi OpenSSL yang lebih lama); lingkungan ini memakai OpenSSL 3.0.13 secara default, sehingga sebuah build OpenSSL 3.2.6 privat (`pqc-tls/openssl32/`) dipakai lewat `LD_LIBRARY_PATH` khusus untuk radiusd dan harness method 6 saja — `rlm_eap_tls`/radiusd sendiri tidak diubah kodenya untuk ini (hanya linking runtime-nya), kecuali satu pengecekan versi OpenSSL di `src/main/version.c` yang direlaksasi agar tidak menolak kombinasi minor-version 3.0/3.2 ini (OpenSSL menjamin stabilitas ABI/API di seluruh seri 3.x). Setiap handshake method 6 diverifikasi (bukan cuma diasumsikan) benar-benar memakai grup `X25519MLKEM768` dan sertifikat `mldsa44` lewat `SSL_get0_group_name()`/`EVP_PKEY_get0_type_name()` — kalau sampai jatuh diam-diam ke classical, harness menandainya FAIL, bukan PASS.
+> **Catatan metodologi — bagaimana method 5 dan method 6 diukur:** Method **0-6 seluruhnya** diukur end-to-end secara **live** di atas EAP-over-RADIUS nyata terhadap `rlm_eap_tls`/`rlm_eap_edhoc` yang hidup. Method 5 memakai sertifikat **Ed25519** (bukan RSA-2048) supaya perbandingan dengan EDHOC klasik (method 0-3, yang semuanya Ed25519 + X25519) apples-to-apples: algoritma tanda tangan dan grup DH-nya identik, sehingga selisih yang tersisa murni berasal dari framing protokol (TLS record + X.509 vs CBOR EDHOC) dan transport (fragmentasi EAP RFC 5216 vs EDHOC-over-EAP), bukan dari pilihan algoritma kripto. (Sertifikat RSA-2048 asli masih tersimpan di `raddb/certs/rsa2048-backup/` kalau diperlukan sebagai referensi.) Method 5 (klasik, Ed25519) dan method 6 (hybrid-PQC, ML-DSA-44 + grup KEM X25519MLKEM768) memakai `rlm_eap_tls` yang SAMA, tetapi satu instance `tls {}` hanya bisa memegang satu pasangan sertifikat/grup pada satu waktu — jadi keduanya diukur **berurutan, bukan bersamaan**: `benchmark/switch_tls_config.sh classic|hybrid` menukar `tls-config` yang dipakai lalu me-restart radiusd (untuk method 6, ditambah variabel lingkungan `OPENSSL_CONF`/`OPENSSL_MODULES` yang mengaktifkan `oqs-provider`, lihat `pqc-tls/openssl-hybrid.cnf`). Method 6 memerlukan OpenSSL >= 3.2 untuk sertifikat/tanda tangan ML-DSA-44 di TLS1.3 (`oqs-provider` belum mendukung ini di versi OpenSSL yang lebih lama); lingkungan ini memakai OpenSSL 3.0.13 secara default, sehingga sebuah build OpenSSL 3.2.6 privat (`pqc-tls/openssl32/`) dipakai lewat `LD_LIBRARY_PATH` khusus untuk radiusd dan harness method 6 saja — `rlm_eap_tls`/radiusd sendiri tidak diubah kodenya untuk ini (hanya linking runtime-nya), kecuali satu pengecekan versi OpenSSL di `src/main/version.c` yang direlaksasi agar tidak menolak kombinasi minor-version 3.0/3.2 ini (OpenSSL menjamin stabilitas ABI/API di seluruh seri 3.x). Setiap handshake method 6 diverifikasi (bukan cuma diasumsikan) benar-benar memakai grup `X25519MLKEM768` dan sertifikat `mldsa44` lewat `SSL_get0_group_name()`/`EVP_PKEY_get0_type_name()` — kalau sampai jatuh diam-diam ke classical, harness menandainya FAIL, bukan PASS.
 
 ## 1c. Handshake secondary authentication P2P (end-to-end EAP-over-RADIUS)
 
@@ -33,7 +33,7 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 2 | 2026-08-14T10:07:08+0900 | 1 | PASS | 1.651 | 1 |
 | 3 | 2026-08-14T10:07:08+0900 | 1 | PASS | 1.538 | 1 |
 | 4 | 2026-08-14T10:07:08+0900 | 1 | PASS | 6.499 | 1 |
-| 5 | 2026-08-14T10:12:21+0900 | 1 | PASS | 5.500 | 1 |
+| 5 | 2026-08-14T12:06:02+0900 | 1 | PASS | 4.268 | 1 |
 | 6 | 2026-08-14T10:24:07+0900 | 1 | PASS | 14.045 | 1 |
 
 ### Ringkasan statistik handshake end-to-end per method
@@ -45,7 +45,7 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 2 | STAT/SIG | 100 | 100.0 | 0.848 | 0.800 | 1.149 | 0.676 | 1.651 | 3 | 3 |
 | 3 | STAT/STAT | 100 | 100.0 | 0.941 | 0.843 | 1.193 | 0.696 | 4.154 | 3 | 3 |
 | 4 | SIGMA-XWING-PQC | 100 | 100.0 | 7.742 | 5.898 | 12.408 | 2.882 | 123.607 | 17 | 17 |
-| 5 | EAP-TLS-Classic | 100 | 100.0 | 4.282 | 4.101 | 5.501 | 3.625 | 7.041 | 9 | 9 |
+| 5 | EAP-TLS-Classic | 100 | 100.0 | 3.002 | 2.817 | 4.577 | 2.397 | 6.559 | 6 | 6 |
 | 6 | EAP-TLS-Hybrid-PQC | 100 | 100.0 | 9.455 | 7.790 | 15.751 | 6.825 | 52.758 | 28 | 28 |
 
 - Handshake end-to-end tercepat: **method 2** (STAT/SIG).
@@ -73,9 +73,9 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 | Keygen_MLDSA44 | PQClean | 3000 | 57264.4 | 49737.0 | 100359.0 | 207756.0 | 39540.4 |
 | Signature_MLDSA44 | PQClean | 3000 | 237660.0 | 185264.0 | 583052.0 | 976302.0 | 203541.2 |
 | Verify_MLDSA44 | PQClean | 3000 | 62322.5 | 53773.0 | 121024.0 | 196086.0 | 41195.9 |
-| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 104872119.9 | 97656191.5 | 195124792.8 | 223465944.8 | 52104213.0 |
-| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 394245.6 | 352154.5 | 518293.4 | 888279.2 | 181477.2 |
-| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 20433.3 | 20154.0 | 21038.8 | 27888.4 | 1898.1 |
+| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 121835084.6 | 112639921.0 | 212098736.2 | 232936779.6 | 55131841.2 |
+| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 442925.7 | 362334.0 | 740862.3 | 1621179.1 | 247948.5 |
+| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 23481.5 | 20138.5 | 30472.5 | 105832.6 | 20127.1 |
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
@@ -143,18 +143,6 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 4 | responder | Decaps | ML-KEM-768 | 1 | 47707.7 |
 | 4 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
 | 4 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
-| 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | initiator | Signature | Ed25519/ML-DSA-44/RSA-2048 | 1 | 394245.6 |
-| 5 | initiator | Verify | Ed25519/ML-DSA-44/RSA-2048 | 1 | 20433.3 |
-| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | responder | ScalarMult | X25519 | 1 | 24888.8 |
-| 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | responder | Signature | Ed25519/ML-DSA-44/RSA-2048 | 1 | 394245.6 |
-| 5 | responder | Verify | Ed25519/ML-DSA-44/RSA-2048 | 1 | 20433.3 |
 | 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 58586.4 |
 | 6 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
 | 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
@@ -167,6 +155,18 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
 | 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
+| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
+| 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
+| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
+| 5 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
+| 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
 
 ### Total komputasi handshake per method
 
@@ -177,8 +177,8 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 2 | MAC-X25519 / SIG-Ed25519 | 103.475 | 60.119 | 163.593 |
 | 3 | MAC/MAC static-DH X25519 | 73.782 | 73.782 | 147.563 |
 | 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 650.770 | 608.008 | 1258.778 |
-| 5 | EAP-TLS Classic (X25519 ECDHE + RSA-2048, mutual) | 463.572 | 463.572 | 927.143 |
 | 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 431.165 | 388.404 | 819.569 |
+| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 89.812 | 89.812 | 179.623 |
 
 - Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 147.563 us).
 - Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 1258.778 us).
@@ -221,12 +221,12 @@ Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP (RT
 | 4 | 10.0 | 100.0 | 172.090 | 317.874 | 3.742 |
 | 4 | 20.0 | 97.5 | 454.634 | 766.241 | 9.550 |
 | 4 | 30.0 | 86.7 | 768.277 | 1212.616 | 14.542 |
-| 5 | 0.0 | 100.0 | 4.441 | 5.242 | 0.000 |
-| 5 | 1.0 | 100.0 | 9.791 | 49.993 | 0.117 |
-| 5 | 5.0 | 100.0 | 51.110 | 135.392 | 0.875 |
-| 5 | 10.0 | 100.0 | 97.618 | 242.142 | 2.033 |
-| 5 | 20.0 | 100.0 | 238.939 | 482.221 | 5.025 |
-| 5 | 30.0 | 87.5 | 444.280 | 804.189 | 8.233 |
+| 5 | 0.0 | 100.0 | 3.016 | 5.329 | 0.000 |
+| 5 | 1.0 | 100.0 | 7.988 | 44.776 | 0.108 |
+| 5 | 5.0 | 100.0 | 30.511 | 103.517 | 0.625 |
+| 5 | 10.0 | 100.0 | 57.420 | 134.050 | 1.250 |
+| 5 | 20.0 | 98.3 | 153.322 | 337.869 | 3.442 |
+| 5 | 30.0 | 95.8 | 260.526 | 497.364 | 5.792 |
 | 6 | 0.0 | 100.0 | 8.112 | 12.103 | 0.000 |
 | 6 | 1.0 | 100.0 | 37.871 | 101.879 | 0.600 |
 | 6 | 5.0 | 100.0 | 124.426 | 280.081 | 2.608 |
@@ -279,8 +279,8 @@ Ukuran pesan dan jumlah fragmen EAP untuk method 0..6 di bawah ini adalah **hasi
 | 4 | message_3 | 4975 | 20 | 5 | 4 | yes | observasi nyata |
 | 4 | message_4 | 1232 | 5 | 2 | 1 | no | observasi nyata |
 | 5 | message_1 | 289 | 2 | 1 | 1 | no | observasi nyata |
-| 5 | message_2 | 2967 | 12 | 3 | 2 | yes | observasi nyata |
-| 5 | message_3 | 2703 | 11 | 3 | 2 | yes | observasi nyata |
+| 5 | message_2 | 1148 | 5 | 2 | 1 | no | observasi nyata |
+| 5 | message_3 | 990 | 4 | 1 | 1 | no | observasi nyata |
 | 5 | message_4 | 51 | 1 | 1 | 1 | no | observasi nyata |
 | 6 | message_1 | 1589 | 7 | 2 | 2 | yes | observasi nyata |
 | 6 | message_2 | 12600 | 50 | 13 | 9 | yes | observasi nyata |

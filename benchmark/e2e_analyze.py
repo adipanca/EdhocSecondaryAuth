@@ -133,13 +133,20 @@ def main():
     L.append("| 2 | MAC (static-DH X25519) | SIG (Ed25519) | X25519 + Ed25519 |")
     L.append("| 3 | MAC (static-DH X25519) | MAC (static-DH X25519) | X25519 |")
     L.append("| 4 | SIGMA (ML-DSA-44) | SIGMA (ML-DSA-44) | XWING (X25519 + ML-KEM-768) + ML-DSA-44 (PQC) |")
-    L.append("| 5 | EAP-TLS Classic (mutual, RSA-2048) | EAP-TLS Classic (mutual, RSA-2048) | X25519 ECDHE + RSA-2048 (classical TLS) |")
+    L.append("| 5 | EAP-TLS Classic (mutual, Ed25519) | EAP-TLS Classic (mutual, Ed25519) | X25519 ECDHE + Ed25519 (classical TLS) |")
     L.append("| 6 | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | EAP-TLS Hybrid PQC (mutual, ML-DSA-44) | X25519MLKEM768 hybrid KEM + ML-DSA-44 (PQC) |")
     L.append("")
     L.append("> **Catatan metodologi — bagaimana method 5 dan method 6 diukur:** Method "
              "**0-6 seluruhnya** diukur end-to-end secara **live** di atas EAP-over-RADIUS "
-             "nyata terhadap `rlm_eap_tls`/`rlm_eap_edhoc` yang hidup. Method 5 (klasik, "
-             "RSA-2048) dan method 6 (hybrid-PQC, ML-DSA-44 + grup KEM X25519MLKEM768) memakai "
+             "nyata terhadap `rlm_eap_tls`/`rlm_eap_edhoc` yang hidup. Method 5 memakai "
+             "sertifikat **Ed25519** (bukan RSA-2048) supaya perbandingan dengan EDHOC klasik "
+             "(method 0-3, yang semuanya Ed25519 + X25519) apples-to-apples: algoritma tanda "
+             "tangan dan grup DH-nya identik, sehingga selisih yang tersisa murni berasal dari "
+             "framing protokol (TLS record + X.509 vs CBOR EDHOC) dan transport (fragmentasi "
+             "EAP RFC 5216 vs EDHOC-over-EAP), bukan dari pilihan algoritma kripto. (Sertifikat "
+             "RSA-2048 asli masih tersimpan di `raddb/certs/rsa2048-backup/` kalau diperlukan "
+             "sebagai referensi.) Method 5 (klasik, Ed25519) dan method 6 (hybrid-PQC, "
+             "ML-DSA-44 + grup KEM X25519MLKEM768) memakai "
              "`rlm_eap_tls` yang SAMA, tetapi satu instance `tls {}` hanya bisa memegang satu "
              "pasangan sertifikat/grup pada satu waktu — jadi keduanya diukur **berurutan, "
              "bukan bersamaan**: `benchmark/switch_tls_config.sh classic|hybrid` menukar "
