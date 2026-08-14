@@ -243,3 +243,4 @@ Ukuran pesan dihitung dari elemen kripto nyata; fragmentasi EAP (RFC 3579, atrib
 | 6 | message_3 | 3819 | 16 | 4 | 3 | yes |
 | 6 | message_4 | 50 | 1 | 1 | 1 | no |
 Pesan yang memerlukan fragmentasi terdapat pada method 4, 6 (profil PQC — XWING/ML-KEM-768 hybrid key establishment, ML-DSA-44 signatures), karena XWING/hybrid-KEM (X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan. Method 6's baris di sini adalah hasil komputasi/model (`compute_tls_hybrid.py`), konsisten dengan bagaimana method 0-4 di tabel ini juga dihitung, bukan diobservasi live — lihat `analisys2.md` section 4 untuk ukuran pesan method 6 yang benar-benar diobservasi dari handshake live.
+..
