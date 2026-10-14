@@ -1,0 +1,462 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new skC1: mdsk;
+{2}let pkC1: mdpk = mdpub(skC1) in
+{3}new skS1: mdsk;
+{4}let pkS1: mdpk = mdpub(skS1) in
+{5}out(c, (pkC1,pkS1));
+{6}new skC2: mdsk;
+{7}let pkC2: mdpk = mdpub(skC2) in
+{8}new skS2: mdsk;
+{9}let pkS2: mdpk = mdpub(skS2) in
+{10}out(c, (pkC2,pkS2));
+{11}out(c, skC1);
+{12}out(c, skS2);
+(
+    {13}!
+    {14}let w: bitstring = W1 in
+    {15}let skC: mdsk = skC1 in
+    {16}new nC: bitstring;
+    {17}new x: exponent;
+    {18}let GX: G = exp(g,x) in
+    {19}new dkE: kemsk;
+    {20}let ekE: kempk = kempub(dkE) in
+    {21}let Message1: bitstring = (nC,GX,ekE) in
+    {22}event UE_send_M1(w,Message1);
+    {23}out(c, Message1);
+    {24}in(c, (nS: bitstring,GY: G,ctE: bitstring,encP2: bitstring));
+    {25}let sE: bitstring = kem_dec(dkE,ctE) in
+    {26}let ss: bitstring = H((lbl_hyb,exp(GY,x),sE)) in
+    {27}let TH2: bitstring = H((Message1,nS,GY,ctE)) in
+    {28}let HS: bitstring = extract(TH2,ss) in
+    {29}let Ks: bitstring = expands(HS,lbl_shs) in
+    {30}let Kc: bitstring = expands(HS,lbl_chs) in
+    {31}let PT2: bitstring = AEAD_dec(Ks,encP2) in
+    {32}let (=ID_CREDR,=pkS1,cvS: bitstring,finS: bitstring) = PT2 in
+    {33}let vS: bitstring = mdverify(pkS1,cvS) in
+    {34}if (vS = (lbl_scv,TH2,ID_CREDR)) then
+    {35}if (finS = expands(HS,(lbl_sfin,TH2,cvS))) then
+    {36}event UE_recv_M2(w,cvS,TH2);
+    {37}let TH3: bitstring = H((TH2,PT2)) in
+    {38}let cvC: bitstring = mdsign((lbl_ccv,TH3,ID_CREDI),skC) in
+    {39}let finC: bitstring = expands(HS,(lbl_cfin,TH3,cvC)) in
+    {40}let PT3: bitstring = (ID_CREDI,pkC1,cvC,finC) in
+    {41}event UE_send_M3(w,cvC,TH3);
+    {42}out(c, AEAD_enc(Kc,PT3));
+    {43}let TH4: bitstring = H((TH3,PT3)) in
+    {44}let MS: bitstring = expands(HS,(lbl_ms,TH4)) in
+    {45}in(c, Message4: bitstring);
+    {46}if (AEAD_dec(expands(MS,lbl_sapp),Message4) = commit) then
+    {47}event UE_recv_M4(w,Message4,TH4);
+    {48}let MSK: bitstring = expands(MS,lbl_MSK) in
+    {49}let EMSK: bitstring = expands(MS,lbl_EMSK) in
+    {50}event UE_finish(w,MSK,EMSK);
+    {51}out(c, AEAD_enc(MSK,app_data_UE));
+    {52}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {53}!
+    {54}let w_1: bitstring = W1 in
+    {55}let skS: mdsk = skS1 in
+    {56}in(c, Message1_1: bitstring);
+    {57}let (nC_1: bitstring,GX_1: G,ekE_1: kempk) = Message1_1 in
+    {58}new nS_1: bitstring;
+    {59}new y: exponent;
+    {60}let GY_1: G = exp(g,y) in
+    {61}new sE_1: bitstring;
+    {62}let ctE_1: bitstring = kem_ct(ekE_1,sE_1) in
+    {63}let ss_1: bitstring = H((lbl_hyb,exp(GX_1,y),sE_1)) in
+    {64}let TH2_1: bitstring = H((Message1_1,nS_1,GY_1,ctE_1)) in
+    {65}let HS_1: bitstring = extract(TH2_1,ss_1) in
+    {66}let Ks_1: bitstring = expands(HS_1,lbl_shs) in
+    {67}let Kc_1: bitstring = expands(HS_1,lbl_chs) in
+    {68}let cvS_1: bitstring = mdsign((lbl_scv,TH2_1,ID_CREDR),skS) in
+    {69}let finS_1: bitstring = expands(HS_1,(lbl_sfin,TH2_1,cvS_1)) in
+    {70}let PT2_1: bitstring = (ID_CREDR,pkS1,cvS_1,finS_1) in
+    {71}event DN_send_M2(w_1,cvS_1,TH2_1);
+    {72}out(c, (nS_1,GY_1,ctE_1,AEAD_enc(Ks_1,PT2_1)));
+    {73}in(c, CT3: bitstring);
+    {74}let TH3_1: bitstring = H((TH2_1,PT2_1)) in
+    {75}let PT3_1: bitstring = AEAD_dec(Kc_1,CT3) in
+    {76}let (=ID_CREDI,=pkC1,cvC_1: bitstring,finC_1: bitstring) = PT3_1 in
+    {77}let vC: bitstring = mdverify(pkC1,cvC_1) in
+    {78}if (vC = (lbl_ccv,TH3_1,ID_CREDI)) then
+    {79}if (finC_1 = expands(HS_1,(lbl_cfin,TH3_1,cvC_1))) then
+    {80}event DN_recv_M3(w_1,cvC_1,TH3_1);
+    {81}let TH4_1: bitstring = H((TH3_1,PT3_1)) in
+    {82}let MS_1: bitstring = expands(HS_1,(lbl_ms,TH4_1)) in
+    {83}let Message4_1: bitstring = AEAD_enc(expands(MS_1,lbl_sapp),commit) in
+    {84}event DN_send_M4(w_1,Message4_1,TH4_1);
+    {85}out(c, Message4_1);
+    {86}let MSK_1: bitstring = expands(MS_1,lbl_MSK) in
+    {87}let EMSK_1: bitstring = expands(MS_1,lbl_EMSK) in
+    {88}event DN_finish(w_1,MSK_1,EMSK_1);
+    {89}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {90}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {91}!
+    {92}let w_2: bitstring = W2 in
+    {93}let skC_1: mdsk = skC2 in
+    {94}new nC_2: bitstring;
+    {95}new x_1: exponent;
+    {96}let GX_2: G = exp(g,x_1) in
+    {97}new dkE_1: kemsk;
+    {98}let ekE_2: kempk = kempub(dkE_1) in
+    {99}let Message1_2: bitstring = (nC_2,GX_2,ekE_2) in
+    {100}event UE_send_M1(w_2,Message1_2);
+    {101}out(c, Message1_2);
+    {102}in(c, (nS_2: bitstring,GY_2: G,ctE_2: bitstring,encP2_1: bitstring));
+    {103}let sE_2: bitstring = kem_dec(dkE_1,ctE_2) in
+    {104}let ss_2: bitstring = H((lbl_hyb,exp(GY_2,x_1),sE_2)) in
+    {105}let TH2_2: bitstring = H((Message1_2,nS_2,GY_2,ctE_2)) in
+    {106}let HS_2: bitstring = extract(TH2_2,ss_2) in
+    {107}let Ks_2: bitstring = expands(HS_2,lbl_shs) in
+    {108}let Kc_2: bitstring = expands(HS_2,lbl_chs) in
+    {109}let PT2_2: bitstring = AEAD_dec(Ks_2,encP2_1) in
+    {110}let (=ID_CREDR,=pkS2,cvS_2: bitstring,finS_2: bitstring) = PT2_2 in
+    {111}let vS_1: bitstring = mdverify(pkS2,cvS_2) in
+    {112}if (vS_1 = (lbl_scv,TH2_2,ID_CREDR)) then
+    {113}if (finS_2 = expands(HS_2,(lbl_sfin,TH2_2,cvS_2))) then
+    {114}event UE_recv_M2(w_2,cvS_2,TH2_2);
+    {115}let TH3_2: bitstring = H((TH2_2,PT2_2)) in
+    {116}let cvC_2: bitstring = mdsign((lbl_ccv,TH3_2,ID_CREDI),skC_1) in
+    {117}let finC_2: bitstring = expands(HS_2,(lbl_cfin,TH3_2,cvC_2)) in
+    {118}let PT3_2: bitstring = (ID_CREDI,pkC2,cvC_2,finC_2) in
+    {119}event UE_send_M3(w_2,cvC_2,TH3_2);
+    {120}out(c, AEAD_enc(Kc_2,PT3_2));
+    {121}let TH4_2: bitstring = H((TH3_2,PT3_2)) in
+    {122}let MS_2: bitstring = expands(HS_2,(lbl_ms,TH4_2)) in
+    {123}in(c, Message4_2: bitstring);
+    {124}if (AEAD_dec(expands(MS_2,lbl_sapp),Message4_2) = commit) then
+    {125}event UE_recv_M4(w_2,Message4_2,TH4_2);
+    {126}let MSK_2: bitstring = expands(MS_2,lbl_MSK) in
+    {127}let EMSK_2: bitstring = expands(MS_2,lbl_EMSK) in
+    {128}event UE_finish(w_2,MSK_2,EMSK_2);
+    {129}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {130}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {131}!
+    {132}let w_3: bitstring = W2 in
+    {133}let skS_1: mdsk = skS2 in
+    {134}in(c, Message1_3: bitstring);
+    {135}let (nC_3: bitstring,GX_3: G,ekE_3: kempk) = Message1_3 in
+    {136}new nS_3: bitstring;
+    {137}new y_1: exponent;
+    {138}let GY_3: G = exp(g,y_1) in
+    {139}new sE_3: bitstring;
+    {140}let ctE_3: bitstring = kem_ct(ekE_3,sE_3) in
+    {141}let ss_3: bitstring = H((lbl_hyb,exp(GX_3,y_1),sE_3)) in
+    {142}let TH2_3: bitstring = H((Message1_3,nS_3,GY_3,ctE_3)) in
+    {143}let HS_3: bitstring = extract(TH2_3,ss_3) in
+    {144}let Ks_3: bitstring = expands(HS_3,lbl_shs) in
+    {145}let Kc_3: bitstring = expands(HS_3,lbl_chs) in
+    {146}let cvS_3: bitstring = mdsign((lbl_scv,TH2_3,ID_CREDR),skS_1) in
+    {147}let finS_3: bitstring = expands(HS_3,(lbl_sfin,TH2_3,cvS_3)) in
+    {148}let PT2_3: bitstring = (ID_CREDR,pkS2,cvS_3,finS_3) in
+    {149}event DN_send_M2(w_3,cvS_3,TH2_3);
+    {150}out(c, (nS_3,GY_3,ctE_3,AEAD_enc(Ks_3,PT2_3)));
+    {151}in(c, CT3_1: bitstring);
+    {152}let TH3_3: bitstring = H((TH2_3,PT2_3)) in
+    {153}let PT3_3: bitstring = AEAD_dec(Kc_3,CT3_1) in
+    {154}let (=ID_CREDI,=pkC2,cvC_3: bitstring,finC_3: bitstring) = PT3_3 in
+    {155}let vC_1: bitstring = mdverify(pkC2,cvC_3) in
+    {156}if (vC_1 = (lbl_ccv,TH3_3,ID_CREDI)) then
+    {157}if (finC_3 = expands(HS_3,(lbl_cfin,TH3_3,cvC_3))) then
+    {158}event DN_recv_M3(w_3,cvC_3,TH3_3);
+    {159}let TH4_3: bitstring = H((TH3_3,PT3_3)) in
+    {160}let MS_3: bitstring = expands(HS_3,(lbl_ms,TH4_3)) in
+    {161}let Message4_3: bitstring = AEAD_enc(expands(MS_3,lbl_sapp),commit) in
+    {162}event DN_send_M4(w_3,Message4_3,TH4_3);
+    {163}out(c, Message4_3);
+    {164}let MSK_3: bitstring = expands(MS_3,lbl_MSK) in
+    {165}let EMSK_3: bitstring = expands(MS_3,lbl_EMSK) in
+    {166}event DN_finish(w_3,MSK_3,EMSK_3);
+    {167}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {168}out(c, AEAD_enc(EMSK_3,EMSK_test))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new skC1: mdsk;
+{3}new skS1: mdsk;
+{4}let pkS1: mdpk = mdpub(skS1) in
+{2}let pkC1: mdpk = mdpub(skC1) in
+{5}out(c, (pkC1,pkS1));
+{6}new skC2: mdsk;
+{8}new skS2: mdsk;
+{9}let pkS2: mdpk = mdpub(skS2) in
+{7}let pkC2: mdpk = mdpub(skC2) in
+{10}out(c, (pkC2,pkS2));
+{11}out(c, skC1);
+{12}out(c, skS2);
+(
+    {13}!
+    {16}new nC: bitstring;
+    {17}new x: exponent;
+    {19}new dkE: kemsk;
+    {20}let ekE: kempk = kempub(dkE) in
+    {18}let GX: G = exp(g,x) in
+    {21}let Message1: bitstring = (nC,GX,ekE) in
+    {14}let w: bitstring = W1 in
+    {22}event UE_send_M1(w,Message1);
+    {23}out(c, Message1);
+    {24}in(c, (nS: bitstring,GY: G,ctE: bitstring,encP2: bitstring));
+    {25}let sE: bitstring = kem_dec(dkE,ctE) in
+    {27}let TH2: bitstring = H((Message1,nS,GY,ctE)) in
+    {26}let ss: bitstring = H((lbl_hyb,exp(GY,x),sE)) in
+    {28}let HS: bitstring = extract(TH2,ss) in
+    {29}let Ks: bitstring = expands(HS,lbl_shs) in
+    {31}let PT2: bitstring = AEAD_dec(Ks,encP2) in
+    {32}let (=ID_CREDR,=pkS1,cvS: bitstring,finS: bitstring) = PT2 in
+    {33}let vS: bitstring = mdverify(pkS1,cvS) in
+    {34}if (vS = (lbl_scv,TH2,ID_CREDR)) then
+    {35}if (finS = expands(HS,(lbl_sfin,TH2,cvS))) then
+    {36}event UE_recv_M2(w,cvS,TH2);
+    {37}let TH3: bitstring = H((TH2,PT2)) in
+    {15}let skC: mdsk = skC1 in
+    {38}let cvC: bitstring = mdsign((lbl_ccv,TH3,ID_CREDI),skC) in
+    {41}event UE_send_M3(w,cvC,TH3);
+    {39}let finC: bitstring = expands(HS,(lbl_cfin,TH3,cvC)) in
+    {40}let PT3: bitstring = (ID_CREDI,pkC1,cvC,finC) in
+    {30}let Kc: bitstring = expands(HS,lbl_chs) in
+    {42}out(c, AEAD_enc(Kc,PT3));
+    {45}in(c, Message4: bitstring);
+    {43}let TH4: bitstring = H((TH3,PT3)) in
+    {44}let MS: bitstring = expands(HS,(lbl_ms,TH4)) in
+    {46}if (AEAD_dec(expands(MS,lbl_sapp),Message4) = commit) then
+    {47}event UE_recv_M4(w,Message4,TH4);
+    {49}let EMSK: bitstring = expands(MS,lbl_EMSK) in
+    {48}let MSK: bitstring = expands(MS,lbl_MSK) in
+    {50}event UE_finish(w,MSK,EMSK);
+    {51}out(c, AEAD_enc(MSK,app_data_UE));
+    {52}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {53}!
+    {56}in(c, Message1_1: bitstring);
+    {57}let (nC_1: bitstring,GX_1: G,ekE_1: kempk) = Message1_1 in
+    {58}new nS_1: bitstring;
+    {59}new y: exponent;
+    {61}new sE_1: bitstring;
+    {62}let ctE_1: bitstring = kem_ct(ekE_1,sE_1) in
+    {60}let GY_1: G = exp(g,y) in
+    {64}let TH2_1: bitstring = H((Message1_1,nS_1,GY_1,ctE_1)) in
+    {55}let skS: mdsk = skS1 in
+    {68}let cvS_1: bitstring = mdsign((lbl_scv,TH2_1,ID_CREDR),skS) in
+    {54}let w_1: bitstring = W1 in
+    {71}event DN_send_M2(w_1,cvS_1,TH2_1);
+    {63}let ss_1: bitstring = H((lbl_hyb,exp(GX_1,y),sE_1)) in
+    {65}let HS_1: bitstring = extract(TH2_1,ss_1) in
+    {69}let finS_1: bitstring = expands(HS_1,(lbl_sfin,TH2_1,cvS_1)) in
+    {70}let PT2_1: bitstring = (ID_CREDR,pkS1,cvS_1,finS_1) in
+    {66}let Ks_1: bitstring = expands(HS_1,lbl_shs) in
+    {72}out(c, (nS_1,GY_1,ctE_1,AEAD_enc(Ks_1,PT2_1)));
+    {73}in(c, CT3: bitstring);
+    {67}let Kc_1: bitstring = expands(HS_1,lbl_chs) in
+    {75}let PT3_1: bitstring = AEAD_dec(Kc_1,CT3) in
+    {76}let (=ID_CREDI,=pkC1,cvC_1: bitstring,finC_1: bitstring) = PT3_1 in
+    {77}let vC: bitstring = mdverify(pkC1,cvC_1) in
+    {74}let TH3_1: bitstring = H((TH2_1,PT2_1)) in
+    {78}if (vC = (lbl_ccv,TH3_1,ID_CREDI)) then
+    {79}if (finC_1 = expands(HS_1,(lbl_cfin,TH3_1,cvC_1))) then
+    {80}event DN_recv_M3(w_1,cvC_1,TH3_1);
+    {81}let TH4_1: bitstring = H((TH3_1,PT3_1)) in
+    {82}let MS_1: bitstring = expands(HS_1,(lbl_ms,TH4_1)) in
+    {83}let Message4_1: bitstring = AEAD_enc(expands(MS_1,lbl_sapp),commit) in
+    {84}event DN_send_M4(w_1,Message4_1,TH4_1);
+    {85}out(c, Message4_1);
+    {87}let EMSK_1: bitstring = expands(MS_1,lbl_EMSK) in
+    {86}let MSK_1: bitstring = expands(MS_1,lbl_MSK) in
+    {88}event DN_finish(w_1,MSK_1,EMSK_1);
+    {89}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {90}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {91}!
+    {94}new nC_2: bitstring;
+    {95}new x_1: exponent;
+    {97}new dkE_1: kemsk;
+    {98}let ekE_2: kempk = kempub(dkE_1) in
+    {96}let GX_2: G = exp(g,x_1) in
+    {99}let Message1_2: bitstring = (nC_2,GX_2,ekE_2) in
+    {92}let w_2: bitstring = W2 in
+    {100}event UE_send_M1(w_2,Message1_2);
+    {101}out(c, Message1_2);
+    {102}in(c, (nS_2: bitstring,GY_2: G,ctE_2: bitstring,encP2_1: bitstring));
+    {103}let sE_2: bitstring = kem_dec(dkE_1,ctE_2) in
+    {105}let TH2_2: bitstring = H((Message1_2,nS_2,GY_2,ctE_2)) in
+    {104}let ss_2: bitstring = H((lbl_hyb,exp(GY_2,x_1),sE_2)) in
+    {106}let HS_2: bitstring = extract(TH2_2,ss_2) in
+    {107}let Ks_2: bitstring = expands(HS_2,lbl_shs) in
+    {109}let PT2_2: bitstring = AEAD_dec(Ks_2,encP2_1) in
+    {110}let (=ID_CREDR,=pkS2,cvS_2: bitstring,finS_2: bitstring) = PT2_2 in
+    {111}let vS_1: bitstring = mdverify(pkS2,cvS_2) in
+    {112}if (vS_1 = (lbl_scv,TH2_2,ID_CREDR)) then
+    {113}if (finS_2 = expands(HS_2,(lbl_sfin,TH2_2,cvS_2))) then
+    {114}event UE_recv_M2(w_2,cvS_2,TH2_2);
+    {115}let TH3_2: bitstring = H((TH2_2,PT2_2)) in
+    {93}let skC_1: mdsk = skC2 in
+    {116}let cvC_2: bitstring = mdsign((lbl_ccv,TH3_2,ID_CREDI),skC_1) in
+    {119}event UE_send_M3(w_2,cvC_2,TH3_2);
+    {117}let finC_2: bitstring = expands(HS_2,(lbl_cfin,TH3_2,cvC_2)) in
+    {118}let PT3_2: bitstring = (ID_CREDI,pkC2,cvC_2,finC_2) in
+    {108}let Kc_2: bitstring = expands(HS_2,lbl_chs) in
+    {120}out(c, AEAD_enc(Kc_2,PT3_2));
+    {123}in(c, Message4_2: bitstring);
+    {121}let TH4_2: bitstring = H((TH3_2,PT3_2)) in
+    {122}let MS_2: bitstring = expands(HS_2,(lbl_ms,TH4_2)) in
+    {124}if (AEAD_dec(expands(MS_2,lbl_sapp),Message4_2) = commit) then
+    {125}event UE_recv_M4(w_2,Message4_2,TH4_2);
+    {127}let EMSK_2: bitstring = expands(MS_2,lbl_EMSK) in
+    {126}let MSK_2: bitstring = expands(MS_2,lbl_MSK) in
+    {128}event UE_finish(w_2,MSK_2,EMSK_2);
+    {129}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {130}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {131}!
+    {134}in(c, Message1_3: bitstring);
+    {135}let (nC_3: bitstring,GX_3: G,ekE_3: kempk) = Message1_3 in
+    {136}new nS_3: bitstring;
+    {137}new y_1: exponent;
+    {139}new sE_3: bitstring;
+    {140}let ctE_3: bitstring = kem_ct(ekE_3,sE_3) in
+    {138}let GY_3: G = exp(g,y_1) in
+    {142}let TH2_3: bitstring = H((Message1_3,nS_3,GY_3,ctE_3)) in
+    {133}let skS_1: mdsk = skS2 in
+    {146}let cvS_3: bitstring = mdsign((lbl_scv,TH2_3,ID_CREDR),skS_1) in
+    {132}let w_3: bitstring = W2 in
+    {149}event DN_send_M2(w_3,cvS_3,TH2_3);
+    {141}let ss_3: bitstring = H((lbl_hyb,exp(GX_3,y_1),sE_3)) in
+    {143}let HS_3: bitstring = extract(TH2_3,ss_3) in
+    {147}let finS_3: bitstring = expands(HS_3,(lbl_sfin,TH2_3,cvS_3)) in
+    {148}let PT2_3: bitstring = (ID_CREDR,pkS2,cvS_3,finS_3) in
+    {144}let Ks_3: bitstring = expands(HS_3,lbl_shs) in
+    {150}out(c, (nS_3,GY_3,ctE_3,AEAD_enc(Ks_3,PT2_3)));
+    {151}in(c, CT3_1: bitstring);
+    {145}let Kc_3: bitstring = expands(HS_3,lbl_chs) in
+    {153}let PT3_3: bitstring = AEAD_dec(Kc_3,CT3_1) in
+    {154}let (=ID_CREDI,=pkC2,cvC_3: bitstring,finC_3: bitstring) = PT3_3 in
+    {155}let vC_1: bitstring = mdverify(pkC2,cvC_3) in
+    {152}let TH3_3: bitstring = H((TH2_3,PT2_3)) in
+    {156}if (vC_1 = (lbl_ccv,TH3_3,ID_CREDI)) then
+    {157}if (finC_3 = expands(HS_3,(lbl_cfin,TH3_3,cvC_3))) then
+    {158}event DN_recv_M3(w_3,cvC_3,TH3_3);
+    {159}let TH4_3: bitstring = H((TH3_3,PT3_3)) in
+    {160}let MS_3: bitstring = expands(HS_3,(lbl_ms,TH4_3)) in
+    {161}let Message4_3: bitstring = AEAD_enc(expands(MS_3,lbl_sapp),commit) in
+    {162}event DN_send_M4(w_3,Message4_3,TH4_3);
+    {163}out(c, Message4_3);
+    {165}let EMSK_3: bitstring = expands(MS_3,lbl_EMSK) in
+    {164}let MSK_3: bitstring = expands(MS_3,lbl_MSK) in
+    {166}event DN_finish(w_3,MSK_3,EMSK_3);
+    {167}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {168}out(c, AEAD_enc(EMSK_3,EMSK_test))
+)
+
+-- Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 189 rules (93 with conclusion selected). Queue: 64 rules.
+400 rules inserted. Base: 328 rules (95 with conclusion selected). Queue: 64 rules.
+600 rules inserted. Base: 441 rules (101 with conclusion selected). Queue: 94 rules.
+800 rules inserted. Base: 512 rules (103 with conclusion selected). Queue: 108 rules.
+1000 rules inserted. Base: 579 rules (113 with conclusion selected). Queue: 131 rules.
+1200 rules inserted. Base: 679 rules (117 with conclusion selected). Queue: 124 rules.
+1400 rules inserted. Base: 752 rules (119 with conclusion selected). Queue: 132 rules.
+1600 rules inserted. Base: 813 rules (123 with conclusion selected). Queue: 115 rules.
+1800 rules inserted. Base: 837 rules (123 with conclusion selected). Queue: 94 rules.
+2000 rules inserted. Base: 846 rules (131 with conclusion selected). Queue: 67 rules.
+2200 rules inserted. Base: 858 rules (133 with conclusion selected). Queue: 75 rules.
+2400 rules inserted. Base: 943 rules (141 with conclusion selected). Queue: 40 rules.
+2600 rules inserted. Base: 1056 rules (141 with conclusion selected). Queue: 47 rules.
+2800 rules inserted. Base: 1077 rules (141 with conclusion selected). Queue: 20 rules.
+Starting query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t))
+goal reachable: b-inj-event(DN_send_M2(W1,mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4)))),@occ71_1) -> inj-event(UE_recv_M2(W1,mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4)))),@occ36_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+nC_4 = nC[!1 = @sid]
+x_2 = x[!1 = @sid]
+dkE_2 = dkE[!1 = @sid]
+nS_4 = nS_1[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+y_2 = y[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+sE_4 = sE_1[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+@occ36_1 = @occ36[encP2 = AEAD_enc(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),lbl_shs),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]))))),ctE = kem_ct(kempub(dkE_2),sE_4),GY = exp(g,y_2),nS = nS_4,!1 = @sid]
+@occ71_1 = @occ71[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+RESULT inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+-- Query inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 193 rules (93 with conclusion selected). Queue: 59 rules.
+400 rules inserted. Base: 340 rules (95 with conclusion selected). Queue: 68 rules.
+600 rules inserted. Base: 454 rules (98 with conclusion selected). Queue: 89 rules.
+800 rules inserted. Base: 537 rules (99 with conclusion selected). Queue: 112 rules.
+1000 rules inserted. Base: 607 rules (110 with conclusion selected). Queue: 143 rules.
+1200 rules inserted. Base: 730 rules (113 with conclusion selected). Queue: 131 rules.
+1400 rules inserted. Base: 778 rules (114 with conclusion selected). Queue: 162 rules.
+1600 rules inserted. Base: 832 rules (116 with conclusion selected). Queue: 148 rules.
+1800 rules inserted. Base: 880 rules (116 with conclusion selected). Queue: 126 rules.
+2000 rules inserted. Base: 842 rules (119 with conclusion selected). Queue: 114 rules.
+2200 rules inserted. Base: 914 rules (128 with conclusion selected). Queue: 54 rules.
+2400 rules inserted. Base: 900 rules (130 with conclusion selected). Queue: 73 rules.
+2600 rules inserted. Base: 985 rules (138 with conclusion selected). Queue: 45 rules.
+2800 rules inserted. Base: 1094 rules (138 with conclusion selected). Queue: 49 rules.
+3000 rules inserted. Base: 1127 rules (138 with conclusion selected). Queue: 27 rules.
+3200 rules inserted. Base: 1080 rules (153 with conclusion selected). Queue: 6 rules.
+Starting query inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t))
+goal reachable: b-inj-event(DN_send_M4(W1,AEAD_enc(expands(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_ms,H((H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[])))))))),lbl_sapp),commit),H((H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]))))))),@occ84_1) -> inj-event(UE_recv_M4(W1,AEAD_enc(expands(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_ms,H((H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[])))))))),lbl_sapp),commit),H((H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]))))))),@occ47_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+nC_4 = nC[!1 = @sid]
+x_2 = x[!1 = @sid]
+dkE_2 = dkE[!1 = @sid]
+nS_4 = nS_1[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+y_2 = y[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+sE_4 = sE_1[Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+@occ47_1 = @occ47[Message4 = AEAD_enc(expands(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_ms,H((H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[])))))))),lbl_sapp),commit),encP2 = AEAD_enc(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),lbl_shs),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]))))),ctE = kem_ct(kempub(dkE_2),sE_4),GY = exp(g,y_2),nS = nS_4,!1 = @sid]
+@occ84_1 = @occ84[CT3 = AEAD_enc(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),lbl_chs),(ID_CREDI[],mdpub(skC1[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS1[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS1[])))))),ID_CREDI[]),skC1[]))))),Message1_1 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+RESULT inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t)) is true.
+-- Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 193 rules (93 with conclusion selected). Queue: 59 rules.
+400 rules inserted. Base: 336 rules (95 with conclusion selected). Queue: 64 rules.
+600 rules inserted. Base: 447 rules (99 with conclusion selected). Queue: 94 rules.
+800 rules inserted. Base: 536 rules (99 with conclusion selected). Queue: 118 rules.
+1000 rules inserted. Base: 594 rules (113 with conclusion selected). Queue: 147 rules.
+1200 rules inserted. Base: 707 rules (117 with conclusion selected). Queue: 105 rules.
+1400 rules inserted. Base: 761 rules (120 with conclusion selected). Queue: 125 rules.
+1600 rules inserted. Base: 800 rules (120 with conclusion selected). Queue: 108 rules.
+1800 rules inserted. Base: 814 rules (122 with conclusion selected). Queue: 86 rules.
+2000 rules inserted. Base: 900 rules (128 with conclusion selected). Queue: 37 rules.
+2200 rules inserted. Base: 954 rules (130 with conclusion selected). Queue: 54 rules.
+2400 rules inserted. Base: 1040 rules (143 with conclusion selected). Queue: 95 rules.
+2600 rules inserted. Base: 1157 rules (161 with conclusion selected). Queue: 52 rules.
+2800 rules inserted. Base: 1253 rules (161 with conclusion selected). Queue: 50 rules.
+3000 rules inserted. Base: 1305 rules (161 with conclusion selected). Queue: 30 rules.
+3200 rules inserted. Base: 1187 rules (171 with conclusion selected). Queue: 8 rules.
+Starting query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t))
+goal reachable: b-inj-event(UE_send_M3(W2,mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[])))))),ID_CREDI[]),skC2[]),H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]))))))),@occ119_1) -> inj-event(DN_recv_M3(W2,mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[])))))),ID_CREDI[]),skC2[]),H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]))))))),@occ158_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+nC_4 = nC_2[!1 = @sid]
+x_2 = x_1[!1 = @sid]
+dkE_2 = dkE_1[!1 = @sid]
+nS_4 = nS_3[Message1_3 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+y_2 = y_1[Message1_3 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+sE_4 = sE_3[Message1_3 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+@occ158_1 = @occ158[CT3_1 = AEAD_enc(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),lbl_chs),(ID_CREDI[],mdpub(skC2[]),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[])))))),ID_CREDI[]),skC2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_cfin,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[])))))),mdsign((lbl_ccv,H((H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[])))))),ID_CREDI[]),skC2[]))))),Message1_3 = (nC_4,exp(g,x_2),kempub(dkE_2)),!1 = @sid_1]
+@occ119_1 = @occ119[encP2_1 = AEAD_enc(expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),lbl_shs),(ID_CREDR,mdpub(skS2[]),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]),expands(extract(H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),H((lbl_hyb,exp(exp(g,y_2),x_2),sE_4))),(lbl_sfin,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),mdsign((lbl_scv,H(((nC_4,exp(g,x_2),kempub(dkE_2)),nS_4,exp(g,y_2),kem_ct(kempub(dkE_2),sE_4))),ID_CREDR),skS2[]))))),ctE_2 = kem_ct(kempub(dkE_2),sE_4),GY_2 = exp(g,y_2),nS_2 = nS_4,!1 = @sid]
+RESULT inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+
+Query inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t)) is true.
+
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+
+--------------------------------------------------------------
+

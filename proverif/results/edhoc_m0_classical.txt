@@ -1,0 +1,603 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new skI: edsk;
+{2}let pkI: edpk = edpub(skI) in
+{3}out(c, pkI);
+{4}new skR: edsk;
+{5}let pkR: edpk = edpub(skR) in
+{6}out(c, pkR);
+(
+    {7}!
+    {8}let w: bitstring = W0 in
+    {9}let skI_1: edsk = skI in
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_0,SuitesI,GX,CI) in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = PRK2e in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,pkR)) in
+    {23}let v2: bitstring = edverify(pkR,SoM2) in
+    {24}if (v2 = (ID_CREDR,TH2,pkR,MAC2)) then
+    {25}event UE_recv_M2(w,SoM2,TH2);
+    {26}let TH3: bitstring = H((TH2,PT2,pkR)) in
+    {27}let PRK4e3m: bitstring = PRK3e2m in
+    {28}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,pkI)) in
+    {29}let SoM3: bitstring = edsign((ID_CREDI,TH3,pkI,MAC3),skI_1) in
+    {30}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {31}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {32}event UE_send_M3(w,SoM3,TH3);
+    {33}out(c, AEAD_enc(K3,PT3));
+    {34}let TH4: bitstring = H((TH3,PT3,pkI)) in
+    {35}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {36}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {37}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {38}event UE_finish(w,MSK,EMSK);
+    {39}out(c, AEAD_enc(MSK,app_data_UE));
+    {40}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {41}!
+    {42}let w_1: bitstring = W0 in
+    {43}let skR_1: edsk = skR in
+    {44}in(c, Message1_1: bitstring);
+    {45}let (=M_0,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {46}new y: exponent;
+    {47}let GY_1: G = exp(g,y) in
+    {48}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {49}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {50}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {51}let PRK3e2m_1: bitstring = PRK2e_1 in
+    {52}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,pkR)) in
+    {53}let SoM2_1: bitstring = edsign((ID_CREDR,TH2_1,pkR,MAC2_1),skR_1) in
+    {54}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {55}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {56}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {57}in(c, CT3: bitstring);
+    {58}let TH3_1: bitstring = H((TH2_1,PT2_1,pkR)) in
+    {59}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {60}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {61}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {62}let PRK4e3m_1: bitstring = PRK3e2m_1 in
+    {63}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,pkI)) in
+    {64}let v3: bitstring = edverify(pkI,SoM3_1) in
+    {65}if (v3 = (ID_CREDI,TH3_1,pkI,MAC3_1)) then
+    {66}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {67}let TH4_1: bitstring = H((TH3_1,PT3_1,pkI)) in
+    {68}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {69}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {70}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {71}event DN_finish(w_1,MSK_1,EMSK_1);
+    {72}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {73}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {74}phase 1;
+    {75}out(c, skI);
+    {76}out(c, skR)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new skI: edsk;
+{2}let pkI: edpk = edpub(skI) in
+{3}out(c, pkI);
+{4}new skR: edsk;
+{5}let pkR: edpk = edpub(skR) in
+{6}out(c, pkR);
+(
+    {7}!
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_0,SuitesI,GX,CI) in
+    {8}let w: bitstring = W0 in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {23}let v2: bitstring = edverify(pkR,SoM2) in
+    {21}let PRK3e2m: bitstring = PRK2e in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,pkR)) in
+    {24}if (v2 = (ID_CREDR,TH2,pkR,MAC2)) then
+    {25}event UE_recv_M2(w,SoM2,TH2);
+    {27}let PRK4e3m: bitstring = PRK3e2m in
+    {26}let TH3: bitstring = H((TH2,PT2,pkR)) in
+    {28}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,pkI)) in
+    {9}let skI_1: edsk = skI in
+    {29}let SoM3: bitstring = edsign((ID_CREDI,TH3,pkI,MAC3),skI_1) in
+    {32}event UE_send_M3(w,SoM3,TH3);
+    {31}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {30}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {33}out(c, AEAD_enc(K3,PT3));
+    {34}let TH4: bitstring = H((TH3,PT3,pkI)) in
+    {35}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {37}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {36}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {38}event UE_finish(w,MSK,EMSK);
+    {39}out(c, AEAD_enc(MSK,app_data_UE));
+    {40}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {41}!
+    {44}in(c, Message1_1: bitstring);
+    {45}let (=M_0,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {46}new y: exponent;
+    {47}let GY_1: G = exp(g,y) in
+    {48}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {49}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {51}let PRK3e2m_1: bitstring = PRK2e_1 in
+    {52}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,pkR)) in
+    {43}let skR_1: edsk = skR in
+    {53}let SoM2_1: bitstring = edsign((ID_CREDR,TH2_1,pkR,MAC2_1),skR_1) in
+    {42}let w_1: bitstring = W0 in
+    {55}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {54}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {50}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {56}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {57}in(c, CT3: bitstring);
+    {58}let TH3_1: bitstring = H((TH2_1,PT2_1,pkR)) in
+    {59}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {60}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {61}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {64}let v3: bitstring = edverify(pkI,SoM3_1) in
+    {62}let PRK4e3m_1: bitstring = PRK3e2m_1 in
+    {63}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,pkI)) in
+    {65}if (v3 = (ID_CREDI,TH3_1,pkI,MAC3_1)) then
+    {66}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {67}let TH4_1: bitstring = H((TH3_1,PT3_1,pkI)) in
+    {68}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {70}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {69}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {71}event DN_finish(w_1,MSK_1,EMSK_1);
+    {72}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {73}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {74}phase 1;
+    {75}out(c, skI);
+    {76}out(c, skR)
+)
+
+-- Query not event(UE_finish(W0,a,b)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 197 rules (128 with conclusion selected). Queue: 37 rules.
+400 rules inserted. Base: 358 rules (143 with conclusion selected). Queue: 75 rules.
+600 rules inserted. Base: 485 rules (144 with conclusion selected). Queue: 87 rules.
+800 rules inserted. Base: 576 rules (146 with conclusion selected). Queue: 107 rules.
+1000 rules inserted. Base: 730 rules (146 with conclusion selected). Queue: 124 rules.
+1200 rules inserted. Base: 842 rules (146 with conclusion selected). Queue: 153 rules.
+1400 rules inserted. Base: 924 rules (146 with conclusion selected). Queue: 136 rules.
+1600 rules inserted. Base: 972 rules (146 with conclusion selected). Queue: 117 rules.
+1800 rules inserted. Base: 1017 rules (146 with conclusion selected). Queue: 56 rules.
+Starting query not event(UE_finish(W0,a,b))
+goal reachable: event(UE_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+1. Using the function CI the attacker may obtain CI.
+attacker(CI).
+
+2. The message (M_0,SuitesI,exp(g,x_1),CI) may be sent to the attacker at output {14}.
+attacker((M_0,SuitesI,exp(g,x_1),CI)).
+
+3. By 2, the attacker may know (M_0,SuitesI,exp(g,x_1),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_1).
+attacker(exp(g,x_1)).
+
+4. Using the function SuitesI the attacker may obtain SuitesI.
+attacker(SuitesI).
+
+5. Using the function M_0 the attacker may obtain M_0.
+attacker(M_0).
+
+6. By 5, the attacker may know M_0.
+By 4, the attacker may know SuitesI.
+By 3, the attacker may know exp(g,x_1).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_0,SuitesI,exp(g,x_1),CI).
+attacker((M_0,SuitesI,exp(g,x_1),CI)).
+
+7. The message (M_0,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {44}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) may be sent to the attacker at output {56}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+8. By 7, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+
+9. The message (M_0,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {44}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) may be sent to the attacker at output {56}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+10. By 9, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_1).
+attacker(exp(g,y_1)).
+
+11. By 10, the attacker may know exp(g,y_1).
+By 8, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+12. The message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) that the attacker may have by 11 may be received at input {15}.
+So event UE_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK)) may be executed at {38}.
+event(UE_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+
+13. By 12, event(UE_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+The goal is reached, represented in the following fact:
+event(UE_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new skI: edsk creating skI_2 at {1}
+
+out(c, ~M) with ~M = edpub(skI_2) at {3}
+
+new skR: edsk creating skR_2 at {4}
+
+out(c, ~M_1) with ~M_1 = edpub(skR_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_0,SuitesI,exp(g,x_2),CI)) at {13} in copy a
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = M_0, ~M_3 = SuitesI, ~M_4 = exp(g,x_2), ~M_5 = CI at {14} in copy a
+
+in(c, (M_0,SuitesI,~M_4,CI)) with ~M_4 = exp(g,x_2) at {44} in copy a_1
+
+new y: exponent creating y_2 at {46} in copy a_1
+
+event DN_send_M2(W0,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2),H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI))))) at {55} in copy a_1
+
+out(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2))) at {56} in copy a_1
+
+in(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_K2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2))) at {15} in copy a
+
+event UE_recv_M2(W0,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2),H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI))))) at {25} in copy a
+
+event UE_send_M3(W0,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2),H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2)))) at {32} in copy a
+
+out(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2))) at {33} in copy a
+
+event UE_finish(W0,expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_EMSK)) at {38} in copy a (goal)
+
+The event UE_finish(W0,expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_EMSK)) is executed at {38} in copy a.
+A trace has been found.
+RESULT not event(UE_finish(W0,a,b)) is false.
+-- Query not event(DN_finish(W0,a,b)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 196 rules (128 with conclusion selected). Queue: 35 rules.
+400 rules inserted. Base: 360 rules (143 with conclusion selected). Queue: 78 rules.
+600 rules inserted. Base: 489 rules (144 with conclusion selected). Queue: 83 rules.
+800 rules inserted. Base: 585 rules (146 with conclusion selected). Queue: 112 rules.
+1000 rules inserted. Base: 732 rules (146 with conclusion selected). Queue: 128 rules.
+1200 rules inserted. Base: 843 rules (146 with conclusion selected). Queue: 155 rules.
+1400 rules inserted. Base: 936 rules (146 with conclusion selected). Queue: 144 rules.
+1600 rules inserted. Base: 972 rules (146 with conclusion selected). Queue: 125 rules.
+1800 rules inserted. Base: 1023 rules (146 with conclusion selected). Queue: 63 rules.
+Starting query not event(DN_finish(W0,a,b))
+goal reachable: event(DN_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+1. Using the function CI the attacker may obtain CI.
+attacker(CI).
+
+2. The message (M_0,SuitesI,exp(g,x_1),CI) may be sent to the attacker at output {14}.
+attacker((M_0,SuitesI,exp(g,x_1),CI)).
+
+3. By 2, the attacker may know (M_0,SuitesI,exp(g,x_1),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_1).
+attacker(exp(g,x_1)).
+
+4. Using the function SuitesI the attacker may obtain SuitesI.
+attacker(SuitesI).
+
+5. Using the function M_0 the attacker may obtain M_0.
+attacker(M_0).
+
+6. By 5, the attacker may know M_0.
+By 4, the attacker may know SuitesI.
+By 3, the attacker may know exp(g,x_1).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_0,SuitesI,exp(g,x_1),CI).
+attacker((M_0,SuitesI,exp(g,x_1),CI)).
+
+7. The message (M_0,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {44}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) may be sent to the attacker at output {56}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+8. By 7, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+
+9. The message (M_0,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {44}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) may be sent to the attacker at output {56}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+10. By 9, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_1).
+attacker(exp(g,y_1)).
+
+11. By 10, the attacker may know exp(g,y_1).
+By 8, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))).
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))))).
+
+12. The message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])))) that the attacker may have by 11 may be received at input {15}.
+So the message AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[]))) may be sent to the attacker at output {33}.
+attacker(AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])))).
+
+13. The message (M_0,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {44}.
+The message AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[]))) that the attacker may have by 12 may be received at input {57}.
+So event DN_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK)) may be executed at {71}.
+event(DN_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+
+14. By 13, event(DN_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+The goal is reached, represented in the following fact:
+event(DN_finish(W0,expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_MSK),expands(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[])),edpub(skI[]))))),lbl_EMSK))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new skI: edsk creating skI_2 at {1}
+
+out(c, ~M) with ~M = edpub(skI_2) at {3}
+
+new skR: edsk creating skR_2 at {4}
+
+out(c, ~M_1) with ~M_1 = edpub(skR_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_0,SuitesI,exp(g,x_2),CI)) at {13} in copy a
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = M_0, ~M_3 = SuitesI, ~M_4 = exp(g,x_2), ~M_5 = CI at {14} in copy a
+
+in(c, (M_0,SuitesI,~M_4,CI)) with ~M_4 = exp(g,x_2) at {44} in copy a_1
+
+new y: exponent creating y_2 at {46} in copy a_1
+
+event DN_send_M2(W0,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2),H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI))))) at {55} in copy a_1
+
+out(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2))) at {56} in copy a_1
+
+in(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_K2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2))) at {15} in copy a
+
+event UE_recv_M2(W0,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2),H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI))))) at {25} in copy a
+
+event UE_send_M3(W0,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2),H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2)))) at {32} in copy a
+
+out(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2))) at {33} in copy a
+
+event UE_finish(W0,expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_EMSK)) at {38} in copy a
+
+out(c, ~M_9) with ~M_9 = AEAD_enc(expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),app_data_UE) at {39} in copy a
+
+out(c, ~M_10) with ~M_10 = AEAD_enc(expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),MSK_test) at {40} in copy a
+
+in(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2))) at {57} in copy a_1
+
+event DN_recv_M3(W0,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2),H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2)))) at {66} in copy a_1
+
+event DN_finish(W0,expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_EMSK)) at {71} in copy a_1 (goal)
+
+The event DN_finish(W0,expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_MSK),expands(expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),(ID_CREDI,edsign((ID_CREDI,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),edpub(skI_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),edpub(skR_2),expands(extract(H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_0,SuitesI,exp(g,x_2),CI)))),ID_CREDR,edpub(skR_2)))),skR_2)),edpub(skR_2))),ID_CREDI,edpub(skI_2)))),skI_2)),edpub(skI_2))))),lbl_EMSK)) is executed at {71} in copy a_1.
+A trace has been found.
+RESULT not event(DN_finish(W0,a,b)) is false.
+-- Query not event(UE_send_M1(W0,m)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (129 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (142 with conclusion selected). Queue: 75 rules.
+600 rules inserted. Base: 490 rules (144 with conclusion selected). Queue: 96 rules.
+800 rules inserted. Base: 590 rules (145 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 735 rules (145 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (145 with conclusion selected). Queue: 150 rules.
+1400 rules inserted. Base: 927 rules (145 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (145 with conclusion selected). Queue: 102 rules.
+1800 rules inserted. Base: 966 rules (145 with conclusion selected). Queue: 29 rules.
+Starting query not event(UE_send_M1(W0,m))
+goal reachable: event(UE_send_M1(W0,(M_0,SuitesI,exp(g,x_1),CI)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+1. Event UE_send_M1(W0,(M_0,SuitesI,exp(g,x_1),CI)) may be executed at {13}.
+event(UE_send_M1(W0,(M_0,SuitesI,exp(g,x_1),CI))).
+
+2. By 1, event(UE_send_M1(W0,(M_0,SuitesI,exp(g,x_1),CI))).
+The goal is reached, represented in the following fact:
+event(UE_send_M1(W0,(M_0,SuitesI,exp(g,x_1),CI))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new skI: edsk creating skI_2 at {1}
+
+out(c, ~M) with ~M = edpub(skI_2) at {3}
+
+new skR: edsk creating skR_2 at {4}
+
+out(c, ~M_1) with ~M_1 = edpub(skR_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_0,SuitesI,exp(g,x_2),CI)) at {13} in copy a (goal)
+
+The event UE_send_M1(W0,(M_0,SuitesI,exp(g,x_2),CI)) is executed at {13} in copy a.
+A trace has been found.
+RESULT not event(UE_send_M1(W0,m)) is false.
+-- Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) in process 1.
+Translating the process into Horn clauses...
+select attacker(exp(g,x_1))/-5000
+Completing...
+200 rules inserted. Base: 194 rules (127 with conclusion selected). Queue: 30 rules.
+400 rules inserted. Base: 355 rules (139 with conclusion selected). Queue: 74 rules.
+600 rules inserted. Base: 484 rules (146 with conclusion selected). Queue: 115 rules.
+800 rules inserted. Base: 617 rules (152 with conclusion selected). Queue: 144 rules.
+1000 rules inserted. Base: 729 rules (155 with conclusion selected). Queue: 177 rules.
+1200 rules inserted. Base: 842 rules (155 with conclusion selected). Queue: 214 rules.
+1400 rules inserted. Base: 908 rules (155 with conclusion selected). Queue: 195 rules.
+1600 rules inserted. Base: 921 rules (155 with conclusion selected). Queue: 190 rules.
+1800 rules inserted. Base: 955 rules (155 with conclusion selected). Queue: 171 rules.
+2000 rules inserted. Base: 946 rules (155 with conclusion selected). Queue: 121 rules.
+2200 rules inserted. Base: 947 rules (155 with conclusion selected). Queue: 48 rules.
+Starting query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t))
+goal reachable: b-inj-event(DN_send_M2(W0,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]),H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI))))),@occ55_1) -> inj-event(UE_recv_M2(W0,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]),H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI))))),@occ25_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ25_1 = @occ25[CT2 = AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))),GY = exp(g,y_1),!1 = @sid]
+@occ55_1 = @occ55[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+RESULT inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+-- Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 196 rules (128 with conclusion selected). Queue: 35 rules.
+400 rules inserted. Base: 360 rules (143 with conclusion selected). Queue: 78 rules.
+600 rules inserted. Base: 489 rules (144 with conclusion selected). Queue: 83 rules.
+800 rules inserted. Base: 583 rules (146 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 733 rules (146 with conclusion selected). Queue: 143 rules.
+1200 rules inserted. Base: 850 rules (146 with conclusion selected). Queue: 181 rules.
+1400 rules inserted. Base: 922 rules (146 with conclusion selected). Queue: 166 rules.
+1600 rules inserted. Base: 984 rules (146 with conclusion selected). Queue: 178 rules.
+1800 rules inserted. Base: 1036 rules (146 with conclusion selected). Queue: 168 rules.
+2000 rules inserted. Base: 1094 rules (146 with conclusion selected). Queue: 130 rules.
+2200 rules inserted. Base: 1067 rules (146 with conclusion selected). Queue: 64 rules.
+Starting query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t))
+goal reachable: b-inj-event(UE_send_M3(W0,edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[]),H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[])))),@occ32_1) -> inj-event(DN_recv_M3(W0,edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[]),H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[])))),@occ66_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ66_1 = @occ66[CT3 = AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))))),(ID_CREDI[],edsign((ID_CREDI[],H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),edpub(skI[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[])),edpub(skR[]))),ID_CREDI[],edpub(skI[])))),skI[]))),Message1_1 = (M_0,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ32_1 = @occ32[CT2 = AEAD_enc(expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_K2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,edsign((ID_CREDR,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),edpub(skR[]),expands(extract(H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_1),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_0,SuitesI,exp(g,x_1),CI)))),ID_CREDR,edpub(skR[])))),skR[]))),GY = exp(g,y_1),!1 = @sid]
+RESULT inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+-- Query not attacker_p1(ID_CREDI[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (128 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (141 with conclusion selected). Queue: 76 rules.
+600 rules inserted. Base: 490 rules (143 with conclusion selected). Queue: 95 rules.
+800 rules inserted. Base: 590 rules (144 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 734 rules (144 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (144 with conclusion selected). Queue: 149 rules.
+1400 rules inserted. Base: 927 rules (144 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (144 with conclusion selected). Queue: 101 rules.
+1800 rules inserted. Base: 966 rules (144 with conclusion selected). Queue: 29 rules.
+Starting query not attacker_p1(ID_CREDI[])
+RESULT not attacker_p1(ID_CREDI[]) is true.
+-- Query not attacker_p1(app_data_UE[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (128 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (141 with conclusion selected). Queue: 76 rules.
+600 rules inserted. Base: 490 rules (143 with conclusion selected). Queue: 95 rules.
+800 rules inserted. Base: 590 rules (144 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 734 rules (144 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (144 with conclusion selected). Queue: 149 rules.
+1400 rules inserted. Base: 927 rules (144 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (144 with conclusion selected). Queue: 101 rules.
+1800 rules inserted. Base: 966 rules (144 with conclusion selected). Queue: 29 rules.
+Starting query not attacker_p1(app_data_UE[])
+RESULT not attacker_p1(app_data_UE[]) is true.
+-- Query not attacker_p1(app_data_DN[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (128 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (141 with conclusion selected). Queue: 76 rules.
+600 rules inserted. Base: 490 rules (143 with conclusion selected). Queue: 95 rules.
+800 rules inserted. Base: 590 rules (144 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 734 rules (144 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (144 with conclusion selected). Queue: 149 rules.
+1400 rules inserted. Base: 927 rules (144 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (144 with conclusion selected). Queue: 101 rules.
+1800 rules inserted. Base: 966 rules (144 with conclusion selected). Queue: 29 rules.
+Starting query not attacker_p1(app_data_DN[])
+RESULT not attacker_p1(app_data_DN[]) is true.
+-- Query not attacker_p1(MSK_test[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (128 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (141 with conclusion selected). Queue: 76 rules.
+600 rules inserted. Base: 490 rules (143 with conclusion selected). Queue: 95 rules.
+800 rules inserted. Base: 590 rules (144 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 734 rules (144 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (144 with conclusion selected). Queue: 149 rules.
+1400 rules inserted. Base: 927 rules (144 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (144 with conclusion selected). Queue: 101 rules.
+1800 rules inserted. Base: 966 rules (144 with conclusion selected). Queue: 29 rules.
+Starting query not attacker_p1(MSK_test[])
+RESULT not attacker_p1(MSK_test[]) is true.
+-- Query not attacker_p1(EMSK_test[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 195 rules (128 with conclusion selected). Queue: 33 rules.
+400 rules inserted. Base: 356 rules (141 with conclusion selected). Queue: 76 rules.
+600 rules inserted. Base: 490 rules (143 with conclusion selected). Queue: 95 rules.
+800 rules inserted. Base: 590 rules (144 with conclusion selected). Queue: 114 rules.
+1000 rules inserted. Base: 734 rules (144 with conclusion selected). Queue: 133 rules.
+1200 rules inserted. Base: 849 rules (144 with conclusion selected). Queue: 149 rules.
+1400 rules inserted. Base: 927 rules (144 with conclusion selected). Queue: 148 rules.
+1600 rules inserted. Base: 973 rules (144 with conclusion selected). Queue: 101 rules.
+1800 rules inserted. Base: 966 rules (144 with conclusion selected). Queue: 29 rules.
+Starting query not attacker_p1(EMSK_test[])
+RESULT not attacker_p1(EMSK_test[]) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not event(UE_finish(W0,a,b)) is false.
+
+Query not event(DN_finish(W0,a,b)) is false.
+
+Query not event(UE_send_M1(W0,m)) is false.
+
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+
+Query not attacker_p1(ID_CREDI[]) is true.
+
+Query not attacker_p1(app_data_UE[]) is true.
+
+Query not attacker_p1(app_data_DN[]) is true.
+
+Query not attacker_p1(MSK_test[]) is true.
+
+Query not attacker_p1(EMSK_test[]) is true.
+
+--------------------------------------------------------------
+

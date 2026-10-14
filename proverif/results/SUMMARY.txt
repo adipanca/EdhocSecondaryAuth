@@ -1,0 +1,247 @@
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+Per-model limits: 600s first pass, 1800s for deferred models, 7993 MB
+==================================================================
+edhoc_m4_hybrid_base.pv   (exit 0, 6s)
+Query not event(UE_finish(MSK_2,EMSK_2)) is false.
+Query not event(DN_finish(MSK_2,EMSK_2)) is false.
+Query not event(UE_send_M1(M1)) is false.
+Query inj-event(UE_recv_M2(MAC2_2,P2,TH2_2)) ==> inj-event(DN_send_M2(MAC2_2,P2,TH2_2)) is true.
+Query inj-event(DN_recv_M3(MAC3_1,M3,TH3_2)) ==> inj-event(UE_send_M3(MAC3_1,M3,TH3_2)) is true.
+Query inj-event(UE_recv_M4(M4,TH4_2)) ==> inj-event(DN_send_M4(M4,TH4_2)) is true.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m0_classical.pv   (exit 0, 2s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m1_classical.pv   (exit 0, 4s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m2_classical.pv   (exit 0, 6s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m3_classical.pv   (exit 0, 15s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m4_hybrid_classical.pv   (exit 0, 59s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x,t)) ==> inj-event(DN_send_M2(W0,x,t)) is true.
+Query inj-event(DN_recv_M3(W0,x,t)) ==> inj-event(UE_send_M3(W0,x,t)) is true.
+Query inj-event(UE_recv_M4(W0,x,t)) ==> inj-event(DN_send_M4(W0,x,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m0_quantum.pv   (exit 0, 53s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is false.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is false.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is false.
+Query not attacker_p1(app_data_DN[]) is false.
+Query not attacker_p1(MSK_test[]) is false.
+Query not attacker_p1(EMSK_test[]) is false.
+==================================================================
+edhoc_m1_quantum.pv   (exit 0, 235s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is false.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is false.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is false.
+Query not attacker_p1(app_data_DN[]) is false.
+Query not attacker_p1(MSK_test[]) is false.
+Query not attacker_p1(EMSK_test[]) is false.
+==================================================================
+edhoc_m2_quantum.pv   (exit 0, 100s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is false.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is false.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is false.
+Query not attacker_p1(app_data_DN[]) is false.
+Query not attacker_p1(MSK_test[]) is false.
+Query not attacker_p1(EMSK_test[]) is false.
+==================================================================
+edhoc_m4_hybrid_quantum.pv   (exit 0, 50s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x,t)) ==> inj-event(DN_send_M2(W0,x,t)) is true.
+Query inj-event(DN_recv_M3(W0,x,t)) ==> inj-event(UE_send_M3(W0,x,t)) is true.
+Query inj-event(UE_recv_M4(W0,x,t)) ==> inj-event(DN_send_M4(W0,x,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m0_kci.pv   (exit 0, 1s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+==================================================================
+edhoc_m1_kci.pv   (exit 0, 1s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+==================================================================
+edhoc_m2_kci.pv   (exit 0, 2s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+==================================================================
+edhoc_m3_kci.pv   (exit 0, 4s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+==================================================================
+edhoc_m4_hybrid_kci.pv   (exit 0, rerun after a ProVerif segfault)
+Query inj-event(UE_recv_M2(W1,x,t)) ==> inj-event(DN_send_M2(W1,x,t)) is true.
+Query inj-event(UE_recv_M4(W1,x,t)) ==> inj-event(DN_send_M4(W1,x,t)) is true.
+Query inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+==================================================================
+edhoc_m4_hybrid_pcs.pv   (exit 0, 5s)
+Query not event(UE_finish(W2,a,b)) is false.
+Query inj-event(UE_recv_M2(W2,x,t)) ==> inj-event(DN_send_M2(W2,x,t)) is true.
+Query inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+Query inj-event(UE_recv_M4(W2,x,t)) ==> inj-event(DN_send_M4(W2,x,t)) is true.
+Query not attacker(MSK_test2[]) is true.
+Query not attacker(EMSK_test2[]) is true.
+==================================================================
+eaptls_classic_classical.pv   (exit 0, 4s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query inj-event(UE_recv_M4(W0,x_1,t)) ==> inj-event(DN_send_M4(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+eaptls_hybrid_classical.pv   (exit 0, 10s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query inj-event(UE_recv_M4(W0,x_1,t)) ==> inj-event(DN_send_M4(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+eaptls_classic_quantum.pv   (exit 0, 12s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is false.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is false.
+Query inj-event(UE_recv_M4(W0,x_1,t)) ==> inj-event(DN_send_M4(W0,x_1,t)) is false.
+Query not attacker_p1(ID_CREDI[]) is false.
+Query not attacker_p1(app_data_UE[]) is false.
+Query not attacker_p1(app_data_DN[]) is false.
+Query not attacker_p1(MSK_test[]) is false.
+Query not attacker_p1(EMSK_test[]) is false.
+==================================================================
+eaptls_hybrid_quantum.pv   (exit 0, 13s)
+Query not event(UE_finish(W0,a,b)) is false.
+Query not event(DN_finish(W0,a,b)) is false.
+Query not event(UE_send_M1(W0,m)) is false.
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+Query inj-event(UE_recv_M4(W0,x_1,t)) ==> inj-event(DN_send_M4(W0,x_1,t)) is true.
+Query not attacker_p1(ID_CREDI[]) is true.
+Query not attacker_p1(app_data_UE[]) is true.
+Query not attacker_p1(app_data_DN[]) is true.
+Query not attacker_p1(MSK_test[]) is true.
+Query not attacker_p1(EMSK_test[]) is true.
+==================================================================
+eaptls_classic_kci.pv   (exit 0, 2s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+==================================================================
+eaptls_hybrid_kci.pv   (exit 0, 4s)
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+Query inj-event(UE_recv_M4(W1,x_2,t)) ==> inj-event(DN_send_M4(W1,x_2,t)) is true.
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+--- deferred model, one query per run (1800s each) ---
+==================================================================
+results/split/edhoc_m3_quantum_q1.pv   (exit 0, 19s)
+Query not event(UE_finish(W0,a,b)) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q2.pv   (exit 0, 20s)
+Query not event(DN_finish(W0,a,b)) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q3.pv   (exit 0, 20s)
+Query not event(UE_send_M1(W0,m)) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q4.pv   (exit 0, 44s)
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q5.pv   (exit 0, 1732s)
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q6.pv   (exit 0, 21s)
+Query not attacker_p1(ID_CREDI[]) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q7.pv   (exit 0, 20s)
+Query not attacker_p1(app_data_UE[]) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q8.pv   (exit 0, 20s)
+Query not attacker_p1(app_data_DN[]) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q9.pv   (exit 0, 20s)
+Query not attacker_p1(MSK_test[]) is false.
+==================================================================
+results/split/edhoc_m3_quantum_q10.pv   (exit 0, 20s)
+Query not attacker_p1(EMSK_test[]) is false.

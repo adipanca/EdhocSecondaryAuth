@@ -1,0 +1,687 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {8}let w: bitstring = W0 in
+    {9}let i_1: exponent = i in
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {41}let w_1: bitstring = W0 in
+    {42}let r_1: exponent = r in
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+) | (
+    {75}!
+    {76}in(c, y_1: G);
+    {77}out(c, qdlog(y_1))
+) | (
+    {78}phase 1;
+    {79}!
+    {80}in(c, y_2: G);
+    {81}out(c, qdlog(y_2))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {8}let w: bitstring = W0 in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {9}let i_1: exponent = i in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {42}let r_1: exponent = r in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {41}let w_1: bitstring = W0 in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+) | (
+    {75}!
+    {76}in(c, y_1: G);
+    {77}out(c, qdlog(y_1))
+) | (
+    {78}phase 1;
+    {79}!
+    {80}in(c, y_2: G);
+    {81}out(c, qdlog(y_2))
+)
+
+-- Query not attacker_p1(MSK_test[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 79 rules.
+400 rules inserted. Base: 377 rules (143 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 527 rules (167 with conclusion selected). Queue: 166 rules.
+800 rules inserted. Base: 703 rules (171 with conclusion selected). Queue: 229 rules.
+1000 rules inserted. Base: 872 rules (183 with conclusion selected). Queue: 285 rules.
+1200 rules inserted. Base: 1027 rules (183 with conclusion selected). Queue: 341 rules.
+1400 rules inserted. Base: 1142 rules (183 with conclusion selected). Queue: 369 rules.
+1600 rules inserted. Base: 1258 rules (183 with conclusion selected). Queue: 346 rules.
+1800 rules inserted. Base: 1308 rules (183 with conclusion selected). Queue: 348 rules.
+2000 rules inserted. Base: 1349 rules (183 with conclusion selected). Queue: 345 rules.
+2200 rules inserted. Base: 1373 rules (183 with conclusion selected). Queue: 387 rules.
+2400 rules inserted. Base: 1303 rules (183 with conclusion selected). Queue: 413 rules.
+2600 rules inserted. Base: 1443 rules (183 with conclusion selected). Queue: 427 rules.
+2800 rules inserted. Base: 1543 rules (204 with conclusion selected). Queue: 475 rules.
+3000 rules inserted. Base: 1678 rules (204 with conclusion selected). Queue: 532 rules.
+3200 rules inserted. Base: 1801 rules (249 with conclusion selected). Queue: 603 rules.
+3400 rules inserted. Base: 1939 rules (249 with conclusion selected). Queue: 626 rules.
+3600 rules inserted. Base: 2046 rules (249 with conclusion selected). Queue: 655 rules.
+3800 rules inserted. Base: 2223 rules (249 with conclusion selected). Queue: 724 rules.
+4000 rules inserted. Base: 2355 rules (249 with conclusion selected). Queue: 731 rules.
+4200 rules inserted. Base: 2469 rules (249 with conclusion selected). Queue: 755 rules.
+4400 rules inserted. Base: 2626 rules (249 with conclusion selected). Queue: 771 rules.
+4600 rules inserted. Base: 2779 rules (249 with conclusion selected). Queue: 789 rules.
+4800 rules inserted. Base: 2871 rules (249 with conclusion selected). Queue: 791 rules.
+5000 rules inserted. Base: 2983 rules (249 with conclusion selected). Queue: 807 rules.
+5200 rules inserted. Base: 3122 rules (249 with conclusion selected). Queue: 829 rules.
+5400 rules inserted. Base: 3256 rules (249 with conclusion selected). Queue: 858 rules.
+5600 rules inserted. Base: 3384 rules (249 with conclusion selected). Queue: 887 rules.
+5800 rules inserted. Base: 3474 rules (249 with conclusion selected). Queue: 901 rules.
+6000 rules inserted. Base: 3602 rules (249 with conclusion selected). Queue: 900 rules.
+6200 rules inserted. Base: 3709 rules (249 with conclusion selected). Queue: 922 rules.
+6400 rules inserted. Base: 3775 rules (249 with conclusion selected). Queue: 922 rules.
+6600 rules inserted. Base: 3772 rules (251 with conclusion selected). Queue: 919 rules.
+6800 rules inserted. Base: 3940 rules (251 with conclusion selected). Queue: 946 rules.
+7000 rules inserted. Base: 4091 rules (251 with conclusion selected). Queue: 972 rules.
+7200 rules inserted. Base: 4081 rules (251 with conclusion selected). Queue: 911 rules.
+7400 rules inserted. Base: 4129 rules (253 with conclusion selected). Queue: 888 rules.
+7600 rules inserted. Base: 4304 rules (253 with conclusion selected). Queue: 895 rules.
+7800 rules inserted. Base: 4479 rules (253 with conclusion selected). Queue: 908 rules.
+8000 rules inserted. Base: 4130 rules (254 with conclusion selected). Queue: 869 rules.
+8200 rules inserted. Base: 4172 rules (254 with conclusion selected). Queue: 835 rules.
+8400 rules inserted. Base: 4362 rules (254 with conclusion selected). Queue: 863 rules.
+8600 rules inserted. Base: 4536 rules (254 with conclusion selected). Queue: 891 rules.
+8800 rules inserted. Base: 4605 rules (270 with conclusion selected). Queue: 823 rules.
+9000 rules inserted. Base: 4728 rules (270 with conclusion selected). Queue: 776 rules.
+9200 rules inserted. Base: 4897 rules (270 with conclusion selected). Queue: 851 rules.
+9400 rules inserted. Base: 5043 rules (270 with conclusion selected). Queue: 904 rules.
+9600 rules inserted. Base: 5116 rules (270 with conclusion selected). Queue: 850 rules.
+9800 rules inserted. Base: 5245 rules (270 with conclusion selected). Queue: 859 rules.
+10000 rules inserted. Base: 5370 rules (270 with conclusion selected). Queue: 894 rules.
+10200 rules inserted. Base: 5470 rules (270 with conclusion selected). Queue: 931 rules.
+10400 rules inserted. Base: 5534 rules (270 with conclusion selected). Queue: 875 rules.
+10600 rules inserted. Base: 5638 rules (270 with conclusion selected). Queue: 875 rules.
+10800 rules inserted. Base: 5754 rules (270 with conclusion selected). Queue: 896 rules.
+11000 rules inserted. Base: 5875 rules (270 with conclusion selected). Queue: 910 rules.
+11200 rules inserted. Base: 5943 rules (270 with conclusion selected). Queue: 900 rules.
+11400 rules inserted. Base: 5991 rules (270 with conclusion selected). Queue: 867 rules.
+11600 rules inserted. Base: 6071 rules (270 with conclusion selected). Queue: 854 rules.
+11800 rules inserted. Base: 6121 rules (270 with conclusion selected). Queue: 828 rules.
+12000 rules inserted. Base: 5686 rules (270 with conclusion selected). Queue: 785 rules.
+12200 rules inserted. Base: 5761 rules (270 with conclusion selected). Queue: 768 rules.
+12400 rules inserted. Base: 5884 rules (270 with conclusion selected). Queue: 735 rules.
+12600 rules inserted. Base: 5879 rules (270 with conclusion selected). Queue: 694 rules.
+12800 rules inserted. Base: 5177 rules (270 with conclusion selected). Queue: 618 rules.
+13000 rules inserted. Base: 5130 rules (270 with conclusion selected). Queue: 524 rules.
+13200 rules inserted. Base: 5091 rules (270 with conclusion selected). Queue: 412 rules.
+13400 rules inserted. Base: 2333 rules (272 with conclusion selected). Queue: 161 rules.
+Starting query not attacker_p1(MSK_test[])
+goal reachable: attacker_p1(MSK_test[])
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_3 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+x_2 = x[!1 = @sid_2]
+y_4 = y[Message1_1 = (M_3,SuitesI,exp(g,x_2),CI),!1 = @sid_3]
+
+1. Using the function CI the attacker may obtain CI.
+attacker(CI).
+
+2. The message (M_3,SuitesI,exp(g,x_1),CI) may be sent to the attacker at output {14}.
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+3. By 2, the attacker may know (M_3,SuitesI,exp(g,x_1),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_1).
+attacker(exp(g,x_1)).
+
+4. Using the function SuitesI the attacker may obtain SuitesI.
+attacker(SuitesI).
+
+5. Using the function M_3 the attacker may obtain M_3.
+attacker(M_3).
+
+6. By 5, the attacker may know M_3.
+By 4, the attacker may know SuitesI.
+By 3, the attacker may know exp(g,x_1).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_3,SuitesI,exp(g,x_1),CI).
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+7. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+8. By 7, the attacker may know (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+
+9. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+10. By 9, the attacker may know (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_3)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_3).
+attacker(exp(g,y_3)).
+
+11. By 10, the attacker may know exp(g,y_3).
+By 8, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+attacker((exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+12. The message (exp(g,y_3),AEAD_enc(expands(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),(lbl_K2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) that the attacker may have by 11 may be received at input {15}.
+So the message AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),MSK_test[]) may be sent to the attacker at output {39}.
+attacker(AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),MSK_test[])).
+
+13. Using the function lbl_MSK the attacker may obtain lbl_MSK.
+attacker(lbl_MSK).
+
+14. The message exp(g,i[]) may be sent to the attacker at output {3}.
+attacker(exp(g,i[])).
+
+15. The message (M_3,SuitesI,exp(g,x_2),CI) may be sent to the attacker at output {14}.
+attacker((M_3,SuitesI,exp(g,x_2),CI)).
+
+16. By 15, the attacker may know (M_3,SuitesI,exp(g,x_2),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_2).
+attacker(exp(g,x_2)).
+
+17. By 5, the attacker may know M_3.
+By 4, the attacker may know SuitesI.
+By 16, the attacker may know exp(g,x_2).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_3,SuitesI,exp(g,x_2),CI).
+attacker((M_3,SuitesI,exp(g,x_2),CI)).
+
+18. The message (M_3,SuitesI,exp(g,x_2),CI) that the attacker may have by 17 may be received at input {43}.
+So the message (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+19. By 18, the attacker may know (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))).
+
+20. The message (M_3,SuitesI,exp(g,x_2),CI) that the attacker may have by 17 may be received at input {43}.
+So the message (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),exp(exp(g,x_2),r[])),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),exp(exp(g,x_2),r[])),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+21. By 20, the attacker may know (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_4)),exp(exp(g,x_2),r[])),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_4).
+attacker(exp(g,y_4)).
+
+22. By 21, the attacker may know exp(g,y_4).
+By 19, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))).
+attacker((exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+23. The message (exp(g,y_4),AEAD_enc(expands(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),(lbl_K2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))))) that the attacker may have by 22 may be received at input {15}.
+So the message AEAD_enc(expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))) may be sent to the attacker at output {32}.
+attacker(AEAD_enc(expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))))).
+
+24. The message exp(g,r[]) may be sent to the attacker at output {6}.
+attacker(exp(g,r[])).
+
+25. Using the function ID_CREDR the attacker may obtain ID_CREDR.
+attacker(ID_CREDR).
+
+26. By 17, the attacker may know (M_3,SuitesI,exp(g,x_2),CI).
+Using the function H the attacker may obtain H((M_3,SuitesI,exp(g,x_2),CI)).
+attacker(H((M_3,SuitesI,exp(g,x_2),CI))).
+
+27. By 21, the attacker may know exp(g,y_4).
+By 26, the attacker may know H((M_3,SuitesI,exp(g,x_2),CI)).
+Using the function 2-tuple the attacker may obtain (exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI))).
+attacker((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))).
+
+28. By 27, the attacker may know (exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI))).
+Using the function H the attacker may obtain H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))).
+attacker(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI))))).
+
+29. Using the function lbl_MAC2 the attacker may obtain lbl_MAC2.
+attacker(lbl_MAC2).
+
+30. By 29, the attacker may know lbl_MAC2.
+By 28, the attacker may know H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))).
+By 25, the attacker may know ID_CREDR.
+By 24, the attacker may know exp(g,r[]).
+Using the function 4-tuple the attacker may obtain (lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])).
+attacker((lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))).
+
+31. The message exp(g,r[]) that the attacker may have by 24 may be received at input {76}.
+So the message r[] may be sent to the attacker at output {77}.
+attacker(r[]).
+
+32. By 16, the attacker may know exp(g,x_2).
+By 31, the attacker may know r[].
+Using the function exp the attacker may obtain exp(exp(g,r[]),x_2).
+attacker(exp(exp(g,r[]),x_2)).
+
+33. The message exp(g,y_4) that the attacker may have by 21 may be received at input {76}.
+So the message y_4 may be sent to the attacker at output {77}.
+attacker(y_4).
+
+34. By 16, the attacker may know exp(g,x_2).
+By 33, the attacker may know y_4.
+Using the function exp the attacker may obtain exp(exp(g,y_4),x_2).
+attacker(exp(exp(g,y_4),x_2)).
+
+35. By 28, the attacker may know H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))).
+By 34, the attacker may know exp(exp(g,y_4),x_2).
+Using the function extract the attacker may obtain extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)).
+attacker(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2))).
+
+36. By 35, the attacker may know extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)).
+By 32, the attacker may know exp(exp(g,r[]),x_2).
+Using the function extract the attacker may obtain extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)).
+attacker(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2))).
+
+37. By 36, the attacker may know extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)).
+By 30, the attacker may know (lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])).
+Using the function expands the attacker may obtain expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))).
+attacker(expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))).
+
+38. Using the function CR the attacker may obtain CR.
+attacker(CR).
+
+39. By 38, the attacker may know CR.
+By 25, the attacker may know ID_CREDR.
+By 37, the attacker may know expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))).
+Using the function 3-tuple the attacker may obtain (CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))).
+attacker((CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[]))))).
+
+40. By 28, the attacker may know H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))).
+By 39, the attacker may know (CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))).
+By 24, the attacker may know exp(g,r[]).
+Using the function 3-tuple the attacker may obtain (H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])).
+attacker((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+
+41. By 40, the attacker may know (H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])).
+Using the function H the attacker may obtain H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+attacker(H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))).
+
+42. Using the function lbl_K3 the attacker may obtain lbl_K3.
+attacker(lbl_K3).
+
+43. By 42, the attacker may know lbl_K3.
+By 41, the attacker may know H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+Using the function 2-tuple the attacker may obtain (lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))).
+attacker((lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))).
+
+44. By 36, the attacker may know extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)).
+By 43, the attacker may know (lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))).
+Using the function expands the attacker may obtain expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))).
+attacker(expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))))).
+
+45. By 44, the attacker may know expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))).
+By 23, the attacker may know AEAD_enc(expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_K3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))).
+Using the function AEAD_dec the attacker may obtain (ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))).
+attacker((ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))).
+
+46. By 45, the attacker may know (ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),exp(exp(g,y_4),i[])),(lbl_MAC3,H((H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_4),x_2)),exp(exp(g,r[]),x_2)),(lbl_MAC2,H((exp(g,y_4),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))).
+Using the function 1-proj-2-tuple the attacker may obtain ID_CREDI[].
+attacker(ID_CREDI[]).
+
+47. By 6, the attacker may know (M_3,SuitesI,exp(g,x_1),CI).
+Using the function H the attacker may obtain H((M_3,SuitesI,exp(g,x_1),CI)).
+attacker(H((M_3,SuitesI,exp(g,x_1),CI))).
+
+48. By 10, the attacker may know exp(g,y_3).
+By 47, the attacker may know H((M_3,SuitesI,exp(g,x_1),CI)).
+Using the function 2-tuple the attacker may obtain (exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI))).
+attacker((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))).
+
+49. By 48, the attacker may know (exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI))).
+Using the function H the attacker may obtain H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))).
+attacker(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI))))).
+
+50. By 29, the attacker may know lbl_MAC2.
+By 49, the attacker may know H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))).
+By 25, the attacker may know ID_CREDR.
+By 24, the attacker may know exp(g,r[]).
+Using the function 4-tuple the attacker may obtain (lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])).
+attacker((lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))).
+
+51. By 3, the attacker may know exp(g,x_1).
+By 31, the attacker may know r[].
+Using the function exp the attacker may obtain exp(exp(g,r[]),x_1).
+attacker(exp(exp(g,r[]),x_1)).
+
+52. The message exp(g,y_3) that the attacker may have by 10 may be received at input {76}.
+So the message y_3 may be sent to the attacker at output {77}.
+attacker(y_3).
+
+53. By 3, the attacker may know exp(g,x_1).
+By 52, the attacker may know y_3.
+Using the function exp the attacker may obtain exp(exp(g,y_3),x_1).
+attacker(exp(exp(g,y_3),x_1)).
+
+54. By 49, the attacker may know H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))).
+By 53, the attacker may know exp(exp(g,y_3),x_1).
+Using the function extract the attacker may obtain extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)).
+attacker(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1))).
+
+55. By 54, the attacker may know extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)).
+By 51, the attacker may know exp(exp(g,r[]),x_1).
+Using the function extract the attacker may obtain extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)).
+attacker(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1))).
+
+56. By 55, the attacker may know extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)).
+By 50, the attacker may know (lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])).
+Using the function expands the attacker may obtain expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))).
+attacker(expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))).
+
+57. By 38, the attacker may know CR.
+By 25, the attacker may know ID_CREDR.
+By 56, the attacker may know expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))).
+Using the function 3-tuple the attacker may obtain (CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))).
+attacker((CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+
+58. By 49, the attacker may know H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))).
+By 57, the attacker may know (CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))).
+By 24, the attacker may know exp(g,r[]).
+Using the function 3-tuple the attacker may obtain (H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])).
+attacker((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+
+59. By 58, the attacker may know (H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])).
+Using the function H the attacker may obtain H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+attacker(H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))).
+
+60. Using the function lbl_MAC3 the attacker may obtain lbl_MAC3.
+attacker(lbl_MAC3).
+
+61. By 60, the attacker may know lbl_MAC3.
+By 59, the attacker may know H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+By 46, the attacker may know ID_CREDI[].
+By 14, the attacker may know exp(g,i[]).
+Using the function 4-tuple the attacker may obtain (lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])).
+attacker((lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))).
+
+62. By 14, the attacker may know exp(g,i[]).
+By 52, the attacker may know y_3.
+Using the function exp the attacker may obtain exp(exp(g,y_3),i[]).
+attacker(exp(exp(g,y_3),i[])).
+
+63. By 55, the attacker may know extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)).
+By 62, the attacker may know exp(exp(g,y_3),i[]).
+Using the function extract the attacker may obtain extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])).
+attacker(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[]))).
+
+64. By 63, the attacker may know extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])).
+By 61, the attacker may know (lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])).
+Using the function expands the attacker may obtain expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))).
+attacker(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))).
+
+65. By 46, the attacker may know ID_CREDI[].
+By 64, the attacker may know expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))).
+Using the function 2-tuple the attacker may obtain (ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))).
+attacker((ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))).
+
+66. By 59, the attacker may know H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))).
+By 65, the attacker may know (ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))).
+By 14, the attacker may know exp(g,i[]).
+Using the function 3-tuple the attacker may obtain (H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])).
+attacker((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))).
+
+67. By 66, the attacker may know (H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])).
+Using the function H the attacker may obtain H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))).
+attacker(H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])))).
+
+68. Using the function lbl_out the attacker may obtain lbl_out.
+attacker(lbl_out).
+
+69. By 68, the attacker may know lbl_out.
+By 67, the attacker may know H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))).
+Using the function 2-tuple the attacker may obtain (lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])))).
+attacker((lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))).
+
+70. By 63, the attacker may know extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])).
+By 69, the attacker may know (lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])))).
+Using the function expands the attacker may obtain expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))).
+attacker(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[])))))).
+
+71. By 70, the attacker may know expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))).
+By 13, the attacker may know lbl_MSK.
+Using the function expands the attacker may obtain expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK).
+attacker(expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK)).
+
+72. By 71, the attacker may know expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK).
+By 12, the attacker may know AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_out,H((H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),exp(exp(g,y_3),i[])),(lbl_MAC3,H((H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,y_3),x_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_3),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),MSK_test[]).
+Using the function AEAD_dec the attacker may obtain MSK_test[].
+attacker(MSK_test[]).
+
+73. By 72, the attacker may know MSK_test[].
+So the attacker may know MSK_test[] in phase 1.
+attacker_p1(MSK_test[]).
+
+74. By 73, attacker_p1(MSK_test[]).
+The goal is reached, represented in the following fact:
+attacker_p1(MSK_test[]).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new i: exponent creating i_2 at {1}
+
+out(c, ~M) with ~M = exp(g,i_2) at {3}
+
+new r: exponent creating r_2 at {4}
+
+out(c, ~M_1) with ~M_1 = exp(g,r_2) at {6}
+
+new x: exponent creating x_3 at {10} in copy a
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_3),CI)) at {13} in copy a
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = M_3, ~M_3 = SuitesI, ~M_4 = exp(g,x_3), ~M_5 = CI at {14} in copy a
+
+new x: exponent creating x_4 at {10} in copy a_1
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_4),CI)) at {13} in copy a_1
+
+out(c, (~M_6,~M_7,~M_8,~M_9)) with ~M_6 = M_3, ~M_7 = SuitesI, ~M_8 = exp(g,x_4), ~M_9 = CI at {14} in copy a_1
+
+in(c, (M_3,SuitesI,~M_8,CI)) with ~M_8 = exp(g,x_4) at {43} in copy a_2
+
+new y: exponent creating y_5 at {45} in copy a_2
+
+event DN_send_M2(W0,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,x_4),y_5)),exp(exp(g,x_4),r_2)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI))))) at {54} in copy a_2
+
+out(c, (~M_10,~M_11)) with ~M_10 = exp(g,y_5), ~M_11 = AEAD_enc(expands(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,x_4),y_5)),(lbl_K2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,x_4),y_5)),exp(exp(g,x_4),r_2)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2))))) at {55} in copy a_2
+
+in(c, (~M_10,~M_11)) with ~M_10 = exp(g,y_5), ~M_11 = AEAD_enc(expands(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),(lbl_K2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2))))) at {15} in copy a_1
+
+event UE_recv_M2(W0,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI))))) at {24} in copy a_1
+
+event UE_send_M3(W0,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))),H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2)))) at {31} in copy a_1
+
+out(c, ~M_12) with ~M_12 = AEAD_enc(expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_K3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))))) at {32} in copy a_1
+
+event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_out,H((H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_out,H((H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) at {37} in copy a_1
+
+out(c, ~M_13) with ~M_13 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_out,H((H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),app_data_UE) at {38} in copy a_1
+
+out(c, ~M_14) with ~M_14 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_out,H((H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),exp(exp(g,y_5),i_2)),(lbl_MAC3,H((H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),exp(exp(g,y_5),x_4)),exp(exp(g,r_2),x_4)),(lbl_MAC2,H((exp(g,y_5),H((M_3,SuitesI,exp(g,x_4),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),MSK_test) at {39} in copy a_1
+
+in(c, (M_3,SuitesI,~M_4,CI)) with ~M_4 = exp(g,x_3) at {43} in copy a_3
+
+new y: exponent creating y_6 at {45} in copy a_3
+
+event DN_send_M2(W0,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,x_3),y_6)),exp(exp(g,x_3),r_2)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI))))) at {54} in copy a_3
+
+out(c, (~M_15,~M_16)) with ~M_15 = exp(g,y_6), ~M_16 = AEAD_enc(expands(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,x_3),y_6)),(lbl_K2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,x_3),y_6)),exp(exp(g,x_3),r_2)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2))))) at {55} in copy a_3
+
+in(c, (~M_15,~M_16)) with ~M_15 = exp(g,y_6), ~M_16 = AEAD_enc(expands(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),(lbl_K2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2))))) at {15} in copy a
+
+event UE_recv_M2(W0,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI))))) at {24} in copy a
+
+event UE_send_M3(W0,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))),H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2)))) at {31} in copy a
+
+out(c, ~M_17) with ~M_17 = AEAD_enc(expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_K3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))))) at {32} in copy a
+
+event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_out,H((H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_out,H((H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) at {37} in copy a
+
+out(c, ~M_18) with ~M_18 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_out,H((H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),app_data_UE) at {38} in copy a
+
+out(c, ~M_19) with ~M_19 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_out,H((H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),exp(exp(g,y_6),i_2)),(lbl_MAC3,H((H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),exp(exp(g,y_6),x_3)),exp(exp(g,r_2),x_3)),(lbl_MAC2,H((exp(g,y_6),H((M_3,SuitesI,exp(g,x_3),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),MSK_test) at {39} in copy a
+
+in(c, ~M_15) with ~M_15 = exp(g,y_6) at {76} in copy a_4
+
+out(c, ~M_20) with ~M_20 = y_6 at {77} in copy a_4
+
+in(c, ~M_10) with ~M_10 = exp(g,y_5) at {76} in copy a_5
+
+out(c, ~M_21) with ~M_21 = y_5 at {77} in copy a_5
+
+in(c, ~M_1) with ~M_1 = exp(g,r_2) at {76} in copy a_6
+
+out(c, ~M_22) with ~M_22 = r_2 at {77} in copy a_6
+
+The attacker has the message AEAD_dec(expands(expands(extract(extract(extract(H((~M_15,H((M_3,SuitesI,~M_4,CI)))),exp(~M_4,~M_20)),exp(~M_4,~M_22)),exp(~M,~M_20)),(lbl_out,H((H((H((~M_15,H((M_3,SuitesI,~M_4,CI)))),(CR,ID_CREDR,expands(extract(extract(H((~M_15,H((M_3,SuitesI,~M_4,CI)))),exp(~M_4,~M_20)),exp(~M_4,~M_22)),(lbl_MAC2,H((~M_15,H((M_3,SuitesI,~M_4,CI)))),ID_CREDR,~M_1))),~M_1)),(1-proj-2-tuple(AEAD_dec(expands(extract(extract(H((~M_10,H((M_3,SuitesI,~M_8,CI)))),exp(~M_8,~M_21)),exp(~M_8,~M_22)),(lbl_K3,H((H((~M_10,H((M_3,SuitesI,~M_8,CI)))),(CR,ID_CREDR,expands(extract(extract(H((~M_10,H((M_3,SuitesI,~M_8,CI)))),exp(~M_8,~M_21)),exp(~M_8,~M_22)),(lbl_MAC2,H((~M_10,H((M_3,SuitesI,~M_8,CI)))),ID_CREDR,~M_1))),~M_1)))),~M_12)),expands(extract(extract(extract(H((~M_15,H((M_3,SuitesI,~M_4,CI)))),exp(~M_4,~M_20)),exp(~M_4,~M_22)),exp(~M,~M_20)),(lbl_MAC3,H((H((~M_15,H((M_3,SuitesI,~M_4,CI)))),(CR,ID_CREDR,expands(extract(extract(H((~M_15,H((M_3,SuitesI,~M_4,CI)))),exp(~M_4,~M_20)),exp(~M_4,~M_22)),(lbl_MAC2,H((~M_15,H((M_3,SuitesI,~M_4,CI)))),ID_CREDR,~M_1))),~M_1)),1-proj-2-tuple(AEAD_dec(expands(extract(extract(H((~M_10,H((M_3,SuitesI,~M_8,CI)))),exp(~M_8,~M_21)),exp(~M_8,~M_22)),(lbl_K3,H((H((~M_10,H((M_3,SuitesI,~M_8,CI)))),(CR,ID_CREDR,expands(extract(extract(H((~M_10,H((M_3,SuitesI,~M_8,CI)))),exp(~M_8,~M_21)),exp(~M_8,~M_22)),(lbl_MAC2,H((~M_10,H((M_3,SuitesI,~M_8,CI)))),ID_CREDR,~M_1))),~M_1)))),~M_12)),~M))),~M)))),lbl_MSK),~M_19) = MSK_test in phase 1.
+A trace has been found.
+RESULT not attacker_p1(MSK_test[]) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker_p1(MSK_test[]) is false.
+
+--------------------------------------------------------------
+

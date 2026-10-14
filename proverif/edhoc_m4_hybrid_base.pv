@@ -1,0 +1,299 @@
+(* =====================================================================
+ * edhoc_m4_hybrid_base.pv
+ * Variant : Proposed EAP-EDHOC hybrid PQC (method 4): X-Wing KEM for key
+ *           agreement, detached ML-DSA-44 signatures (SIGMA) as the sole
+ *           source of entity authentication; ID_CRED_I carried in Message1.
+ * Setting : Dolev-Yao attacker; phase 1 leaks the static X-Wing keys
+ *           (skA, skB). X-Wing is abstracted as a single IND-CCA KEM.
+ * Model   : symbolic, ProVerif 2.05. This is the model whose output is
+ *           reproduced in the paper's ProVerif verification-summary figure (Q1-Q9).
+ * Result  : Q1 false (reachable); Q2-Q4 true; Q5 false (ID_CRED_I recoverable
+ *           once skB leaks); Q6-Q9 true.
+ * ===================================================================== *)
+
+(* ---------- Types ---------- *)
+type skey.         (* XWING secret key (key-agreement)        *)
+type spk.          (* XWING public key                        *)
+type kemcoins.      (* XWING randomness                        *)
+type sskey.        (* ML-DSA-44 signing key (authentication)  *)
+type spkey.        (* ML-DSA-44 verification key               *)
+
+(* ---------- Channel & constants ---------- *)
+free c : channel.
+const Method   : bitstring.
+const SuitesI  : bitstring.
+const CI       : bitstring.
+const CR       : bitstring.
+const ID_CREDR : bitstring.
+const EAD2     : bitstring.
+const Len2     : bitstring.
+const Len3     : bitstring.
+const lbl_MSK  : bitstring.
+const lbl_EMSK : bitstring.
+
+(* ---------- XWING KEM (key-agreement / confidentiality only) ---------- *)
+fun pk(skey) : spk.
+fun XWING_ss(spk, kemcoins) : bitstring [private].
+fun XWING_ct(spk, kemcoins) : bitstring.
+fun XWING_Decaps(skey, bitstring) : bitstring
+reduc forall sk:skey, r:kemcoins;
+  XWING_Decaps(sk, XWING_ct(pk(sk), r)) = XWING_ss(pk(sk), r).
+
+(* ---------- ML-DSA-44 signature (SOLE source of entity authentication) *)
+fun spk_sig(sskey) : spkey.
+fun sign(bitstring, sskey) : bitstring.
+reduc forall m:bitstring, sk:sskey;
+  checksign(spk_sig(sk), sign(m, sk)) = m.
+
+(* ---------- Hash, HKDF ---------- *)
+fun H(bitstring) : bitstring.
+fun extract(bitstring, bitstring) : bitstring.            (* HKDF-Extract(salt, ikm) *)
+fun expands(bitstring, bitstring) : bitstring.            (* HKDF-Expand(prk, info)  *)
+
+(* ---------- AEAD (AES-128-GCM) ---------- *)
+fun AEAD_enc(bitstring, bitstring) : bitstring.
+reduc forall k:bitstring, m:bitstring; AEAD_dec(k, AEAD_enc(k, m)) = m.
+
+(* ---------- Type converters (data, public) ---------- *)
+fun spk2b(spk) : bitstring [data, typeConverter].
+fun spkey2b(spkey) : bitstring [data, typeConverter].
+
+(* ---------- Private identities & test secrets ---------- *)
+free ID_CREDI : bitstring [private].          (* UE identity, must stay secret    *)
+free app_data_UE, app_data_DN : bitstring [private].
+free MSK_test, EMSK_test : bitstring [private].
+
+(* ---------- Events ---------- *)
+event UE_send_M1   (bitstring).
+event DN_recv_M1   (bitstring).
+event DN_send_M2   (bitstring, bitstring, bitstring).   (* MAC2, Plaintext2, TH2 *)
+event UE_recv_M2   (bitstring, bitstring, bitstring).
+event UE_send_M3   (bitstring, bitstring, bitstring).   (* MAC3, Message3, TH3 *)
+event DN_recv_M3   (bitstring, bitstring, bitstring).
+event DN_send_M4   (bitstring, bitstring).              (* Message4, TH4 *)
+event UE_recv_M4   (bitstring, bitstring).
+event UE_finish    (bitstring, bitstring).              (* MSK, EMSK *)
+event DN_finish    (bitstring, bitstring).
+
+(* =====================================================================
+ *                              QUERIES
+ * ===================================================================== *)
+
+(* (1) Availability *)
+query MSK:bitstring, EMSK:bitstring; event(UE_finish(MSK, EMSK)).
+query MSK:bitstring, EMSK:bitstring; event(DN_finish(MSK, EMSK)).
+
+(* (2) Mutual authentication — unaffected by moving ID_CREDI to M1;
+ *     still fully gated by checksign under skSigI/skSigR. *)
+query M1:bitstring; event(UE_send_M1(M1)).
+query MAC2:bitstring, P2:bitstring, TH2:bitstring;
+  inj-event(UE_recv_M2(MAC2, P2, TH2)) ==> inj-event(DN_send_M2(MAC2, P2, TH2)).
+query MAC3:bitstring, M3:bitstring, TH3:bitstring;
+  inj-event(DN_recv_M3(MAC3, M3, TH3)) ==> inj-event(UE_send_M3(MAC3, M3, TH3)).
+query M4:bitstring, TH4:bitstring;
+  inj-event(UE_recv_M4(M4, TH4)) ==> inj-event(DN_send_M4(M4, TH4)).
+
+(* (3) Identity concealment.
+ *     ID_CREDI now travels inside Plaintext1 (Message1), encrypted
+ *     under K1 = HKDF-Expand(PRK1e, TH1), PRK1e = HKDF-Extract(TH1, ssB).
+ *     ssB is recoverable from ctB (public, in M1) once skB is known. *)
+query attacker(ID_CREDI).
+
+(* (4) Confidentiality of application traffic carried under MSK/AK *)
+query attacker(app_data_UE).
+query attacker(app_data_DN).
+
+(* (5) Secure key exchange — exported MSK/EMSK material is secret *)
+query attacker(MSK_test).
+query attacker(EMSK_test).
+
+(* (6) Forward secrecy: phase 1 leaks skA, skB; (4)/(5) must still hold. *)
+
+(* =====================================================================
+ *                         INITIATOR (UE)
+ *
+ * Longterm XWING (pkA, skA) and ML-DSA-44 (pkSigI, skSigI) are
+ * pre-provisioned.  Peer XWING pk = pkB, peer verification key = pkSigR.
+ * ===================================================================== *)
+let UE(skA: skey, pkA: spk, pkB: spk,
+       skSigI: sskey, pkSigI: spkey, pkSigR: spkey) =
+  (* ---- Build Message1 ----
+   * Plaintext1 now carries the REAL ID_CREDI (not an
+   * anonymous hint), so DN-AAA can look up pkA before building
+   * Message2. *)
+  new skX : skey;      let pkX = pk(skX) in        (* (skX, pkX) = XWING.KeyGen() *)
+  new rB  : kemcoins;
+  let ctB        = XWING_ct(pkB, rB)               in
+  let ssB        = XWING_ss(pkB, rB)               in   (* (ssB, ctB) = Encaps(pkB) *)
+  let Plaintext1 = (Method, SuitesI, ID_CREDI, CI) in   (* real ID_CREDI, in M1 *)
+  let TH1        = H((spk2b(pkX), ctB))            in
+  let PRK1e      = extract(TH1, ssB)               in
+  let K1         = expands(PRK1e, TH1)             in
+  let Message1   = (ctB, spk2b(pkX), AEAD_enc(K1, Plaintext1)) in
+  event UE_send_M1(Message1);
+  out(c, Message1);
+
+  (* ---- Receive Message2 = (cte, AEAD.enc(K2, Plaintext2)) ---- *)
+  in(c, (cte:bitstring, encP2:bitstring));
+  let sse     = XWING_Decaps(skX, cte)                     in   (* sse = Decaps(cte, skX) *)
+  let TH2     = H((H(Message1), cte, CR))                  in
+  let PRK2e   = extract(TH2, sse)                          in
+  let K2      = expands(PRK2e, TH2)                        in
+  let Plaintext2 = AEAD_dec(K2, encP2)                     in
+  let (ctA:bitstring, =CR, =ID_CREDR, =spkey2b(pkSigR), =EAD2,
+       MAC2:bitstring, sigR:bitstring) = Plaintext2        in
+  let PRK3e2m = extract(PRK2e, ssB)                        in
+  let MAC2chk = expands(PRK3e2m, (TH2, ID_CREDR, EAD2, Len2)) in
+  let sigMsg2 = checksign(pkSigR, sigR)                    in   (* fails to reduce if forged *)
+  if MAC2 = MAC2chk then
+  if sigMsg2 = (TH2, ID_CREDR, MAC2) then (               (* KCI-immune auth gate *)
+    event UE_recv_M2(MAC2, Plaintext2, TH2);
+    let TH3 = H((TH2, Plaintext2))                         in
+    let ssA = XWING_Decaps(skA, ctA)                       in   (* ssA = Decaps(ctA, skA) *)
+    let PRK4e3m = extract(PRK3e2m, ssA)                    in
+
+    (* ---- Build Message3 ----
+     * ID_CREDI is no longer re-sent here (already known to
+     * DN-AAA from Message1). Plaintext3 = (EAD3, MAC3, pkSigI, sigI). *)
+    new NskA : skey;  let NpkA = pk(NskA) in                    (* (NskA, NpkA) = KeyGen *)
+    let EAD3       = spk2b(NpkA)                           in
+    let MAC3       = expands(PRK4e3m, (TH3, ID_CREDI, EAD3, Len3)) in
+    let sigI       = sign((TH3, ID_CREDI, MAC3), skSigI)   in   (* sigma_I = ML-DSA.Sign(...) *)
+    let K3         = expands(PRK3e2m, TH3)                 in
+    let Plaintext3 = (EAD3, MAC3, spkey2b(pkSigI), sigI)   in   (* no ID_CREDI here *)
+    let Message3   = AEAD_enc(K3, Plaintext3)              in
+    let TH4        = H((TH3, Plaintext3))                  in
+    event UE_send_M3(MAC3, Message3, TH3);
+    out(c, Message3);
+
+    (* ---- Receive Message4 ---- *)
+    in(c, Message4:bitstring);
+    let K4         = expands(PRK4e3m, TH4)                 in
+    let Plaintext4 = AEAD_dec(K4, Message4)                in
+    let EAD4       = Plaintext4                            in   (* EAD4 = NpkB (new pkB) *)
+    event UE_recv_M4(Message4, TH4);
+
+    (* ---- Final keys ---- *)
+    let PRKout = expands(PRK4e3m, TH4)                     in
+    let MSK    = expands(PRKout, lbl_MSK)                  in
+    let EMSK   = expands(PRKout, lbl_EMSK)                 in
+    event UE_finish(MSK, EMSK);
+
+    out(c, AEAD_enc(MSK, app_data_UE));
+    out(c, AEAD_enc(MSK, MSK_test));
+    0
+  ) else 0
+  else 0
+.
+
+(* =====================================================================
+ *                         RESPONDER (DN-AAA)
+ *
+ * Longterm XWING (pkB, skB) and ML-DSA-44 (pkSigR, skSigR) are
+ * pre-provisioned.  Peer XWING pk = pkA, peer verification key = pkSigI.
+ * ===================================================================== *)
+let DN(skB: skey, pkB: spk, pkA: spk,
+       skSigR: sskey, pkSigR: spkey, pkSigI: spkey) =
+  (* ---- Receive Message1 = (ctB, pkX, enc_P1) ----
+   * DN now recovers the REAL ID_CREDI directly from
+   * Plaintext1 (no more anonymous hint), and can immediately look up
+   * pkA (already a parameter here — the lookup itself is out-of-band
+   * bookkeeping and not separately modelled). *)
+  in(c, Message1:bitstring);
+  let (ctB:bitstring, pkX:spk, encP1:bitstring) = Message1 in
+  event DN_recv_M1(Message1);
+  let ssB       = XWING_Decaps(skB, ctB)             in
+  let TH1       = H((spk2b(pkX), ctB))               in
+  let PRK1e     = extract(TH1, ssB)                  in
+  let K1        = expands(PRK1e, TH1)                in
+  let Plaintext1 = AEAD_dec(K1, encP1)               in
+  let (=Method, =SuitesI, claimedI_M1:bitstring, =CI) = Plaintext1 in
+
+  (* ---- Build Message2 (unchanged: DN already knows pkA from M1) ---- *)
+  new rE : kemcoins;
+  let cte     = XWING_ct(pkX, rE)                    in
+  let sse     = XWING_ss(pkX, rE)                    in   (* (sse, cte) = Encaps(pkX) *)
+  let TH2     = H((H(Message1), cte, CR))            in
+  let PRK2e   = extract(TH2, sse)                    in
+  let K2      = expands(PRK2e, TH2)                  in
+  new rA      : kemcoins;
+  let ctA     = XWING_ct(pkA, rA)                    in
+  let ssA     = XWING_ss(pkA, rA)                    in   (* (ssA, ctA) = Encaps(pkA) *)
+  let PRK3e2m = extract(PRK2e, ssB)                  in
+  let MAC2    = expands(PRK3e2m, (TH2, ID_CREDR, EAD2, Len2)) in
+  let sigR    = sign((TH2, ID_CREDR, MAC2), skSigR)  in
+  let Plaintext2 = (ctA, CR, ID_CREDR, spkey2b(pkSigR), EAD2, MAC2, sigR) in
+  let Message2   = (cte, AEAD_enc(K2, Plaintext2))   in
+  let TH3        = H((TH2, Plaintext2))              in
+  event DN_send_M2(MAC2, Plaintext2, TH2);
+  out(c, Message2);
+
+  (* ---- Receive Message3 ----
+   * Plaintext3 no longer carries ID_CREDI (it already arrived
+   * in M1); DN uses claimedI_M1 for MAC3/sigI verification instead. *)
+  in(c, Message3:bitstring);
+  let K3         = expands(PRK3e2m, TH3)             in
+  let Plaintext3 = AEAD_dec(K3, Message3)            in
+  let (EAD3_recv:bitstring, MAC3_recv:bitstring,
+       =spkey2b(pkSigI), sigI_recv:bitstring) = Plaintext3 in
+  let TH4        = H((TH3, Plaintext3))              in
+  let PRK4e3m    = extract(PRK3e2m, ssA)             in
+  let MAC3chk    = expands(PRK4e3m, (TH3, claimedI_M1, EAD3_recv, Len3)) in
+  let sigMsg3    = checksign(pkSigI, sigI_recv)      in
+  if MAC3_recv = MAC3chk then
+  if sigMsg3 = (TH3, claimedI_M1, MAC3_recv) then (       (* KCI-immune auth gate *)
+    event DN_recv_M3(MAC3_recv, Message3, TH3);
+
+    (* ---- Build Message4 ---- *)
+    new NskB : skey;  let NpkB = pk(NskB) in
+    let EAD4       = spk2b(NpkB)                     in
+    let Plaintext4 = EAD4                            in
+    let K4         = expands(PRK4e3m, TH4)           in
+    let Message4   = AEAD_enc(K4, Plaintext4)        in
+    event DN_send_M4(Message4, TH4);
+    out(c, Message4);
+
+    (* ---- Final keys ---- *)
+    let PRKout = expands(PRK4e3m, TH4)               in
+    let MSK    = expands(PRKout, lbl_MSK)            in
+    let EMSK   = expands(PRKout, lbl_EMSK)           in
+    event DN_finish(MSK, EMSK);
+
+    out(c, AEAD_enc(MSK, app_data_DN));
+    out(c, AEAD_enc(MSK, EMSK_test));
+    0
+  ) else 0
+  else 0
+.
+
+(* =====================================================================
+ *                              MAIN
+ *
+ * phase 1 leaks the static X-Wing keys (skA, skB).
+ * ===================================================================== *)
+process
+  new skA : skey;     let pkA    = pk(skA) in
+  new skB : skey;     let pkB    = pk(skB) in
+  new skSigI : sskey; let pkSigI = spk_sig(skSigI) in
+  new skSigR : sskey; let pkSigR = spk_sig(skSigR) in
+  out(c, spk2b(pkA));
+  out(c, spk2b(pkB));
+  out(c, spkey2b(pkSigI));
+  out(c, spkey2b(pkSigR));
+  (
+        ( ! UE(skA, pkA, pkB, skSigI, pkSigI, pkSigR) )
+      | ( ! DN(skB, pkB, pkA, skSigR, pkSigR, pkSigI) )
+      | ( phase 1; out(c, skA); out(c, skB) )
+  )
+
+(* =====================================================================
+ * Property-to-query mapping (verified with ProVerif 2.05)
+ *  Availability          : event(UE_finish), event(DN_finish) reachable
+ *  Mutual authentication : Q2-Q4 injective correspondences -> true
+ *  Identity concealment  : attacker(ID_CREDI) -> false: once skB leaks,
+ *                          ssB is recoverable from ctB in any recorded
+ *                          Message1, hence K1 and Plaintext1 (with ID_CREDI)
+ *  Confidentiality       : attacker(app_data_UE / app_data_DN) -> true
+ *  Secure key exchange   : attacker(MSK_test / EMSK_test) -> true
+ *  Forward secrecy       : the above hold after the phase-1 leak of (skA, skB)
+ * ===================================================================== *)

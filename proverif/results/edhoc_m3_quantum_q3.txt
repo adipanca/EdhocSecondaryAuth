@@ -1,0 +1,297 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {8}let w: bitstring = W0 in
+    {9}let i_1: exponent = i in
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {41}let w_1: bitstring = W0 in
+    {42}let r_1: exponent = r in
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+) | (
+    {75}!
+    {76}in(c, y_1: G);
+    {77}out(c, qdlog(y_1))
+) | (
+    {78}phase 1;
+    {79}!
+    {80}in(c, y_2: G);
+    {81}out(c, qdlog(y_2))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {8}let w: bitstring = W0 in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {9}let i_1: exponent = i in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {42}let r_1: exponent = r in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {41}let w_1: bitstring = W0 in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+) | (
+    {75}!
+    {76}in(c, y_1: G);
+    {77}out(c, qdlog(y_1))
+) | (
+    {78}phase 1;
+    {79}!
+    {80}in(c, y_2: G);
+    {81}out(c, qdlog(y_2))
+)
+
+-- Query not event(UE_send_M1(W0,m)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 80 rules.
+400 rules inserted. Base: 377 rules (144 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 527 rules (168 with conclusion selected). Queue: 166 rules.
+800 rules inserted. Base: 703 rules (172 with conclusion selected). Queue: 229 rules.
+1000 rules inserted. Base: 872 rules (184 with conclusion selected). Queue: 285 rules.
+1200 rules inserted. Base: 1027 rules (184 with conclusion selected). Queue: 341 rules.
+1400 rules inserted. Base: 1143 rules (184 with conclusion selected). Queue: 369 rules.
+1600 rules inserted. Base: 1258 rules (184 with conclusion selected). Queue: 346 rules.
+1800 rules inserted. Base: 1308 rules (184 with conclusion selected). Queue: 348 rules.
+2000 rules inserted. Base: 1350 rules (184 with conclusion selected). Queue: 345 rules.
+2200 rules inserted. Base: 1373 rules (184 with conclusion selected). Queue: 387 rules.
+2400 rules inserted. Base: 1303 rules (184 with conclusion selected). Queue: 413 rules.
+2600 rules inserted. Base: 1444 rules (184 with conclusion selected). Queue: 427 rules.
+2800 rules inserted. Base: 1543 rules (205 with conclusion selected). Queue: 474 rules.
+3000 rules inserted. Base: 1678 rules (205 with conclusion selected). Queue: 532 rules.
+3200 rules inserted. Base: 1801 rules (250 with conclusion selected). Queue: 603 rules.
+3400 rules inserted. Base: 1940 rules (250 with conclusion selected). Queue: 625 rules.
+3600 rules inserted. Base: 2047 rules (250 with conclusion selected). Queue: 655 rules.
+3800 rules inserted. Base: 2223 rules (250 with conclusion selected). Queue: 723 rules.
+4000 rules inserted. Base: 2355 rules (250 with conclusion selected). Queue: 731 rules.
+4200 rules inserted. Base: 2469 rules (250 with conclusion selected). Queue: 755 rules.
+4400 rules inserted. Base: 2626 rules (250 with conclusion selected). Queue: 771 rules.
+4600 rules inserted. Base: 2779 rules (250 with conclusion selected). Queue: 789 rules.
+4800 rules inserted. Base: 2871 rules (250 with conclusion selected). Queue: 792 rules.
+5000 rules inserted. Base: 2984 rules (250 with conclusion selected). Queue: 807 rules.
+5200 rules inserted. Base: 3122 rules (250 with conclusion selected). Queue: 829 rules.
+5400 rules inserted. Base: 3257 rules (250 with conclusion selected). Queue: 858 rules.
+5600 rules inserted. Base: 3384 rules (250 with conclusion selected). Queue: 887 rules.
+5800 rules inserted. Base: 3474 rules (250 with conclusion selected). Queue: 901 rules.
+6000 rules inserted. Base: 3603 rules (250 with conclusion selected). Queue: 900 rules.
+6200 rules inserted. Base: 3709 rules (250 with conclusion selected). Queue: 922 rules.
+6400 rules inserted. Base: 3775 rules (250 with conclusion selected). Queue: 922 rules.
+6600 rules inserted. Base: 3772 rules (252 with conclusion selected). Queue: 919 rules.
+6800 rules inserted. Base: 3940 rules (252 with conclusion selected). Queue: 946 rules.
+7000 rules inserted. Base: 4091 rules (252 with conclusion selected). Queue: 972 rules.
+7200 rules inserted. Base: 4081 rules (252 with conclusion selected). Queue: 911 rules.
+7400 rules inserted. Base: 4129 rules (254 with conclusion selected). Queue: 888 rules.
+7600 rules inserted. Base: 4304 rules (254 with conclusion selected). Queue: 895 rules.
+7800 rules inserted. Base: 4481 rules (254 with conclusion selected). Queue: 908 rules.
+8000 rules inserted. Base: 4130 rules (255 with conclusion selected). Queue: 870 rules.
+8200 rules inserted. Base: 4172 rules (255 with conclusion selected). Queue: 835 rules.
+8400 rules inserted. Base: 4362 rules (255 with conclusion selected). Queue: 862 rules.
+8600 rules inserted. Base: 4537 rules (255 with conclusion selected). Queue: 891 rules.
+8800 rules inserted. Base: 4606 rules (271 with conclusion selected). Queue: 823 rules.
+9000 rules inserted. Base: 4728 rules (271 with conclusion selected). Queue: 775 rules.
+9200 rules inserted. Base: 4897 rules (271 with conclusion selected). Queue: 851 rules.
+9400 rules inserted. Base: 5044 rules (271 with conclusion selected). Queue: 904 rules.
+9600 rules inserted. Base: 5117 rules (271 with conclusion selected). Queue: 852 rules.
+9800 rules inserted. Base: 5245 rules (271 with conclusion selected). Queue: 859 rules.
+10000 rules inserted. Base: 5370 rules (271 with conclusion selected). Queue: 893 rules.
+10200 rules inserted. Base: 5471 rules (271 with conclusion selected). Queue: 931 rules.
+10400 rules inserted. Base: 5534 rules (271 with conclusion selected). Queue: 875 rules.
+10600 rules inserted. Base: 5638 rules (271 with conclusion selected). Queue: 875 rules.
+10800 rules inserted. Base: 5755 rules (271 with conclusion selected). Queue: 897 rules.
+11000 rules inserted. Base: 5875 rules (271 with conclusion selected). Queue: 910 rules.
+11200 rules inserted. Base: 5943 rules (271 with conclusion selected). Queue: 900 rules.
+11400 rules inserted. Base: 5991 rules (271 with conclusion selected). Queue: 867 rules.
+11600 rules inserted. Base: 6072 rules (271 with conclusion selected). Queue: 854 rules.
+11800 rules inserted. Base: 6121 rules (271 with conclusion selected). Queue: 828 rules.
+12000 rules inserted. Base: 5686 rules (271 with conclusion selected). Queue: 785 rules.
+12200 rules inserted. Base: 5761 rules (271 with conclusion selected). Queue: 768 rules.
+12400 rules inserted. Base: 5884 rules (271 with conclusion selected). Queue: 734 rules.
+12600 rules inserted. Base: 5879 rules (271 with conclusion selected). Queue: 695 rules.
+12800 rules inserted. Base: 5177 rules (271 with conclusion selected). Queue: 618 rules.
+13000 rules inserted. Base: 5130 rules (271 with conclusion selected). Queue: 524 rules.
+13200 rules inserted. Base: 5093 rules (271 with conclusion selected). Queue: 412 rules.
+13400 rules inserted. Base: 2335 rules (273 with conclusion selected). Queue: 161 rules.
+Starting query not event(UE_send_M1(W0,m))
+goal reachable: event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+1. Event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI)) may be executed at {13}.
+event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+
+2. By 1, event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+The goal is reached, represented in the following fact:
+event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new i: exponent creating i_2 at {1}
+
+out(c, ~M) with ~M = exp(g,i_2) at {3}
+
+new r: exponent creating r_2 at {4}
+
+out(c, ~M_1) with ~M_1 = exp(g,r_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) at {13} in copy a (goal)
+
+The event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) is executed at {13} in copy a.
+A trace has been found.
+RESULT not event(UE_send_M1(W0,m)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not event(UE_send_M1(W0,m)) is false.
+
+--------------------------------------------------------------
+

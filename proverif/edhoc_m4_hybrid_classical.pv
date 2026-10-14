@@ -1,0 +1,228 @@
+(* =====================================================================
+ * edhoc_m4_hybrid_classical.pv
+ * Variant : Proposed EAP-EDHOC hybrid PQC (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 SIGMA gate)
+ * Setting : classical Dolev-Yao attacker; phase 1 leaks all long-term keys of both parties (forward secrecy)
+ * Model   : symbolic (Dolev-Yao), ProVerif 2.05
+ * Part of : EdhocSecondaryAuth -- ProVerif models for
+ *           "Role-Symmetric EAP-EDHOC with Hybrid Post-Quantum Cryptography
+ *            for 5G Secondary Authentication and Application-Server Access"
+ * Expected: Q0/Q1 false (reachable); Q2-Q4 true; Q5-Q9 true, except Q5 false for edhoc_m4_hybrid
+ * ===================================================================== *)
+
+(* ---------------- Channel, types ---------------- *)
+free c : channel.
+
+type exponent.          (* X25519 scalar                              *)
+type kemsk.             (* ML-KEM-768 decapsulation key               *)
+type xpk.               (* X-Wing public key (ML-KEM-768 ek, X25519)  *)
+type edsk.              (* Ed25519 signing key                        *)
+type edpk.              (* Ed25519 verification key                   *)
+type mdsk.              (* ML-DSA-44 signing key                      *)
+type mdpk.              (* ML-DSA-44 verification key                 *)
+
+(* ---------------- X-Wing hybrid KEM (ML-KEM-768 + X25519, SHA3 combiner) ----------------
+ * Modelled as compact terms, like edhoc_m4_hybrid_base.pv, but keeping the two
+ * halves visible. (Spelling X25519 out with a DH equational theory and the
+ * 5-input combiner hash made the transcript terms grow exponentially, and
+ * ProVerif ran out of memory.)
+ * A static or ephemeral key pair is (k, x): k = ML-KEM-768 decapsulation key,
+ * x = X25519 scalar, pk = xwpk(k, x). Encapsulation draws ML-KEM coins s and an
+ * X25519 ephemeral scalar e: ct = xw_ct(pk, s, e), ss = xw_ss(pk, s, e).
+ * xw_ss is public: whoever knows the coins (the encapsulator, honest or not)
+ * knows ss. Since ss binds pk and both coins, it also binds (ct_M, ct_X, pk_X)
+ * as the X-Wing combiner does. *)
+fun xwpk(kemsk, exponent) : xpk.
+fun xw_ct(xpk, bitstring, exponent) : bitstring.
+fun xw_ss(xpk, bitstring, exponent) : bitstring.
+fun xpk2b(xpk) : bitstring [data, typeConverter].
+(* Honest decapsulation uses both secret halves. *)
+reduc forall k:kemsk, x:exponent, s:bitstring, e:exponent;
+  xw_decaps(k, x, xw_ct(xwpk(k, x), s, e)) = xw_ss(xwpk(k, x), s, e).
+(* Each secret half alone opens only its own component of ct: k yields the
+ * ML-KEM shared secret (stand-in: s); x yields the X25519 shared secret
+ * (stand-in: e, which is used nowhere else). ss needs both, so the hybrid
+ * secret stays safe as long as one half does. *)
+reduc forall k:kemsk, x:exponent, s:bitstring, e:exponent;
+  mlkem_dec(k, xw_ct(xwpk(k, x), s, e)) = s.
+reduc forall k:kemsk, x:exponent, s:bitstring, e:exponent;
+  x25519_dec(x, xw_ct(xwpk(k, x), s, e)) = e.
+
+(* ---------------- Ed25519 (EUF-CMA, classical) ---------------- *)
+fun edpub(edsk) : edpk.
+fun edsign(bitstring, edsk) : bitstring.
+reduc forall m:bitstring, k:edsk; edverify(edpub(k), edsign(m, k)) = m.
+
+(* ---------------- ML-DSA-44 (EUF-CMA, post-quantum) ---------------- *)
+fun mdpub(mdsk) : mdpk.
+fun mdsign(bitstring, mdsk) : bitstring.
+reduc forall m:bitstring, k:mdsk; mdverify(mdpub(k), mdsign(m, k)) = m.
+
+(* ---------------- Hash, HKDF, AEAD ---------------- *)
+fun H(bitstring) : bitstring.
+fun extract(bitstring, bitstring) : bitstring.      (* HKDF-Extract(salt, ikm) *)
+fun expands(bitstring, bitstring) : bitstring.      (* HKDF-Expand(prk, info)  *)
+fun AEAD_enc(bitstring, bitstring) : bitstring.
+reduc forall k:bitstring, m:bitstring; AEAD_dec(k, AEAD_enc(k, m)) = m.
+
+(* ---------------- Quantum oracle (used only in *_quantum.pv) ----------------
+ * A quantum adversary solves discrete logarithms (Shor) and therefore
+ * recovers the X25519 scalar of any X-Wing public key, the X25519 ephemeral
+ * of any X-Wing ciphertext, and Ed25519 signing keys.
+ * No oracle exists for ML-KEM-768 or ML-DSA-44. *)
+reduc forall k:kemsk, x:exponent; q_xpk(xwpk(k, x)) = x [private].
+reduc forall p:xpk, s:bitstring, e:exponent; q_xct(xw_ct(p, s, e)) = e [private].
+reduc forall k:edsk; qed(edpub(k)) = k [private].
+
+(* ---------------- Constants ---------------- *)
+const W0, W1, W2 : bitstring.             (* world / epoch tags *)
+const SuitesI, CI, CR, ID_CREDR, EAD2, Len2, Len3, commit : bitstring.
+const M_0, M_1, M_2, M_3, M_4 : bitstring.
+const lbl_K2, lbl_K3, lbl_K4, lbl_MAC2, lbl_MAC3, lbl_out, lbl_MSK, lbl_EMSK : bitstring.
+const lbl_xw, lbl_hyb, lbl_shs, lbl_chs, lbl_scv, lbl_ccv, lbl_sfin, lbl_cfin, lbl_ms, lbl_sapp : bitstring.
+
+(* ---------------- Secrets under test ---------------- *)
+free ID_CREDI : bitstring [private].
+free app_data_UE, app_data_DN : bitstring [private].
+free MSK_test, EMSK_test, MSK_test2, EMSK_test2 : bitstring [private].
+
+(* ---------------- Events (first argument = world/epoch tag) ---------------- *)
+event UE_send_M1(bitstring, bitstring).
+event DN_send_M2(bitstring, bitstring, bitstring).
+event UE_recv_M2(bitstring, bitstring, bitstring).
+event UE_send_M3(bitstring, bitstring, bitstring).
+event DN_recv_M3(bitstring, bitstring, bitstring).
+event DN_send_M4(bitstring, bitstring, bitstring).
+event UE_recv_M4(bitstring, bitstring, bitstring).
+event UE_finish(bitstring, bitstring, bitstring).
+event DN_finish(bitstring, bitstring, bitstring).
+
+let QXW = (! in(c, p:xpk); out(c, q_xpk(p))) | (! in(c, ct:bitstring); out(c, q_xct(ct))).
+let QED = ! in(c, p:edpk); out(c, qed(p)).
+
+(* ============================ QUERIES ============================ *)
+(* Q0: honest runs complete (sanity check; expected 'is false') *)
+query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).
+query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).
+(* Q1 *)
+query m:bitstring; event(UE_send_M1(W0, m)).
+query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W0, x, t)) ==> inj-event(DN_send_M2(W0, x, t)).   (* Q2: DN authenticated to UE *)
+query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W0, x, t)) ==> inj-event(UE_send_M3(W0, x, t)).   (* Q3: UE authenticated to DN *)
+query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W0, x, t)) ==> inj-event(DN_send_M4(W0, x, t)).   (* Q4: key confirmation by DN *)
+query attacker(ID_CREDI).        (* Q5: identity concealment *)
+query attacker(app_data_UE).     (* Q6: confidentiality *)
+query attacker(app_data_DN).     (* Q7: confidentiality *)
+query attacker(MSK_test).        (* Q8: MSK secrecy (+FS, +QR in *_quantum) *)
+query attacker(EMSK_test).       (* Q9: EMSK secrecy (+FS, +QR in *_quantum) *)
+
+(* ============================ PROCESSES ========================== *)
+let UE(w:bitstring, A_pq:kemsk, A_x:exponent, pkB:xpk,
+       skSigI:mdsk, pkSigI:mdpk, pkSigR:mdpk) =
+  new X_pq:kemsk; new X_x:exponent;
+  let pkX = xwpk(X_pq, X_x) in
+  new sB:bitstring; new eB:exponent;
+  let ctB = xw_ct(pkB, sB, eB) in
+  let ssB = xw_ss(pkB, sB, eB) in
+  let PT1 = (M_4, SuitesI, ID_CREDI, CI) in
+  let TH1 = H((pkX, ctB)) in
+  let K1 = expands(extract(TH1, ssB), TH1) in
+  let Message1 = (ctB, pkX, AEAD_enc(K1, PT1)) in
+  event UE_send_M1(w, Message1);
+  out(c, Message1);
+  in(c, (cte:bitstring, encP2:bitstring));
+  let sse = xw_decaps(X_pq, X_x, cte) in
+  let TH2 = H((H(Message1), cte, CR)) in
+  let PRK2e = extract(TH2, sse) in
+  let K2 = expands(PRK2e, (lbl_K2, TH2)) in
+  let PT2 = AEAD_dec(K2, encP2) in
+  let (ctA:bitstring, =CR, =ID_CREDR, =pkSigR, =EAD2, MAC2:bitstring, sigR:bitstring) = PT2 in
+  let PRK3e2m = extract(PRK2e, ssB) in
+  let MAC2chk = expands(PRK3e2m, (lbl_MAC2, TH2, ID_CREDR, EAD2, Len2)) in
+  let v2 = mdverify(pkSigR, sigR) in
+  if MAC2 = MAC2chk then
+  if v2 = (TH2, ID_CREDR, MAC2) then
+  event UE_recv_M2(w, MAC2, TH2);
+  let TH3 = H((TH2, PT2)) in
+  let ssA = xw_decaps(A_pq, A_x, ctA) in
+  let PRK4e3m = extract(PRK3e2m, ssA) in
+  new NA_pq:kemsk; new NA_x:exponent;
+  let EAD3 = xpk2b(xwpk(NA_pq, NA_x)) in
+  let MAC3 = expands(PRK4e3m, (lbl_MAC3, TH3, ID_CREDI, EAD3, Len3)) in
+  let sigI = mdsign((TH3, ID_CREDI, MAC3), skSigI) in
+  let K3 = expands(PRK3e2m, (lbl_K3, TH3)) in
+  let PT3 = (EAD3, MAC3, pkSigI, sigI) in
+  let Message3 = AEAD_enc(K3, PT3) in
+  let TH4 = H((TH3, PT3)) in
+  event UE_send_M3(w, MAC3, TH3);
+  out(c, Message3);
+  in(c, Message4:bitstring);
+  let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
+  let xpk2b(NpkB:xpk) = AEAD_dec(K4, Message4) in
+  event UE_recv_M4(w, Message4, TH4);
+  let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
+  let MSK = expands(PRKout, lbl_MSK) in
+  let EMSK = expands(PRKout, lbl_EMSK) in
+  event UE_finish(w, MSK, EMSK);
+  out(c, AEAD_enc(MSK, app_data_UE));
+  out(c, AEAD_enc(MSK, MSK_test)).
+
+let DN(w:bitstring, B_pq:kemsk, B_x:exponent, pkA:xpk,
+       skSigR:mdsk, pkSigR:mdpk, pkSigI:mdpk) =
+  in(c, Message1:bitstring);
+  let (ctB:bitstring, pkX:xpk, encP1:bitstring) = Message1 in
+  let ssB = xw_decaps(B_pq, B_x, ctB) in
+  let TH1 = H((pkX, ctB)) in
+  let K1 = expands(extract(TH1, ssB), TH1) in
+  let (=M_4, =SuitesI, claimedI:bitstring, =CI) = AEAD_dec(K1, encP1) in
+  new sE:bitstring; new eE:exponent;
+  let ctE = xw_ct(pkX, sE, eE) in
+  let ssE = xw_ss(pkX, sE, eE) in
+  let TH2 = H((H(Message1), ctE, CR)) in
+  let PRK2e = extract(TH2, ssE) in
+  let K2 = expands(PRK2e, (lbl_K2, TH2)) in
+  new sA:bitstring; new eA:exponent;
+  let ctA = xw_ct(pkA, sA, eA) in
+  let ssA = xw_ss(pkA, sA, eA) in
+  let PRK3e2m = extract(PRK2e, ssB) in
+  let MAC2 = expands(PRK3e2m, (lbl_MAC2, TH2, ID_CREDR, EAD2, Len2)) in
+  let sigR = mdsign((TH2, ID_CREDR, MAC2), skSigR) in
+  let PT2 = (ctA, CR, ID_CREDR, pkSigR, EAD2, MAC2, sigR) in
+  let TH3 = H((TH2, PT2)) in
+  event DN_send_M2(w, MAC2, TH2);
+  out(c, (ctE, AEAD_enc(K2, PT2)));
+  in(c, Message3:bitstring);
+  let K3 = expands(PRK3e2m, (lbl_K3, TH3)) in
+  let PT3 = AEAD_dec(K3, Message3) in
+  let (EAD3r:bitstring, MAC3r:bitstring, =pkSigI, sigIr:bitstring) = PT3 in
+  let TH4 = H((TH3, PT3)) in
+  let PRK4e3m = extract(PRK3e2m, ssA) in
+  let MAC3chk = expands(PRK4e3m, (lbl_MAC3, TH3, claimedI, EAD3r, Len3)) in
+  let v3 = mdverify(pkSigI, sigIr) in
+  if MAC3r = MAC3chk then
+  if v3 = (TH3, claimedI, MAC3r) then
+  event DN_recv_M3(w, MAC3r, TH3);
+  let xpk2b(NpkA:xpk) = EAD3r in
+  new NB_pq:kemsk; new NB_x:exponent;
+  let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
+  let Message4 = AEAD_enc(K4, xpk2b(xwpk(NB_pq, NB_x))) in
+  event DN_send_M4(w, Message4, TH4);
+  out(c, Message4);
+  let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
+  let MSK = expands(PRKout, lbl_MSK) in
+  let EMSK = expands(PRKout, lbl_EMSK) in
+  event DN_finish(w, MSK, EMSK);
+  out(c, AEAD_enc(MSK, app_data_DN));
+  out(c, AEAD_enc(EMSK, EMSK_test)).
+
+(* ============================== MAIN ============================= *)
+process
+  new A_pq:kemsk; new A_x:exponent; new skSigI:mdsk;
+  new B_pq:kemsk; new B_x:exponent; new skSigR:mdsk;
+  let pkA = xwpk(A_pq, A_x) in
+  let pkB = xwpk(B_pq, B_x) in
+  let pkSigI = mdpub(skSigI) in let pkSigR = mdpub(skSigR) in
+  out(c, (pkA, pkB, pkSigI, pkSigR));
+  (
+      ( ! UE(W0, A_pq, A_x, pkB, skSigI, pkSigI, pkSigR) )
+    | ( ! DN(W0, B_pq, B_x, pkA, skSigR, pkSigR, pkSigI) )
+    | ( phase 1; out(c, A_pq); out(c, A_x); out(c, skSigI); out(c, B_pq); out(c, B_x); out(c, skSigR) )
+  )

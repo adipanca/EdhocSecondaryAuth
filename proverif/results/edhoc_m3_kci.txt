@@ -1,0 +1,430 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new i1: exponent;
+{2}let GI1: G = exp(g,i1) in
+{3}out(c, GI1);
+{4}new r1: exponent;
+{5}let GR1: G = exp(g,r1) in
+{6}out(c, GR1);
+{7}new i2: exponent;
+{8}let GI2: G = exp(g,i2) in
+{9}out(c, GI2);
+{10}new r2: exponent;
+{11}let GR2: G = exp(g,r2) in
+{12}out(c, GR2);
+{13}out(c, i1);
+{14}out(c, r2);
+(
+    {15}!
+    {16}let w: bitstring = W1 in
+    {17}let i: exponent = i1 in
+    {18}new x: exponent;
+    {19}let GX: G = exp(g,x) in
+    {20}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {21}event UE_send_M1(w,Message1);
+    {22}out(c, Message1);
+    {23}in(c, (GY: G,CT2: bitstring));
+    {24}let TH2: bitstring = H((GY,H(Message1))) in
+    {25}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {26}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {27}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {28}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {29}let PRK3e2m: bitstring = extract(PRK2e,exp(GR1,x)) in
+    {30}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR1)) in
+    {31}if (SoM2 = MAC2) then
+    {32}event UE_recv_M2(w,SoM2,TH2);
+    {33}let TH3: bitstring = H((TH2,PT2,GR1)) in
+    {34}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i)) in
+    {35}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI1)) in
+    {36}let SoM3: bitstring = MAC3 in
+    {37}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {38}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {39}event UE_send_M3(w,SoM3,TH3);
+    {40}out(c, AEAD_enc(K3,PT3));
+    {41}let TH4: bitstring = H((TH3,PT3,GI1)) in
+    {42}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {43}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {44}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {45}event UE_finish(w,MSK,EMSK);
+    {46}out(c, AEAD_enc(MSK,app_data_UE));
+    {47}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {48}!
+    {49}let w_1: bitstring = W1 in
+    {50}let r: exponent = r1 in
+    {51}in(c, Message1_1: bitstring);
+    {52}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {53}new y: exponent;
+    {54}let GY_1: G = exp(g,y) in
+    {55}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {56}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {57}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {58}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r)) in
+    {59}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR1)) in
+    {60}let SoM2_1: bitstring = MAC2_1 in
+    {61}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {62}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {63}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {64}in(c, CT3: bitstring);
+    {65}let TH3_1: bitstring = H((TH2_1,PT2_1,GR1)) in
+    {66}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {67}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {68}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {69}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI1,y)) in
+    {70}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI1)) in
+    {71}if (SoM3_1 = MAC3_1) then
+    {72}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {73}let TH4_1: bitstring = H((TH3_1,PT3_1,GI1)) in
+    {74}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {75}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {76}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {77}event DN_finish(w_1,MSK_1,EMSK_1);
+    {78}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {79}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {80}!
+    {81}let w_2: bitstring = W2 in
+    {82}let i_1: exponent = i2 in
+    {83}new x_1: exponent;
+    {84}let GX_2: G = exp(g,x_1) in
+    {85}let Message1_2: bitstring = (M_3,SuitesI,GX_2,CI) in
+    {86}event UE_send_M1(w_2,Message1_2);
+    {87}out(c, Message1_2);
+    {88}in(c, (GY_2: G,CT2_1: bitstring));
+    {89}let TH2_2: bitstring = H((GY_2,H(Message1_2))) in
+    {90}let PRK2e_2: bitstring = extract(TH2_2,exp(GY_2,x_1)) in
+    {91}let K2_2: bitstring = expands(PRK2e_2,(lbl_K2,TH2_2)) in
+    {92}let PT2_2: bitstring = AEAD_dec(K2_2,CT2_1) in
+    {93}let (=CR,=ID_CREDR,SoM2_2: bitstring) = PT2_2 in
+    {94}let PRK3e2m_2: bitstring = extract(PRK2e_2,exp(GR2,x_1)) in
+    {95}let MAC2_2: bitstring = expands(PRK3e2m_2,(lbl_MAC2,TH2_2,ID_CREDR,GR2)) in
+    {96}if (SoM2_2 = MAC2_2) then
+    {97}event UE_recv_M2(w_2,SoM2_2,TH2_2);
+    {98}let TH3_2: bitstring = H((TH2_2,PT2_2,GR2)) in
+    {99}let PRK4e3m_2: bitstring = extract(PRK3e2m_2,exp(GY_2,i_1)) in
+    {100}let MAC3_2: bitstring = expands(PRK4e3m_2,(lbl_MAC3,TH3_2,ID_CREDI,GI2)) in
+    {101}let SoM3_2: bitstring = MAC3_2 in
+    {102}let PT3_2: bitstring = (ID_CREDI,SoM3_2) in
+    {103}let K3_2: bitstring = expands(PRK3e2m_2,(lbl_K3,TH3_2)) in
+    {104}event UE_send_M3(w_2,SoM3_2,TH3_2);
+    {105}out(c, AEAD_enc(K3_2,PT3_2));
+    {106}let TH4_2: bitstring = H((TH3_2,PT3_2,GI2)) in
+    {107}let PRKout_2: bitstring = expands(PRK4e3m_2,(lbl_out,TH4_2)) in
+    {108}let MSK_2: bitstring = expands(PRKout_2,lbl_MSK) in
+    {109}let EMSK_2: bitstring = expands(PRKout_2,lbl_EMSK) in
+    {110}event UE_finish(w_2,MSK_2,EMSK_2);
+    {111}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {112}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {113}!
+    {114}let w_3: bitstring = W2 in
+    {115}let r_1: exponent = r2 in
+    {116}in(c, Message1_3: bitstring);
+    {117}let (=M_3,=SuitesI,GX_3: G,=CI) = Message1_3 in
+    {118}new y_1: exponent;
+    {119}let GY_3: G = exp(g,y_1) in
+    {120}let TH2_3: bitstring = H((GY_3,H(Message1_3))) in
+    {121}let PRK2e_3: bitstring = extract(TH2_3,exp(GX_3,y_1)) in
+    {122}let K2_3: bitstring = expands(PRK2e_3,(lbl_K2,TH2_3)) in
+    {123}let PRK3e2m_3: bitstring = extract(PRK2e_3,exp(GX_3,r_1)) in
+    {124}let MAC2_3: bitstring = expands(PRK3e2m_3,(lbl_MAC2,TH2_3,ID_CREDR,GR2)) in
+    {125}let SoM2_3: bitstring = MAC2_3 in
+    {126}let PT2_3: bitstring = (CR,ID_CREDR,SoM2_3) in
+    {127}event DN_send_M2(w_3,SoM2_3,TH2_3);
+    {128}out(c, (GY_3,AEAD_enc(K2_3,PT2_3)));
+    {129}in(c, CT3_1: bitstring);
+    {130}let TH3_3: bitstring = H((TH2_3,PT2_3,GR2)) in
+    {131}let K3_3: bitstring = expands(PRK3e2m_3,(lbl_K3,TH3_3)) in
+    {132}let PT3_3: bitstring = AEAD_dec(K3_3,CT3_1) in
+    {133}let (=ID_CREDI,SoM3_3: bitstring) = PT3_3 in
+    {134}let PRK4e3m_3: bitstring = extract(PRK3e2m_3,exp(GI2,y_1)) in
+    {135}let MAC3_3: bitstring = expands(PRK4e3m_3,(lbl_MAC3,TH3_3,ID_CREDI,GI2)) in
+    {136}if (SoM3_3 = MAC3_3) then
+    {137}event DN_recv_M3(w_3,SoM3_3,TH3_3);
+    {138}let TH4_3: bitstring = H((TH3_3,PT3_3,GI2)) in
+    {139}let PRKout_3: bitstring = expands(PRK4e3m_3,(lbl_out,TH4_3)) in
+    {140}let MSK_3: bitstring = expands(PRKout_3,lbl_MSK) in
+    {141}let EMSK_3: bitstring = expands(PRKout_3,lbl_EMSK) in
+    {142}event DN_finish(w_3,MSK_3,EMSK_3);
+    {143}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {144}out(c, AEAD_enc(EMSK_3,EMSK_test))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new i1: exponent;
+{2}let GI1: G = exp(g,i1) in
+{3}out(c, GI1);
+{4}new r1: exponent;
+{5}let GR1: G = exp(g,r1) in
+{6}out(c, GR1);
+{7}new i2: exponent;
+{8}let GI2: G = exp(g,i2) in
+{9}out(c, GI2);
+{10}new r2: exponent;
+{11}let GR2: G = exp(g,r2) in
+{12}out(c, GR2);
+{13}out(c, i1);
+{14}out(c, r2);
+(
+    {15}!
+    {18}new x: exponent;
+    {19}let GX: G = exp(g,x) in
+    {20}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {16}let w: bitstring = W1 in
+    {21}event UE_send_M1(w,Message1);
+    {22}out(c, Message1);
+    {23}in(c, (GY: G,CT2: bitstring));
+    {24}let TH2: bitstring = H((GY,H(Message1))) in
+    {25}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {26}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {27}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {28}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {29}let PRK3e2m: bitstring = extract(PRK2e,exp(GR1,x)) in
+    {30}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR1)) in
+    {31}if (SoM2 = MAC2) then
+    {32}event UE_recv_M2(w,SoM2,TH2);
+    {17}let i: exponent = i1 in
+    {34}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i)) in
+    {33}let TH3: bitstring = H((TH2,PT2,GR1)) in
+    {35}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI1)) in
+    {36}let SoM3: bitstring = MAC3 in
+    {39}event UE_send_M3(w,SoM3,TH3);
+    {38}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {37}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {40}out(c, AEAD_enc(K3,PT3));
+    {41}let TH4: bitstring = H((TH3,PT3,GI1)) in
+    {42}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {44}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {43}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {45}event UE_finish(w,MSK,EMSK);
+    {46}out(c, AEAD_enc(MSK,app_data_UE));
+    {47}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {48}!
+    {51}in(c, Message1_1: bitstring);
+    {52}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {53}new y: exponent;
+    {54}let GY_1: G = exp(g,y) in
+    {55}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {56}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {50}let r: exponent = r1 in
+    {58}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r)) in
+    {59}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR1)) in
+    {60}let SoM2_1: bitstring = MAC2_1 in
+    {49}let w_1: bitstring = W1 in
+    {62}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {61}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {57}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {63}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {64}in(c, CT3: bitstring);
+    {65}let TH3_1: bitstring = H((TH2_1,PT2_1,GR1)) in
+    {66}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {67}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {68}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {69}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI1,y)) in
+    {70}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI1)) in
+    {71}if (SoM3_1 = MAC3_1) then
+    {72}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {73}let TH4_1: bitstring = H((TH3_1,PT3_1,GI1)) in
+    {74}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {76}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {75}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {77}event DN_finish(w_1,MSK_1,EMSK_1);
+    {78}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {79}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {80}!
+    {83}new x_1: exponent;
+    {84}let GX_2: G = exp(g,x_1) in
+    {85}let Message1_2: bitstring = (M_3,SuitesI,GX_2,CI) in
+    {81}let w_2: bitstring = W2 in
+    {86}event UE_send_M1(w_2,Message1_2);
+    {87}out(c, Message1_2);
+    {88}in(c, (GY_2: G,CT2_1: bitstring));
+    {89}let TH2_2: bitstring = H((GY_2,H(Message1_2))) in
+    {90}let PRK2e_2: bitstring = extract(TH2_2,exp(GY_2,x_1)) in
+    {91}let K2_2: bitstring = expands(PRK2e_2,(lbl_K2,TH2_2)) in
+    {92}let PT2_2: bitstring = AEAD_dec(K2_2,CT2_1) in
+    {93}let (=CR,=ID_CREDR,SoM2_2: bitstring) = PT2_2 in
+    {94}let PRK3e2m_2: bitstring = extract(PRK2e_2,exp(GR2,x_1)) in
+    {95}let MAC2_2: bitstring = expands(PRK3e2m_2,(lbl_MAC2,TH2_2,ID_CREDR,GR2)) in
+    {96}if (SoM2_2 = MAC2_2) then
+    {97}event UE_recv_M2(w_2,SoM2_2,TH2_2);
+    {82}let i_1: exponent = i2 in
+    {99}let PRK4e3m_2: bitstring = extract(PRK3e2m_2,exp(GY_2,i_1)) in
+    {98}let TH3_2: bitstring = H((TH2_2,PT2_2,GR2)) in
+    {100}let MAC3_2: bitstring = expands(PRK4e3m_2,(lbl_MAC3,TH3_2,ID_CREDI,GI2)) in
+    {101}let SoM3_2: bitstring = MAC3_2 in
+    {104}event UE_send_M3(w_2,SoM3_2,TH3_2);
+    {103}let K3_2: bitstring = expands(PRK3e2m_2,(lbl_K3,TH3_2)) in
+    {102}let PT3_2: bitstring = (ID_CREDI,SoM3_2) in
+    {105}out(c, AEAD_enc(K3_2,PT3_2));
+    {106}let TH4_2: bitstring = H((TH3_2,PT3_2,GI2)) in
+    {107}let PRKout_2: bitstring = expands(PRK4e3m_2,(lbl_out,TH4_2)) in
+    {109}let EMSK_2: bitstring = expands(PRKout_2,lbl_EMSK) in
+    {108}let MSK_2: bitstring = expands(PRKout_2,lbl_MSK) in
+    {110}event UE_finish(w_2,MSK_2,EMSK_2);
+    {111}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {112}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {113}!
+    {116}in(c, Message1_3: bitstring);
+    {117}let (=M_3,=SuitesI,GX_3: G,=CI) = Message1_3 in
+    {118}new y_1: exponent;
+    {119}let GY_3: G = exp(g,y_1) in
+    {120}let TH2_3: bitstring = H((GY_3,H(Message1_3))) in
+    {121}let PRK2e_3: bitstring = extract(TH2_3,exp(GX_3,y_1)) in
+    {115}let r_1: exponent = r2 in
+    {123}let PRK3e2m_3: bitstring = extract(PRK2e_3,exp(GX_3,r_1)) in
+    {124}let MAC2_3: bitstring = expands(PRK3e2m_3,(lbl_MAC2,TH2_3,ID_CREDR,GR2)) in
+    {125}let SoM2_3: bitstring = MAC2_3 in
+    {114}let w_3: bitstring = W2 in
+    {127}event DN_send_M2(w_3,SoM2_3,TH2_3);
+    {126}let PT2_3: bitstring = (CR,ID_CREDR,SoM2_3) in
+    {122}let K2_3: bitstring = expands(PRK2e_3,(lbl_K2,TH2_3)) in
+    {128}out(c, (GY_3,AEAD_enc(K2_3,PT2_3)));
+    {129}in(c, CT3_1: bitstring);
+    {130}let TH3_3: bitstring = H((TH2_3,PT2_3,GR2)) in
+    {131}let K3_3: bitstring = expands(PRK3e2m_3,(lbl_K3,TH3_3)) in
+    {132}let PT3_3: bitstring = AEAD_dec(K3_3,CT3_1) in
+    {133}let (=ID_CREDI,SoM3_3: bitstring) = PT3_3 in
+    {134}let PRK4e3m_3: bitstring = extract(PRK3e2m_3,exp(GI2,y_1)) in
+    {135}let MAC3_3: bitstring = expands(PRK4e3m_3,(lbl_MAC3,TH3_3,ID_CREDI,GI2)) in
+    {136}if (SoM3_3 = MAC3_3) then
+    {137}event DN_recv_M3(w_3,SoM3_3,TH3_3);
+    {138}let TH4_3: bitstring = H((TH3_3,PT3_3,GI2)) in
+    {139}let PRKout_3: bitstring = expands(PRK4e3m_3,(lbl_out,TH4_3)) in
+    {141}let EMSK_3: bitstring = expands(PRKout_3,lbl_EMSK) in
+    {140}let MSK_3: bitstring = expands(PRKout_3,lbl_MSK) in
+    {142}event DN_finish(w_3,MSK_3,EMSK_3);
+    {143}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {144}out(c, AEAD_enc(EMSK_3,EMSK_test))
+)
+
+-- Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) in process 1.
+Translating the process into Horn clauses...
+select attacker(exp(g,x_2))/-5000
+Completing...
+200 rules inserted. Base: 200 rules (84 with conclusion selected). Queue: 152 rules.
+400 rules inserted. Base: 324 rules (84 with conclusion selected). Queue: 152 rules.
+600 rules inserted. Base: 488 rules (114 with conclusion selected). Queue: 168 rules.
+800 rules inserted. Base: 639 rules (140 with conclusion selected). Queue: 189 rules.
+1000 rules inserted. Base: 810 rules (168 with conclusion selected). Queue: 192 rules.
+1200 rules inserted. Base: 981 rules (172 with conclusion selected). Queue: 186 rules.
+1400 rules inserted. Base: 1141 rules (178 with conclusion selected). Queue: 234 rules.
+1600 rules inserted. Base: 1270 rules (179 with conclusion selected). Queue: 233 rules.
+1800 rules inserted. Base: 1346 rules (180 with conclusion selected). Queue: 264 rules.
+2000 rules inserted. Base: 1466 rules (180 with conclusion selected). Queue: 308 rules.
+2200 rules inserted. Base: 1589 rules (180 with conclusion selected). Queue: 281 rules.
+2400 rules inserted. Base: 1700 rules (180 with conclusion selected). Queue: 262 rules.
+2600 rules inserted. Base: 1834 rules (180 with conclusion selected). Queue: 228 rules.
+2800 rules inserted. Base: 1976 rules (208 with conclusion selected). Queue: 166 rules.
+3000 rules inserted. Base: 2066 rules (216 with conclusion selected). Queue: 164 rules.
+3200 rules inserted. Base: 2172 rules (216 with conclusion selected). Queue: 165 rules.
+3400 rules inserted. Base: 2283 rules (216 with conclusion selected). Queue: 170 rules.
+3600 rules inserted. Base: 2448 rules (216 with conclusion selected). Queue: 152 rules.
+3800 rules inserted. Base: 2536 rules (216 with conclusion selected). Queue: 120 rules.
+4000 rules inserted. Base: 2606 rules (216 with conclusion selected). Queue: 88 rules.
+4200 rules inserted. Base: 2620 rules (216 with conclusion selected). Queue: 74 rules.
+4400 rules inserted. Base: 2499 rules (245 with conclusion selected). Queue: 24 rules.
+4600 rules inserted. Base: 2089 rules (247 with conclusion selected). Queue: 32 rules.
+4800 rules inserted. Base: 2141 rules (247 with conclusion selected). Queue: 28 rules.
+Starting query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t))
+goal reachable: b-inj-event(DN_send_M2(W1,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r1[])),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r1[]))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))),@occ62_1) -> inj-event(UE_recv_M2(W1,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r1[])),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r1[]))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))),@occ32_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_2 = x[!1 = @sid]
+y_2 = y[Message1_1 = (M_3,SuitesI,exp(g,x_2),CI),!1 = @sid_1]
+@occ32_1 = @occ32[CT2 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r1[])),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r1[]))))),GY = exp(g,y_2),!1 = @sid]
+@occ62_1 = @occ62[Message1_1 = (M_3,SuitesI,exp(g,x_2),CI),!1 = @sid_1]
+RESULT inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+-- Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 197 rules (74 with conclusion selected). Queue: 165 rules.
+400 rules inserted. Base: 372 rules (116 with conclusion selected). Queue: 191 rules.
+600 rules inserted. Base: 536 rules (116 with conclusion selected). Queue: 209 rules.
+800 rules inserted. Base: 673 rules (146 with conclusion selected). Queue: 225 rules.
+1000 rules inserted. Base: 814 rules (164 with conclusion selected). Queue: 254 rules.
+1200 rules inserted. Base: 990 rules (176 with conclusion selected). Queue: 272 rules.
+1400 rules inserted. Base: 1158 rules (207 with conclusion selected). Queue: 260 rules.
+1600 rules inserted. Base: 1312 rules (212 with conclusion selected). Queue: 276 rules.
+1800 rules inserted. Base: 1444 rules (212 with conclusion selected). Queue: 327 rules.
+2000 rules inserted. Base: 1534 rules (212 with conclusion selected). Queue: 394 rules.
+2200 rules inserted. Base: 1611 rules (212 with conclusion selected). Queue: 396 rules.
+2400 rules inserted. Base: 1693 rules (212 with conclusion selected). Queue: 405 rules.
+2600 rules inserted. Base: 1759 rules (212 with conclusion selected). Queue: 490 rules.
+2800 rules inserted. Base: 1835 rules (212 with conclusion selected). Queue: 578 rules.
+3000 rules inserted. Base: 1891 rules (212 with conclusion selected). Queue: 628 rules.
+3200 rules inserted. Base: 1941 rules (212 with conclusion selected). Queue: 705 rules.
+3400 rules inserted. Base: 2039 rules (212 with conclusion selected). Queue: 665 rules.
+3600 rules inserted. Base: 2224 rules (212 with conclusion selected). Queue: 504 rules.
+3800 rules inserted. Base: 2361 rules (212 with conclusion selected). Queue: 377 rules.
+4000 rules inserted. Base: 2514 rules (218 with conclusion selected). Queue: 258 rules.
+4200 rules inserted. Base: 2645 rules (266 with conclusion selected). Queue: 252 rules.
+4400 rules inserted. Base: 2754 rules (266 with conclusion selected). Queue: 254 rules.
+4600 rules inserted. Base: 2863 rules (266 with conclusion selected). Queue: 258 rules.
+4800 rules inserted. Base: 2984 rules (266 with conclusion selected). Queue: 269 rules.
+5000 rules inserted. Base: 3064 rules (266 with conclusion selected). Queue: 294 rules.
+5200 rules inserted. Base: 3128 rules (266 with conclusion selected). Queue: 286 rules.
+5400 rules inserted. Base: 3270 rules (266 with conclusion selected). Queue: 219 rules.
+5600 rules inserted. Base: 3415 rules (266 with conclusion selected). Queue: 168 rules.
+5800 rules inserted. Base: 3501 rules (266 with conclusion selected). Queue: 150 rules.
+6000 rules inserted. Base: 3629 rules (266 with conclusion selected). Queue: 144 rules.
+6200 rules inserted. Base: 3687 rules (266 with conclusion selected). Queue: 150 rules.
+6400 rules inserted. Base: 3713 rules (266 with conclusion selected). Queue: 116 rules.
+6600 rules inserted. Base: 3732 rules (299 with conclusion selected). Queue: 291 rules.
+6800 rules inserted. Base: 3812 rules (375 with conclusion selected). Queue: 297 rules.
+7000 rules inserted. Base: 3822 rules (435 with conclusion selected). Queue: 442 rules.
+7200 rules inserted. Base: 3919 rules (506 with conclusion selected). Queue: 521 rules.
+7400 rules inserted. Base: 4042 rules (588 with conclusion selected). Queue: 590 rules.
+7600 rules inserted. Base: 4173 rules (638 with conclusion selected). Queue: 638 rules.
+7800 rules inserted. Base: 4296 rules (712 with conclusion selected). Queue: 556 rules.
+8000 rules inserted. Base: 4422 rules (777 with conclusion selected). Queue: 483 rules.
+8200 rules inserted. Base: 4547 rules (832 with conclusion selected). Queue: 418 rules.
+8400 rules inserted. Base: 4707 rules (832 with conclusion selected). Queue: 418 rules.
+8600 rules inserted. Base: 4818 rules (832 with conclusion selected). Queue: 418 rules.
+8800 rules inserted. Base: 4942 rules (832 with conclusion selected). Queue: 418 rules.
+9000 rules inserted. Base: 5046 rules (836 with conclusion selected). Queue: 412 rules.
+9200 rules inserted. Base: 5116 rules (836 with conclusion selected). Queue: 410 rules.
+9400 rules inserted. Base: 5225 rules (836 with conclusion selected). Queue: 408 rules.
+9600 rules inserted. Base: 5236 rules (840 with conclusion selected). Queue: 400 rules.
+9800 rules inserted. Base: 5266 rules (844 with conclusion selected). Queue: 393 rules.
+10000 rules inserted. Base: 5420 rules (848 with conclusion selected). Queue: 384 rules.
+10200 rules inserted. Base: 5584 rules (852 with conclusion selected). Queue: 376 rules.
+10400 rules inserted. Base: 5784 rules (860 with conclusion selected). Queue: 368 rules.
+10600 rules inserted. Base: 5984 rules (868 with conclusion selected). Queue: 360 rules.
+10800 rules inserted. Base: 6180 rules (868 with conclusion selected). Queue: 360 rules.
+11000 rules inserted. Base: 6368 rules (868 with conclusion selected). Queue: 360 rules.
+11200 rules inserted. Base: 6568 rules (868 with conclusion selected). Queue: 360 rules.
+11400 rules inserted. Base: 6756 rules (868 with conclusion selected). Queue: 360 rules.
+11600 rules inserted. Base: 6918 rules (868 with conclusion selected). Queue: 345 rules.
+11800 rules inserted. Base: 7052 rules (868 with conclusion selected). Queue: 312 rules.
+12000 rules inserted. Base: 7174 rules (868 with conclusion selected). Queue: 283 rules.
+12200 rules inserted. Base: 7286 rules (868 with conclusion selected). Queue: 229 rules.
+12400 rules inserted. Base: 7356 rules (868 with conclusion selected). Queue: 151 rules.
+12600 rules inserted. Base: 6310 rules (868 with conclusion selected). Queue: 63 rules.
+Starting query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t))
+goal reachable: b-inj-event(UE_send_M3(W2,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),exp(exp(g,i2[]),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[]))),ID_CREDI[],exp(g,i2[]))),H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[])))),@occ104_1) -> inj-event(DN_recv_M3(W2,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),exp(exp(g,i2[]),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[]))),ID_CREDI[],exp(g,i2[]))),H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[])))),@occ137_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_2 = x_1[!1 = @sid]
+y_2 = y_1[Message1_3 = (M_3,SuitesI,exp(g,x_2),CI),!1 = @sid_1]
+@occ137_1 = @occ137[CT3_1 = AEAD_enc(expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),exp(exp(g,i2[]),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[])))),exp(g,r2[]))),ID_CREDI[],exp(g,i2[]))))),Message1_3 = (M_3,SuitesI,exp(g,x_2),CI),!1 = @sid_1]
+@occ104_1 = @occ104[CT2_1 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r2[]),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r2[]))))),GY_2 = exp(g,y_2),!1 = @sid]
+RESULT inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query inj-event(UE_recv_M2(W1,x_2,t)) ==> inj-event(DN_send_M2(W1,x_2,t)) is true.
+
+Query inj-event(DN_recv_M3(W2,x_2,t)) ==> inj-event(UE_send_M3(W2,x_2,t)) is true.
+
+--------------------------------------------------------------
+

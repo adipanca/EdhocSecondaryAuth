@@ -1,0 +1,901 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {8}let w: bitstring = W0 in
+    {9}let i_1: exponent = i in
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {41}let w_1: bitstring = W0 in
+    {42}let r_1: exponent = r in
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new i: exponent;
+{2}let GI: G = exp(g,i) in
+{3}out(c, GI);
+{4}new r: exponent;
+{5}let GR: G = exp(g,r) in
+{6}out(c, GR);
+(
+    {7}!
+    {10}new x: exponent;
+    {11}let GX: G = exp(g,x) in
+    {12}let Message1: bitstring = (M_3,SuitesI,GX,CI) in
+    {8}let w: bitstring = W0 in
+    {13}event UE_send_M1(w,Message1);
+    {14}out(c, Message1);
+    {15}in(c, (GY: G,CT2: bitstring));
+    {16}let TH2: bitstring = H((GY,H(Message1))) in
+    {17}let PRK2e: bitstring = extract(TH2,exp(GY,x)) in
+    {18}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {19}let PT2: bitstring = AEAD_dec(K2,CT2) in
+    {20}let (=CR,=ID_CREDR,SoM2: bitstring) = PT2 in
+    {21}let PRK3e2m: bitstring = extract(PRK2e,exp(GR,x)) in
+    {22}let MAC2: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,GR)) in
+    {23}if (SoM2 = MAC2) then
+    {24}event UE_recv_M2(w,SoM2,TH2);
+    {9}let i_1: exponent = i in
+    {26}let PRK4e3m: bitstring = extract(PRK3e2m,exp(GY,i_1)) in
+    {25}let TH3: bitstring = H((TH2,PT2,GR)) in
+    {27}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,GI)) in
+    {28}let SoM3: bitstring = MAC3 in
+    {31}event UE_send_M3(w,SoM3,TH3);
+    {30}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {29}let PT3: bitstring = (ID_CREDI,SoM3) in
+    {32}out(c, AEAD_enc(K3,PT3));
+    {33}let TH4: bitstring = H((TH3,PT3,GI)) in
+    {34}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {36}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {35}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {37}event UE_finish(w,MSK,EMSK);
+    {38}out(c, AEAD_enc(MSK,app_data_UE));
+    {39}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {40}!
+    {43}in(c, Message1_1: bitstring);
+    {44}let (=M_3,=SuitesI,GX_1: G,=CI) = Message1_1 in
+    {45}new y: exponent;
+    {46}let GY_1: G = exp(g,y) in
+    {47}let TH2_1: bitstring = H((GY_1,H(Message1_1))) in
+    {48}let PRK2e_1: bitstring = extract(TH2_1,exp(GX_1,y)) in
+    {42}let r_1: exponent = r in
+    {50}let PRK3e2m_1: bitstring = extract(PRK2e_1,exp(GX_1,r_1)) in
+    {51}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,GR)) in
+    {52}let SoM2_1: bitstring = MAC2_1 in
+    {41}let w_1: bitstring = W0 in
+    {54}event DN_send_M2(w_1,SoM2_1,TH2_1);
+    {53}let PT2_1: bitstring = (CR,ID_CREDR,SoM2_1) in
+    {49}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {55}out(c, (GY_1,AEAD_enc(K2_1,PT2_1)));
+    {56}in(c, CT3: bitstring);
+    {57}let TH3_1: bitstring = H((TH2_1,PT2_1,GR)) in
+    {58}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {59}let PT3_1: bitstring = AEAD_dec(K3_1,CT3) in
+    {60}let (=ID_CREDI,SoM3_1: bitstring) = PT3_1 in
+    {61}let PRK4e3m_1: bitstring = extract(PRK3e2m_1,exp(GI,y)) in
+    {62}let MAC3_1: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,ID_CREDI,GI)) in
+    {63}if (SoM3_1 = MAC3_1) then
+    {64}event DN_recv_M3(w_1,SoM3_1,TH3_1);
+    {65}let TH4_1: bitstring = H((TH3_1,PT3_1,GI)) in
+    {66}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {68}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {67}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {69}event DN_finish(w_1,MSK_1,EMSK_1);
+    {70}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {71}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {72}phase 1;
+    {73}out(c, i);
+    {74}out(c, r)
+)
+
+-- Query not event(UE_finish(W0,a,b)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (119 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 380 rules (141 with conclusion selected). Queue: 142 rules.
+600 rules inserted. Base: 525 rules (165 with conclusion selected). Queue: 158 rules.
+800 rules inserted. Base: 696 rules (173 with conclusion selected). Queue: 224 rules.
+1000 rules inserted. Base: 879 rules (189 with conclusion selected). Queue: 283 rules.
+1200 rules inserted. Base: 1039 rules (189 with conclusion selected). Queue: 351 rules.
+1400 rules inserted. Base: 1165 rules (189 with conclusion selected). Queue: 367 rules.
+1600 rules inserted. Base: 1280 rules (189 with conclusion selected). Queue: 378 rules.
+1800 rules inserted. Base: 1363 rules (189 with conclusion selected). Queue: 351 rules.
+2000 rules inserted. Base: 1465 rules (189 with conclusion selected). Queue: 371 rules.
+2200 rules inserted. Base: 1503 rules (189 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1620 rules (189 with conclusion selected). Queue: 415 rules.
+2600 rules inserted. Base: 1718 rules (189 with conclusion selected). Queue: 449 rules.
+2800 rules inserted. Base: 1814 rules (189 with conclusion selected). Queue: 465 rules.
+3000 rules inserted. Base: 2004 rules (189 with conclusion selected). Queue: 370 rules.
+3200 rules inserted. Base: 2181 rules (189 with conclusion selected). Queue: 360 rules.
+3400 rules inserted. Base: 2314 rules (189 with conclusion selected). Queue: 383 rules.
+3600 rules inserted. Base: 2453 rules (189 with conclusion selected). Queue: 398 rules.
+3800 rules inserted. Base: 2584 rules (189 with conclusion selected). Queue: 418 rules.
+4000 rules inserted. Base: 2723 rules (189 with conclusion selected). Queue: 422 rules.
+4200 rules inserted. Base: 2831 rules (189 with conclusion selected). Queue: 414 rules.
+4400 rules inserted. Base: 2933 rules (189 with conclusion selected). Queue: 413 rules.
+4600 rules inserted. Base: 3073 rules (189 with conclusion selected). Queue: 449 rules.
+4800 rules inserted. Base: 3218 rules (189 with conclusion selected). Queue: 476 rules.
+5000 rules inserted. Base: 3318 rules (189 with conclusion selected). Queue: 518 rules.
+5200 rules inserted. Base: 3390 rules (189 with conclusion selected). Queue: 470 rules.
+5400 rules inserted. Base: 3524 rules (189 with conclusion selected). Queue: 484 rules.
+5600 rules inserted. Base: 3651 rules (189 with conclusion selected). Queue: 479 rules.
+5800 rules inserted. Base: 3782 rules (189 with conclusion selected). Queue: 459 rules.
+6000 rules inserted. Base: 3856 rules (189 with conclusion selected). Queue: 424 rules.
+6200 rules inserted. Base: 3965 rules (189 with conclusion selected). Queue: 383 rules.
+6400 rules inserted. Base: 4057 rules (189 with conclusion selected). Queue: 323 rules.
+6600 rules inserted. Base: 4140 rules (189 with conclusion selected). Queue: 237 rules.
+6800 rules inserted. Base: 4193 rules (189 with conclusion selected). Queue: 133 rules.
+7000 rules inserted. Base: 4193 rules (189 with conclusion selected). Queue: 42 rules.
+Starting query not event(UE_finish(W0,a,b))
+goal reachable: event(UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+1. Using the function CI the attacker may obtain CI.
+attacker(CI).
+
+2. The message (M_3,SuitesI,exp(g,x_1),CI) may be sent to the attacker at output {14}.
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+3. By 2, the attacker may know (M_3,SuitesI,exp(g,x_1),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_1).
+attacker(exp(g,x_1)).
+
+4. Using the function SuitesI the attacker may obtain SuitesI.
+attacker(SuitesI).
+
+5. Using the function M_3 the attacker may obtain M_3.
+attacker(M_3).
+
+6. By 5, the attacker may know M_3.
+By 4, the attacker may know SuitesI.
+By 3, the attacker may know exp(g,x_1).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_3,SuitesI,exp(g,x_1),CI).
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+7. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+8. By 7, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+
+9. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+10. By 9, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_1).
+attacker(exp(g,y_1)).
+
+11. By 10, the attacker may know exp(g,y_1).
+By 8, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+12. The message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) that the attacker may have by 11 may be received at input {15}.
+So event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK)) may be executed at {37}.
+event(UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+
+13. By 12, event(UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+The goal is reached, represented in the following fact:
+event(UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new i: exponent creating i_2 at {1}
+
+out(c, ~M) with ~M = exp(g,i_2) at {3}
+
+new r: exponent creating r_2 at {4}
+
+out(c, ~M_1) with ~M_1 = exp(g,r_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) at {13} in copy a
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = M_3, ~M_3 = SuitesI, ~M_4 = exp(g,x_2), ~M_5 = CI at {14} in copy a
+
+in(c, (M_3,SuitesI,~M_4,CI)) with ~M_4 = exp(g,x_2) at {43} in copy a_1
+
+new y: exponent creating y_2 at {45} in copy a_1
+
+event DN_send_M2(W0,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))) at {54} in copy a_1
+
+out(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))))) at {55} in copy a_1
+
+in(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))))) at {15} in copy a
+
+event UE_recv_M2(W0,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))) at {24} in copy a
+
+event UE_send_M3(W0,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))),H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2)))) at {31} in copy a
+
+out(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))))) at {32} in copy a
+
+event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) at {37} in copy a (goal)
+
+The event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) is executed at {37} in copy a.
+A trace has been found.
+RESULT not event(UE_finish(W0,a,b)) is false.
+-- Query not event(DN_finish(W0,a,b)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (120 with conclusion selected). Queue: 80 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 126 rules.
+600 rules inserted. Base: 530 rules (165 with conclusion selected). Queue: 176 rules.
+800 rules inserted. Base: 696 rules (168 with conclusion selected). Queue: 239 rules.
+1000 rules inserted. Base: 875 rules (189 with conclusion selected). Queue: 291 rules.
+1200 rules inserted. Base: 1037 rules (189 with conclusion selected). Queue: 345 rules.
+1400 rules inserted. Base: 1165 rules (189 with conclusion selected). Queue: 373 rules.
+1600 rules inserted. Base: 1280 rules (189 with conclusion selected). Queue: 357 rules.
+1800 rules inserted. Base: 1353 rules (189 with conclusion selected). Queue: 329 rules.
+2000 rules inserted. Base: 1458 rules (189 with conclusion selected). Queue: 352 rules.
+2200 rules inserted. Base: 1543 rules (189 with conclusion selected). Queue: 391 rules.
+2400 rules inserted. Base: 1664 rules (189 with conclusion selected). Queue: 417 rules.
+2600 rules inserted. Base: 1733 rules (189 with conclusion selected). Queue: 444 rules.
+2800 rules inserted. Base: 1864 rules (189 with conclusion selected). Queue: 484 rules.
+3000 rules inserted. Base: 2050 rules (189 with conclusion selected). Queue: 386 rules.
+3200 rules inserted. Base: 2219 rules (189 with conclusion selected). Queue: 394 rules.
+3400 rules inserted. Base: 2342 rules (189 with conclusion selected). Queue: 408 rules.
+3600 rules inserted. Base: 2463 rules (189 with conclusion selected). Queue: 426 rules.
+3800 rules inserted. Base: 2597 rules (189 with conclusion selected). Queue: 440 rules.
+4000 rules inserted. Base: 2720 rules (189 with conclusion selected). Queue: 445 rules.
+4200 rules inserted. Base: 2820 rules (189 with conclusion selected). Queue: 428 rules.
+4400 rules inserted. Base: 2929 rules (189 with conclusion selected). Queue: 424 rules.
+4600 rules inserted. Base: 3075 rules (189 with conclusion selected). Queue: 471 rules.
+4800 rules inserted. Base: 3214 rules (189 with conclusion selected). Queue: 495 rules.
+5000 rules inserted. Base: 3284 rules (189 with conclusion selected). Queue: 526 rules.
+5200 rules inserted. Base: 3378 rules (189 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3512 rules (189 with conclusion selected). Queue: 490 rules.
+5600 rules inserted. Base: 3640 rules (189 with conclusion selected). Queue: 486 rules.
+5800 rules inserted. Base: 3771 rules (189 with conclusion selected). Queue: 459 rules.
+6000 rules inserted. Base: 3849 rules (189 with conclusion selected). Queue: 422 rules.
+6200 rules inserted. Base: 3954 rules (189 with conclusion selected). Queue: 386 rules.
+6400 rules inserted. Base: 4047 rules (189 with conclusion selected). Queue: 326 rules.
+6600 rules inserted. Base: 4131 rules (189 with conclusion selected). Queue: 241 rules.
+6800 rules inserted. Base: 4185 rules (189 with conclusion selected). Queue: 136 rules.
+7000 rules inserted. Base: 4182 rules (189 with conclusion selected). Queue: 45 rules.
+Starting query not event(DN_finish(W0,a,b))
+goal reachable: event(DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+
+1. Using the function CI the attacker may obtain CI.
+attacker(CI).
+
+2. The message (M_3,SuitesI,exp(g,x_1),CI) may be sent to the attacker at output {14}.
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+3. By 2, the attacker may know (M_3,SuitesI,exp(g,x_1),CI).
+Using the function 3-proj-4-tuple the attacker may obtain exp(g,x_1).
+attacker(exp(g,x_1)).
+
+4. Using the function SuitesI the attacker may obtain SuitesI.
+attacker(SuitesI).
+
+5. Using the function M_3 the attacker may obtain M_3.
+attacker(M_3).
+
+6. By 5, the attacker may know M_3.
+By 4, the attacker may know SuitesI.
+By 3, the attacker may know exp(g,x_1).
+By 1, the attacker may know CI.
+Using the function 4-tuple the attacker may obtain (M_3,SuitesI,exp(g,x_1),CI).
+attacker((M_3,SuitesI,exp(g,x_1),CI)).
+
+7. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+8. By 7, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 2-proj-2-tuple the attacker may obtain AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+attacker(AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+
+9. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+So the message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) may be sent to the attacker at output {55}.
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+10. By 9, the attacker may know (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,y_1).
+attacker(exp(g,y_1)).
+
+11. By 10, the attacker may know exp(g,y_1).
+By 8, the attacker may know AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))).
+Using the function 2-tuple the attacker may obtain (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))).
+attacker((exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))))).
+
+12. The message (exp(g,y_1),AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))))) that the attacker may have by 11 may be received at input {15}.
+So the message AEAD_enc(expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))) may be sent to the attacker at output {32}.
+attacker(AEAD_enc(expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))))).
+
+13. The message (M_3,SuitesI,exp(g,x_1),CI) that the attacker may have by 6 may be received at input {43}.
+The message AEAD_enc(expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))) that the attacker may have by 12 may be received at input {56}.
+So event DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK)) may be executed at {69}.
+event(DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+
+14. By 13, event(DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+The goal is reached, represented in the following fact:
+event(DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_out,H((H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[])))),exp(g,i[]))))),lbl_EMSK))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new i: exponent creating i_2 at {1}
+
+out(c, ~M) with ~M = exp(g,i_2) at {3}
+
+new r: exponent creating r_2 at {4}
+
+out(c, ~M_1) with ~M_1 = exp(g,r_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) at {13} in copy a
+
+out(c, (~M_2,~M_3,~M_4,~M_5)) with ~M_2 = M_3, ~M_3 = SuitesI, ~M_4 = exp(g,x_2), ~M_5 = CI at {14} in copy a
+
+in(c, (M_3,SuitesI,~M_4,CI)) with ~M_4 = exp(g,x_2) at {43} in copy a_1
+
+new y: exponent creating y_2 at {45} in copy a_1
+
+event DN_send_M2(W0,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))) at {54} in copy a_1
+
+out(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))))) at {55} in copy a_1
+
+in(c, (~M_6,~M_7)) with ~M_6 = exp(g,y_2), ~M_7 = AEAD_enc(expands(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),(lbl_K2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))))) at {15} in copy a
+
+event UE_recv_M2(W0,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2))),H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI))))) at {24} in copy a
+
+event UE_send_M3(W0,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))),H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2)))) at {31} in copy a
+
+out(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))))) at {32} in copy a
+
+event UE_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) at {37} in copy a
+
+out(c, ~M_9) with ~M_9 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),app_data_UE) at {38} in copy a
+
+out(c, ~M_10) with ~M_10 = AEAD_enc(expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,y_2),x_2)),exp(exp(g,r_2),x_2)),exp(exp(g,y_2),i_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),MSK_test) at {39} in copy a
+
+in(c, ~M_8) with ~M_8 = AEAD_enc(expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_K3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))))) at {56} in copy a_1
+
+event DN_recv_M3(W0,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2))),H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2)))) at {64} in copy a_1
+
+event DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,x_2),r_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) at {69} in copy a_1 (goal)
+
+The event DN_finish(W0,expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_MSK),expands(expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_out,H((H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),(ID_CREDI,expands(extract(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),exp(exp(g,i_2),y_2)),(lbl_MAC3,H((H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),exp(exp(g,x_2),y_2)),exp(exp(g,r_2),x_2)),(lbl_MAC2,H((exp(g,y_2),H((M_3,SuitesI,exp(g,x_2),CI)))),ID_CREDR,exp(g,r_2)))),exp(g,r_2))),ID_CREDI,exp(g,i_2)))),exp(g,i_2))))),lbl_EMSK)) is executed at {69} in copy a_1.
+A trace has been found.
+RESULT not event(DN_finish(W0,a,b)) is false.
+-- Query not event(UE_send_M1(W0,m)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 78 rules.
+400 rules inserted. Base: 381 rules (142 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 525 rules (166 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (170 with conclusion selected). Queue: 234 rules.
+1000 rules inserted. Base: 876 rules (182 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (182 with conclusion selected). Queue: 342 rules.
+1400 rules inserted. Base: 1148 rules (182 with conclusion selected). Queue: 366 rules.
+1600 rules inserted. Base: 1256 rules (182 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (182 with conclusion selected). Queue: 331 rules.
+2000 rules inserted. Base: 1416 rules (182 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (182 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (182 with conclusion selected). Queue: 409 rules.
+2600 rules inserted. Base: 1718 rules (182 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (182 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (182 with conclusion selected). Queue: 376 rules.
+3200 rules inserted. Base: 2208 rules (182 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (182 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (182 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (182 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (182 with conclusion selected). Queue: 412 rules.
+4200 rules inserted. Base: 2816 rules (182 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (182 with conclusion selected). Queue: 452 rules.
+4600 rules inserted. Base: 3103 rules (182 with conclusion selected). Queue: 476 rules.
+4800 rules inserted. Base: 3183 rules (182 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (182 with conclusion selected). Queue: 477 rules.
+5200 rules inserted. Base: 3408 rules (182 with conclusion selected). Queue: 477 rules.
+5400 rules inserted. Base: 3541 rules (182 with conclusion selected). Queue: 461 rules.
+5600 rules inserted. Base: 3662 rules (182 with conclusion selected). Queue: 450 rules.
+5800 rules inserted. Base: 3743 rules (182 with conclusion selected). Queue: 414 rules.
+6000 rules inserted. Base: 3841 rules (182 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3952 rules (182 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (182 with conclusion selected). Queue: 218 rules.
+6600 rules inserted. Base: 4078 rules (182 with conclusion selected). Queue: 106 rules.
+6800 rules inserted. Base: 4016 rules (182 with conclusion selected). Queue: 30 rules.
+Starting query not event(UE_send_M1(W0,m))
+goal reachable: event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI)))
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+Derivation:
+Abbreviations:
+x_1 = x[!1 = @sid]
+
+1. Event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI)) may be executed at {13}.
+event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+
+2. By 1, event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+The goal is reached, represented in the following fact:
+event(UE_send_M1(W0,(M_3,SuitesI,exp(g,x_1),CI))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new i: exponent creating i_2 at {1}
+
+out(c, ~M) with ~M = exp(g,i_2) at {3}
+
+new r: exponent creating r_2 at {4}
+
+out(c, ~M_1) with ~M_1 = exp(g,r_2) at {6}
+
+new x: exponent creating x_2 at {10} in copy a
+
+event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) at {13} in copy a (goal)
+
+The event UE_send_M1(W0,(M_3,SuitesI,exp(g,x_2),CI)) is executed at {13} in copy a.
+A trace has been found.
+RESULT not event(UE_send_M1(W0,m)) is false.
+-- Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) in process 1.
+Translating the process into Horn clauses...
+select attacker(exp(g,x_1))/-5000
+Completing...
+200 rules inserted. Base: 200 rules (126 with conclusion selected). Queue: 82 rules.
+400 rules inserted. Base: 343 rules (131 with conclusion selected). Queue: 88 rules.
+600 rules inserted. Base: 510 rules (159 with conclusion selected). Queue: 166 rules.
+800 rules inserted. Base: 695 rules (175 with conclusion selected). Queue: 211 rules.
+1000 rules inserted. Base: 845 rules (175 with conclusion selected). Queue: 256 rules.
+1200 rules inserted. Base: 997 rules (178 with conclusion selected). Queue: 274 rules.
+1400 rules inserted. Base: 1132 rules (178 with conclusion selected). Queue: 275 rules.
+1600 rules inserted. Base: 1253 rules (183 with conclusion selected). Queue: 303 rules.
+1800 rules inserted. Base: 1391 rules (187 with conclusion selected). Queue: 380 rules.
+2000 rules inserted. Base: 1557 rules (187 with conclusion selected). Queue: 421 rules.
+2200 rules inserted. Base: 1729 rules (187 with conclusion selected). Queue: 383 rules.
+2400 rules inserted. Base: 1900 rules (187 with conclusion selected). Queue: 475 rules.
+2600 rules inserted. Base: 2071 rules (187 with conclusion selected). Queue: 549 rules.
+2800 rules inserted. Base: 2220 rules (187 with conclusion selected). Queue: 554 rules.
+3000 rules inserted. Base: 2372 rules (187 with conclusion selected). Queue: 570 rules.
+3200 rules inserted. Base: 2539 rules (187 with conclusion selected). Queue: 599 rules.
+3400 rules inserted. Base: 2709 rules (187 with conclusion selected). Queue: 631 rules.
+3600 rules inserted. Base: 2824 rules (187 with conclusion selected). Queue: 634 rules.
+3800 rules inserted. Base: 2922 rules (187 with conclusion selected). Queue: 625 rules.
+4000 rules inserted. Base: 2990 rules (187 with conclusion selected). Queue: 604 rules.
+4200 rules inserted. Base: 3080 rules (187 with conclusion selected). Queue: 575 rules.
+4400 rules inserted. Base: 3188 rules (187 with conclusion selected). Queue: 566 rules.
+4600 rules inserted. Base: 3338 rules (187 with conclusion selected). Queue: 607 rules.
+4800 rules inserted. Base: 3477 rules (187 with conclusion selected). Queue: 631 rules.
+5000 rules inserted. Base: 3526 rules (187 with conclusion selected). Queue: 657 rules.
+5200 rules inserted. Base: 3579 rules (187 with conclusion selected). Queue: 677 rules.
+5400 rules inserted. Base: 3620 rules (187 with conclusion selected). Queue: 696 rules.
+5600 rules inserted. Base: 3721 rules (187 with conclusion selected). Queue: 737 rules.
+5800 rules inserted. Base: 3841 rules (187 with conclusion selected). Queue: 811 rules.
+6000 rules inserted. Base: 3974 rules (187 with conclusion selected). Queue: 892 rules.
+6200 rules inserted. Base: 4105 rules (187 with conclusion selected). Queue: 966 rules.
+6400 rules inserted. Base: 4191 rules (187 with conclusion selected). Queue: 1011 rules.
+6600 rules inserted. Base: 4280 rules (187 with conclusion selected). Queue: 1070 rules.
+6800 rules inserted. Base: 4368 rules (187 with conclusion selected). Queue: 1116 rules.
+7000 rules inserted. Base: 4449 rules (187 with conclusion selected). Queue: 1154 rules.
+7200 rules inserted. Base: 4537 rules (187 with conclusion selected). Queue: 1202 rules.
+7400 rules inserted. Base: 4605 rules (187 with conclusion selected). Queue: 1185 rules.
+7600 rules inserted. Base: 4689 rules (187 with conclusion selected). Queue: 1194 rules.
+7800 rules inserted. Base: 4763 rules (187 with conclusion selected). Queue: 1205 rules.
+8000 rules inserted. Base: 4848 rules (187 with conclusion selected). Queue: 1236 rules.
+8200 rules inserted. Base: 4945 rules (187 with conclusion selected). Queue: 1276 rules.
+8400 rules inserted. Base: 5017 rules (187 with conclusion selected). Queue: 1248 rules.
+8600 rules inserted. Base: 5089 rules (187 with conclusion selected). Queue: 1256 rules.
+8800 rules inserted. Base: 5178 rules (187 with conclusion selected). Queue: 1243 rules.
+9000 rules inserted. Base: 5243 rules (187 with conclusion selected). Queue: 1224 rules.
+9200 rules inserted. Base: 5315 rules (187 with conclusion selected). Queue: 1218 rules.
+9400 rules inserted. Base: 5402 rules (187 with conclusion selected). Queue: 1217 rules.
+9600 rules inserted. Base: 5473 rules (187 with conclusion selected). Queue: 1182 rules.
+9800 rules inserted. Base: 5515 rules (187 with conclusion selected). Queue: 1119 rules.
+10000 rules inserted. Base: 5560 rules (187 with conclusion selected). Queue: 1045 rules.
+10200 rules inserted. Base: 5623 rules (187 with conclusion selected). Queue: 979 rules.
+10400 rules inserted. Base: 5666 rules (187 with conclusion selected). Queue: 896 rules.
+10600 rules inserted. Base: 5694 rules (187 with conclusion selected). Queue: 824 rules.
+10800 rules inserted. Base: 5698 rules (187 with conclusion selected). Queue: 691 rules.
+11000 rules inserted. Base: 5701 rules (187 with conclusion selected). Queue: 570 rules.
+11200 rules inserted. Base: 5701 rules (187 with conclusion selected). Queue: 447 rules.
+11400 rules inserted. Base: 5733 rules (187 with conclusion selected). Queue: 332 rules.
+11600 rules inserted. Base: 5797 rules (187 with conclusion selected). Queue: 254 rules.
+11800 rules inserted. Base: 5697 rules (187 with conclusion selected). Queue: 168 rules.
+12000 rules inserted. Base: 5579 rules (187 with conclusion selected). Queue: 116 rules.
+12200 rules inserted. Base: 5606 rules (187 with conclusion selected). Queue: 38 rules.
+Starting query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t))
+goal reachable: b-inj-event(DN_send_M2(W0,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))),H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI))))),@occ54_1) -> inj-event(UE_recv_M2(W0,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))),H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI))))),@occ24_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ24_1 = @occ24[CT2 = AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,x_1),r[])),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))),GY = exp(g,y_1),!1 = @sid]
+@occ54_1 = @occ54[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+RESULT inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+-- Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (120 with conclusion selected). Queue: 80 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 126 rules.
+600 rules inserted. Base: 530 rules (165 with conclusion selected). Queue: 184 rules.
+800 rules inserted. Base: 696 rules (165 with conclusion selected). Queue: 251 rules.
+1000 rules inserted. Base: 881 rules (189 with conclusion selected). Queue: 293 rules.
+1200 rules inserted. Base: 1039 rules (189 with conclusion selected). Queue: 356 rules.
+1400 rules inserted. Base: 1165 rules (189 with conclusion selected). Queue: 361 rules.
+1600 rules inserted. Base: 1288 rules (189 with conclusion selected). Queue: 375 rules.
+1800 rules inserted. Base: 1397 rules (189 with conclusion selected). Queue: 346 rules.
+2000 rules inserted. Base: 1491 rules (189 with conclusion selected). Queue: 368 rules.
+2200 rules inserted. Base: 1559 rules (189 with conclusion selected). Queue: 387 rules.
+2400 rules inserted. Base: 1706 rules (189 with conclusion selected). Queue: 448 rules.
+2600 rules inserted. Base: 1787 rules (189 with conclusion selected). Queue: 475 rules.
+2800 rules inserted. Base: 1864 rules (189 with conclusion selected). Queue: 497 rules.
+3000 rules inserted. Base: 2030 rules (189 with conclusion selected). Queue: 507 rules.
+3200 rules inserted. Base: 2212 rules (189 with conclusion selected). Queue: 449 rules.
+3400 rules inserted. Base: 2360 rules (189 with conclusion selected). Queue: 478 rules.
+3600 rules inserted. Base: 2475 rules (189 with conclusion selected). Queue: 495 rules.
+3800 rules inserted. Base: 2590 rules (189 with conclusion selected). Queue: 511 rules.
+4000 rules inserted. Base: 2699 rules (189 with conclusion selected). Queue: 518 rules.
+4200 rules inserted. Base: 2839 rules (189 with conclusion selected). Queue: 524 rules.
+4400 rules inserted. Base: 2937 rules (189 with conclusion selected). Queue: 513 rules.
+4600 rules inserted. Base: 3025 rules (189 with conclusion selected). Queue: 510 rules.
+4800 rules inserted. Base: 3122 rules (189 with conclusion selected). Queue: 523 rules.
+5000 rules inserted. Base: 3253 rules (189 with conclusion selected). Queue: 576 rules.
+5200 rules inserted. Base: 3384 rules (189 with conclusion selected). Queue: 626 rules.
+5400 rules inserted. Base: 3494 rules (189 with conclusion selected). Queue: 710 rules.
+5600 rules inserted. Base: 3575 rules (189 with conclusion selected). Queue: 769 rules.
+5800 rules inserted. Base: 3648 rules (189 with conclusion selected). Queue: 813 rules.
+6000 rules inserted. Base: 3747 rules (189 with conclusion selected). Queue: 863 rules.
+6200 rules inserted. Base: 3855 rules (189 with conclusion selected). Queue: 901 rules.
+6400 rules inserted. Base: 3970 rules (189 with conclusion selected). Queue: 938 rules.
+6600 rules inserted. Base: 4086 rules (189 with conclusion selected). Queue: 995 rules.
+6800 rules inserted. Base: 4191 rules (189 with conclusion selected). Queue: 1043 rules.
+7000 rules inserted. Base: 4273 rules (189 with conclusion selected). Queue: 1060 rules.
+7200 rules inserted. Base: 4360 rules (189 with conclusion selected). Queue: 1072 rules.
+7400 rules inserted. Base: 4430 rules (189 with conclusion selected). Queue: 1096 rules.
+7600 rules inserted. Base: 4496 rules (189 with conclusion selected). Queue: 1116 rules.
+7800 rules inserted. Base: 4560 rules (189 with conclusion selected). Queue: 1118 rules.
+8000 rules inserted. Base: 4629 rules (189 with conclusion selected). Queue: 1131 rules.
+8200 rules inserted. Base: 4696 rules (189 with conclusion selected). Queue: 1118 rules.
+8400 rules inserted. Base: 4753 rules (189 with conclusion selected). Queue: 1095 rules.
+8600 rules inserted. Base: 4803 rules (189 with conclusion selected). Queue: 1076 rules.
+8800 rules inserted. Base: 4862 rules (189 with conclusion selected). Queue: 1069 rules.
+9000 rules inserted. Base: 4925 rules (189 with conclusion selected). Queue: 1043 rules.
+9200 rules inserted. Base: 4980 rules (189 with conclusion selected). Queue: 988 rules.
+9400 rules inserted. Base: 5031 rules (189 with conclusion selected). Queue: 939 rules.
+9600 rules inserted. Base: 5083 rules (189 with conclusion selected). Queue: 903 rules.
+9800 rules inserted. Base: 5121 rules (189 with conclusion selected). Queue: 855 rules.
+10000 rules inserted. Base: 5178 rules (189 with conclusion selected). Queue: 805 rules.
+10200 rules inserted. Base: 5204 rules (189 with conclusion selected). Queue: 736 rules.
+10400 rules inserted. Base: 5231 rules (189 with conclusion selected). Queue: 684 rules.
+10600 rules inserted. Base: 5268 rules (189 with conclusion selected). Queue: 624 rules.
+10800 rules inserted. Base: 5292 rules (189 with conclusion selected). Queue: 565 rules.
+11000 rules inserted. Base: 5295 rules (189 with conclusion selected). Queue: 479 rules.
+11200 rules inserted. Base: 5309 rules (189 with conclusion selected). Queue: 413 rules.
+11400 rules inserted. Base: 5334 rules (189 with conclusion selected). Queue: 353 rules.
+11600 rules inserted. Base: 5376 rules (189 with conclusion selected). Queue: 314 rules.
+11800 rules inserted. Base: 5367 rules (189 with conclusion selected). Queue: 244 rules.
+12000 rules inserted. Base: 5391 rules (189 with conclusion selected). Queue: 173 rules.
+12200 rules inserted. Base: 5413 rules (189 with conclusion selected). Queue: 98 rules.
+Starting query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t))
+goal reachable: b-inj-event(UE_send_M3(W0,expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))),H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))),@occ31_1) -> inj-event(DN_recv_M3(W0,expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))),H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[])))),@occ64_1)
+The hypothesis occurs strictly before the conclusion.
+Abbreviations:
+x_1 = x[!1 = @sid]
+y_1 = y[Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ64_1 = @occ64[CT3 = AEAD_enc(expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_K3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))))),(ID_CREDI[],expands(extract(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),exp(exp(g,i[]),y_1)),(lbl_MAC3,H((H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[])))),exp(g,r[]))),ID_CREDI[],exp(g,i[]))))),Message1_1 = (M_3,SuitesI,exp(g,x_1),CI),!1 = @sid_1]
+@occ31_1 = @occ31[CT2 = AEAD_enc(expands(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),(lbl_K2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))))),(CR,ID_CREDR,expands(extract(extract(H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),exp(exp(g,x_1),y_1)),exp(exp(g,r[]),x_1)),(lbl_MAC2,H((exp(g,y_1),H((M_3,SuitesI,exp(g,x_1),CI)))),ID_CREDR,exp(g,r[]))))),GY = exp(g,y_1),!1 = @sid]
+RESULT inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+-- Query not attacker_p1(ID_CREDI[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 524 rules (165 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (169 with conclusion selected). Queue: 233 rules.
+1000 rules inserted. Base: 876 rules (181 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (181 with conclusion selected). Queue: 343 rules.
+1400 rules inserted. Base: 1148 rules (181 with conclusion selected). Queue: 365 rules.
+1600 rules inserted. Base: 1256 rules (181 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (181 with conclusion selected). Queue: 332 rules.
+2000 rules inserted. Base: 1415 rules (181 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (181 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (181 with conclusion selected). Queue: 410 rules.
+2600 rules inserted. Base: 1717 rules (181 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (181 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (181 with conclusion selected). Queue: 377 rules.
+3200 rules inserted. Base: 2207 rules (181 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (181 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (181 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (181 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (181 with conclusion selected). Queue: 414 rules.
+4200 rules inserted. Base: 2815 rules (181 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (181 with conclusion selected). Queue: 451 rules.
+4600 rules inserted. Base: 3103 rules (181 with conclusion selected). Queue: 477 rules.
+4800 rules inserted. Base: 3180 rules (181 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (181 with conclusion selected). Queue: 476 rules.
+5200 rules inserted. Base: 3408 rules (181 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3541 rules (181 with conclusion selected). Queue: 460 rules.
+5600 rules inserted. Base: 3661 rules (181 with conclusion selected). Queue: 449 rules.
+5800 rules inserted. Base: 3742 rules (181 with conclusion selected). Queue: 413 rules.
+6000 rules inserted. Base: 3841 rules (181 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3951 rules (181 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (181 with conclusion selected). Queue: 217 rules.
+6600 rules inserted. Base: 4078 rules (181 with conclusion selected). Queue: 105 rules.
+6800 rules inserted. Base: 4016 rules (181 with conclusion selected). Queue: 30 rules.
+Starting query not attacker_p1(ID_CREDI[])
+RESULT not attacker_p1(ID_CREDI[]) is true.
+-- Query not attacker_p1(app_data_UE[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 524 rules (165 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (169 with conclusion selected). Queue: 233 rules.
+1000 rules inserted. Base: 876 rules (181 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (181 with conclusion selected). Queue: 343 rules.
+1400 rules inserted. Base: 1148 rules (181 with conclusion selected). Queue: 365 rules.
+1600 rules inserted. Base: 1256 rules (181 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (181 with conclusion selected). Queue: 332 rules.
+2000 rules inserted. Base: 1415 rules (181 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (181 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (181 with conclusion selected). Queue: 410 rules.
+2600 rules inserted. Base: 1717 rules (181 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (181 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (181 with conclusion selected). Queue: 377 rules.
+3200 rules inserted. Base: 2207 rules (181 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (181 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (181 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (181 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (181 with conclusion selected). Queue: 414 rules.
+4200 rules inserted. Base: 2815 rules (181 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (181 with conclusion selected). Queue: 451 rules.
+4600 rules inserted. Base: 3103 rules (181 with conclusion selected). Queue: 477 rules.
+4800 rules inserted. Base: 3180 rules (181 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (181 with conclusion selected). Queue: 476 rules.
+5200 rules inserted. Base: 3408 rules (181 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3541 rules (181 with conclusion selected). Queue: 460 rules.
+5600 rules inserted. Base: 3661 rules (181 with conclusion selected). Queue: 449 rules.
+5800 rules inserted. Base: 3742 rules (181 with conclusion selected). Queue: 413 rules.
+6000 rules inserted. Base: 3841 rules (181 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3951 rules (181 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (181 with conclusion selected). Queue: 217 rules.
+6600 rules inserted. Base: 4078 rules (181 with conclusion selected). Queue: 105 rules.
+6800 rules inserted. Base: 4016 rules (181 with conclusion selected). Queue: 30 rules.
+Starting query not attacker_p1(app_data_UE[])
+RESULT not attacker_p1(app_data_UE[]) is true.
+-- Query not attacker_p1(app_data_DN[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 524 rules (165 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (169 with conclusion selected). Queue: 233 rules.
+1000 rules inserted. Base: 876 rules (181 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (181 with conclusion selected). Queue: 343 rules.
+1400 rules inserted. Base: 1148 rules (181 with conclusion selected). Queue: 365 rules.
+1600 rules inserted. Base: 1256 rules (181 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (181 with conclusion selected). Queue: 332 rules.
+2000 rules inserted. Base: 1415 rules (181 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (181 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (181 with conclusion selected). Queue: 410 rules.
+2600 rules inserted. Base: 1717 rules (181 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (181 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (181 with conclusion selected). Queue: 377 rules.
+3200 rules inserted. Base: 2207 rules (181 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (181 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (181 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (181 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (181 with conclusion selected). Queue: 414 rules.
+4200 rules inserted. Base: 2815 rules (181 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (181 with conclusion selected). Queue: 451 rules.
+4600 rules inserted. Base: 3103 rules (181 with conclusion selected). Queue: 477 rules.
+4800 rules inserted. Base: 3180 rules (181 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (181 with conclusion selected). Queue: 476 rules.
+5200 rules inserted. Base: 3408 rules (181 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3541 rules (181 with conclusion selected). Queue: 460 rules.
+5600 rules inserted. Base: 3661 rules (181 with conclusion selected). Queue: 449 rules.
+5800 rules inserted. Base: 3742 rules (181 with conclusion selected). Queue: 413 rules.
+6000 rules inserted. Base: 3841 rules (181 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3951 rules (181 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (181 with conclusion selected). Queue: 217 rules.
+6600 rules inserted. Base: 4078 rules (181 with conclusion selected). Queue: 105 rules.
+6800 rules inserted. Base: 4016 rules (181 with conclusion selected). Queue: 30 rules.
+Starting query not attacker_p1(app_data_DN[])
+RESULT not attacker_p1(app_data_DN[]) is true.
+-- Query not attacker_p1(MSK_test[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 524 rules (165 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (169 with conclusion selected). Queue: 233 rules.
+1000 rules inserted. Base: 876 rules (181 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (181 with conclusion selected). Queue: 343 rules.
+1400 rules inserted. Base: 1148 rules (181 with conclusion selected). Queue: 365 rules.
+1600 rules inserted. Base: 1256 rules (181 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (181 with conclusion selected). Queue: 332 rules.
+2000 rules inserted. Base: 1415 rules (181 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (181 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (181 with conclusion selected). Queue: 410 rules.
+2600 rules inserted. Base: 1717 rules (181 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (181 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (181 with conclusion selected). Queue: 377 rules.
+3200 rules inserted. Base: 2207 rules (181 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (181 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (181 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (181 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (181 with conclusion selected). Queue: 414 rules.
+4200 rules inserted. Base: 2815 rules (181 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (181 with conclusion selected). Queue: 451 rules.
+4600 rules inserted. Base: 3103 rules (181 with conclusion selected). Queue: 477 rules.
+4800 rules inserted. Base: 3180 rules (181 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (181 with conclusion selected). Queue: 476 rules.
+5200 rules inserted. Base: 3408 rules (181 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3541 rules (181 with conclusion selected). Queue: 460 rules.
+5600 rules inserted. Base: 3661 rules (181 with conclusion selected). Queue: 449 rules.
+5800 rules inserted. Base: 3742 rules (181 with conclusion selected). Queue: 413 rules.
+6000 rules inserted. Base: 3841 rules (181 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3951 rules (181 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (181 with conclusion selected). Queue: 217 rules.
+6600 rules inserted. Base: 4078 rules (181 with conclusion selected). Queue: 105 rules.
+6800 rules inserted. Base: 4016 rules (181 with conclusion selected). Queue: 30 rules.
+Starting query not attacker_p1(MSK_test[])
+RESULT not attacker_p1(MSK_test[]) is true.
+-- Query not attacker_p1(EMSK_test[]) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 200 rules (122 with conclusion selected). Queue: 77 rules.
+400 rules inserted. Base: 381 rules (141 with conclusion selected). Queue: 119 rules.
+600 rules inserted. Base: 524 rules (165 with conclusion selected). Queue: 167 rules.
+800 rules inserted. Base: 707 rules (169 with conclusion selected). Queue: 233 rules.
+1000 rules inserted. Base: 876 rules (181 with conclusion selected). Queue: 296 rules.
+1200 rules inserted. Base: 1024 rules (181 with conclusion selected). Queue: 343 rules.
+1400 rules inserted. Base: 1148 rules (181 with conclusion selected). Queue: 365 rules.
+1600 rules inserted. Base: 1256 rules (181 with conclusion selected). Queue: 317 rules.
+1800 rules inserted. Base: 1336 rules (181 with conclusion selected). Queue: 332 rules.
+2000 rules inserted. Base: 1415 rules (181 with conclusion selected). Queue: 344 rules.
+2200 rules inserted. Base: 1535 rules (181 with conclusion selected). Queue: 386 rules.
+2400 rules inserted. Base: 1621 rules (181 with conclusion selected). Queue: 410 rules.
+2600 rules inserted. Base: 1717 rules (181 with conclusion selected). Queue: 426 rules.
+2800 rules inserted. Base: 1906 rules (181 with conclusion selected). Queue: 346 rules.
+3000 rules inserted. Base: 2080 rules (181 with conclusion selected). Queue: 377 rules.
+3200 rules inserted. Base: 2207 rules (181 with conclusion selected). Queue: 385 rules.
+3400 rules inserted. Base: 2337 rules (181 with conclusion selected). Queue: 412 rules.
+3600 rules inserted. Base: 2469 rules (181 with conclusion selected). Queue: 418 rules.
+3800 rules inserted. Base: 2603 rules (181 with conclusion selected). Queue: 425 rules.
+4000 rules inserted. Base: 2707 rules (181 with conclusion selected). Queue: 414 rules.
+4200 rules inserted. Base: 2815 rules (181 with conclusion selected). Queue: 408 rules.
+4400 rules inserted. Base: 2963 rules (181 with conclusion selected). Queue: 451 rules.
+4600 rules inserted. Base: 3103 rules (181 with conclusion selected). Queue: 477 rules.
+4800 rules inserted. Base: 3180 rules (181 with conclusion selected). Queue: 504 rules.
+5000 rules inserted. Base: 3276 rules (181 with conclusion selected). Queue: 476 rules.
+5200 rules inserted. Base: 3408 rules (181 with conclusion selected). Queue: 478 rules.
+5400 rules inserted. Base: 3541 rules (181 with conclusion selected). Queue: 460 rules.
+5600 rules inserted. Base: 3661 rules (181 with conclusion selected). Queue: 449 rules.
+5800 rules inserted. Base: 3742 rules (181 with conclusion selected). Queue: 413 rules.
+6000 rules inserted. Base: 3841 rules (181 with conclusion selected). Queue: 367 rules.
+6200 rules inserted. Base: 3951 rules (181 with conclusion selected). Queue: 298 rules.
+6400 rules inserted. Base: 4017 rules (181 with conclusion selected). Queue: 217 rules.
+6600 rules inserted. Base: 4078 rules (181 with conclusion selected). Queue: 105 rules.
+6800 rules inserted. Base: 4016 rules (181 with conclusion selected). Queue: 30 rules.
+Starting query not attacker_p1(EMSK_test[])
+RESULT not attacker_p1(EMSK_test[]) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not event(UE_finish(W0,a,b)) is false.
+
+Query not event(DN_finish(W0,a,b)) is false.
+
+Query not event(UE_send_M1(W0,m)) is false.
+
+Query inj-event(UE_recv_M2(W0,x_1,t)) ==> inj-event(DN_send_M2(W0,x_1,t)) is true.
+
+Query inj-event(DN_recv_M3(W0,x_1,t)) ==> inj-event(UE_send_M3(W0,x_1,t)) is true.
+
+Query not attacker_p1(ID_CREDI[]) is true.
+
+Query not attacker_p1(app_data_UE[]) is true.
+
+Query not attacker_p1(app_data_DN[]) is true.
+
+Query not attacker_p1(MSK_test[]) is true.
+
+Query not attacker_p1(EMSK_test[]) is true.
+
+--------------------------------------------------------------
+
