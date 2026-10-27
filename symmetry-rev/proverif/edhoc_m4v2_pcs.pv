@@ -214,6 +214,7 @@ process
   new B_pq:kemsk; new B_x:exponent; new skSigR:mdsk;
   let pkSigI = mdpub(skSigI) in let pkSigR = mdpub(skSigR) in
   out(c, (xwpk(A_pq, A_x), xwpk(B_pq, B_x), pkSigI, pkSigR));
+  out(c, ID_CREDR);   (* responder identity public here so authentication is not vacuous *)
   (* compromise: the OLD one-time X-Wing keys of both parties *)
   out(c, (A_pq, A_x, B_pq, B_x));
   (* each epoch-1 run hands one fresh rotated key pair to each party *)

@@ -33,16 +33,16 @@ edhoc_m4v2_quantum.pv
 ==================================================================
 edhoc_m4v2_kci.pv
   query     time  peakmem  result
-  q1       2.4s    359MB  inj-event(UE_recv_M2(W1,x,t)) ==> inj-event(DN_send_M2(W1,x,t)) is true.
-  q2       5.0s    897MB  inj-event(UE_recv_M4(W1,x,t)) ==> inj-event(DN_send_M4(W1,x,t)) is true.
-  q3       2.9s    501MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+  q1       2.3s    359MB  inj-event(UE_recv_M2(W1,x,t)) ==> inj-event(DN_send_M2(W1,x,t)) is true.
+  q2       4.8s    896MB  inj-event(UE_recv_M4(W1,x,t)) ==> inj-event(DN_send_M4(W1,x,t)) is true.
+  q3       2.7s    501MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
 ==================================================================
 edhoc_m4v2_pcs.pv
   query     time  peakmem  result
   q1       0.3s     93MB  not event(UE_finish(W2,a,b)) is false.
-  q2       0.4s    102MB  inj-event(UE_recv_M2(W2,x,t)) ==> inj-event(DN_send_M2(W2,x,t)) is true.
-  q3       0.5s    130MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
-  q4       1.0s    260MB  inj-event(UE_recv_M4(W2,x,t)) ==> inj-event(DN_send_M4(W2,x,t)) is true.
+  q2       0.3s    103MB  inj-event(UE_recv_M2(W2,x,t)) ==> inj-event(DN_send_M2(W2,x,t)) is true.
+  q3       0.4s    130MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+  q4       0.9s    256MB  inj-event(UE_recv_M4(W2,x,t)) ==> inj-event(DN_send_M4(W2,x,t)) is true.
   q5       0.3s     73MB  not attacker(MSK_test2[]) is true.
   q6       0.2s     73MB  not attacker(EMSK_test2[]) is true.
 ==================================================================

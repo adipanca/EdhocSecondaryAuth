@@ -236,9 +236,11 @@ kci_main = ("process\n" + keys("1") + keys("2") +
             "  (\n      ( ! UE(W1, A_pq1, A_x1, pkB1, skSigI1, pkSigI1, pkSigR1) )\n"
             "    | ( ! DN(W1, B_pq1, B_x1, pkA1, skSigR1, pkSigR1, pkSigI1) )\n"
             "    | ( ! UE(W2, A_pq2, A_x2, pkB2, skSigI2, pkSigI2, pkSigR2) )\n"
-            "    | ( ! DN(W2, B_pq2, B_x2, pkA2, skSigR2, pkSigR2, pkSigI2) )\n  )\n")
+            "    | ( ! DN(W2, B_pq2, B_x2, pkA2, skSigR2, pkSigR2, pkSigI2) )\n"
+            "    | QXW   (* quantum oracle: KCI must hold against a quantum adversary too *)\n  )\n")
 files.append(write("edhoc_m4v2_kci.pv",
-    "Key-Compromise Impersonation: victim's long-term keys leaked from the start (W1: UE, W2: DN)",
+    "Key-Compromise Impersonation: victim's long-term keys leaked from the start (W1: UE, W2: DN),\n"
+    " *           quantum oracle (X25519 half of X-Wing) available",
     "all queries true", kci_q, procs(UE_T, DN_T), kci_main))
 
 # ---- PCS (same abstraction as edhoc_m4_hybrid_pcs.pv)
@@ -256,6 +258,7 @@ pcs_main = """process
   new B_pq:kemsk; new B_x:exponent; new skSigR:mdsk;
   let pkSigI = mdpub(skSigI) in let pkSigR = mdpub(skSigR) in
   out(c, (xwpk(A_pq, A_x), xwpk(B_pq, B_x), pkSigI, pkSigR));
+  out(c, ID_CREDR);   (* responder identity public here so authentication is not vacuous *)
   (* compromise: the OLD one-time X-Wing keys of both parties *)
   out(c, (A_pq, A_x, B_pq, B_x));
   (* each epoch-1 run hands one fresh rotated key pair to each party *)

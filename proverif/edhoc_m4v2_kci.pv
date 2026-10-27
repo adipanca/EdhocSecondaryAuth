@@ -2,7 +2,8 @@
  * edhoc_m4v2_kci.pv
  * Variant : Revised proposed EAP-EDHOC hybrid PQC (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 SIGMA gate),
  *           no ephemeral X-Wing: ct_B in Message1, ct_A in Message2, one-time static keys
- * Setting : Key-Compromise Impersonation: victim's long-term keys leaked from the start (W1: UE, W2: DN)
+ * Setting : Key-Compromise Impersonation: victim's long-term keys leaked from the start (W1: UE, W2: DN),
+ *           quantum oracle (X25519 half of X-Wing) available
  * Model   : symbolic (Dolev-Yao), ProVerif 2.05. X-Wing uses the same compact
  *           abstraction as edhoc_m4_hybrid_*.pv (no DH equational theory).
  * Part of : EdhocSecondaryAuth -- ProVerif models for
@@ -228,4 +229,5 @@ process
     | ( ! DN(W1, B_pq1, B_x1, pkA1, skSigR1, pkSigR1, pkSigI1) )
     | ( ! UE(W2, A_pq2, A_x2, pkB2, skSigI2, pkSigI2, pkSigR2) )
     | ( ! DN(W2, B_pq2, B_x2, pkA2, skSigR2, pkSigR2, pkSigI2) )
+    | QXW   (* quantum oracle: KCI must hold against a quantum adversary too *)
   )

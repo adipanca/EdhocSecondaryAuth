@@ -22,7 +22,7 @@ All files target **ProVerif 2.05**. Run them with:
 |---|---|---|
 | `edhoc_m4v2_classical.pv` | Each run uses a one-time static key pair per party. In phase 1 the attacker gets the **post-run state** (the rotated X-Wing keys) and both ML-DSA signing keys. | Q0/Q1 false (reachable); Q2–Q4 true; Q5, Q5b, Q6–Q9 true |
 | `edhoc_m4v2_quantum.pv` | Same as classical, plus the X25519 discrete-log oracle in every phase. | Same as classical |
-| `edhoc_m4v2_kci.pv` | W1: the UE's long-term keys leak from the start. W2: the DN's long-term keys leak from the start. Same structure as `edhoc_m4_hybrid_kci.pv`. | All queries true |
+| `edhoc_m4v2_kci.pv` | W1: the UE's long-term keys leak from the start. W2: the DN's long-term keys leak from the start. Same structure as `edhoc_m4_hybrid_kci.pv`, plus the quantum oracle `QXW`. | All queries true |
 | `edhoc_m4v2_pcs.pv` | The old one-time keys of both parties are known from the start; every run uses a fresh rotated key pair per party. Same abstraction as `edhoc_m4_hybrid_pcs.pv` (epoch 1 is covered by Q3/Q4/Q8/Q9 of `_classical`). | Sanity query false (reachable); Q2–Q4 (W2), Q10, Q11 true |
 | `edhoc_m4v2_fs_noerase.pv` | **Negative control.** Same as classical, but the old one-time keys are **not** erased and also leak in phase 1. | **Q5, Q5b, Q6–Q9 false.** Secrecy only: Q2–Q4 are omitted |
 
@@ -70,8 +70,8 @@ Full table with time and peak memory per query: `results/SUMMARY_v2.txt`.
 |---|---|---|
 | `_classical` | 12/12 as expected | Q4: 7.1 s, 2.0 GB |
 | `_quantum` | 12/12 as expected | Q4: 6.7 s, 2.0 GB |
-| `_kci` | 3/3 true | 5.0 s, 0.9 GB |
-| `_pcs` | 6/6 as expected | 1.0 s, 0.3 GB |
+| `_kci` | 3/3 true | 4.8 s, 0.9 GB |
+| `_pcs` | 6/6 as expected | 0.9 s, 0.3 GB |
 | `_fs_noerase` | 9/9 as expected: Q0/Q1 false (reachable); **Q5, Q5b, Q6–Q9 false** as the negative control requires | 3.6 s, 0.5 GB per query |
 
 The negative control queries only secrecy. Its extra keys leak in phase 1, after every phase-0 authentication event, so its Q2–Q4 coincide with those of `_classical`. An earlier version that kept Q2–Q4 did not terminate (stopped after ~36 min / out of memory at 4.5 GB).
