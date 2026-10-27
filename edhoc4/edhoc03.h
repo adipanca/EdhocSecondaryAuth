@@ -11,7 +11,7 @@
  *
  * Key establishment : ephemeral X25519 ECDH (G_X / G_Y), libsodium.
  * Authentication    : Ed25519 signature (SIG role) or static-DH X25519 MAC (STAT role).
- * KDF / AEAD        : HKDF-SHA256 + ChaCha20-Poly1305 (libsodium), identical
+ * KDF / AEAD        : HKDF-SHA256 + AES-128-GCM (mbedTLS), identical
  *                     construction to the method-4 core so the two share the
  *                     same key-schedule/exporter shape and MSK/EMSK labels.
  *
@@ -42,7 +42,7 @@ extern "C" {
 #define E3_HASH_LEN    32
 #define E3_PRK_LEN     32
 #define E3_MAC_LEN      8
-#define E3_AEAD_KEY    32
+#define E3_AEAD_KEY    16   /* AES-128-GCM */
 #define E3_AEAD_NONCE  12
 #define E3_AEAD_TAG    16
 

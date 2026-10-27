@@ -98,33 +98,28 @@ _TLS_HYBRID_SIZES = {"message_1": 1589, "message_2": 12600, "message_3": 10983, 
 
 
 def _message_sizes_sigma_xwing() -> dict:
-    """Method 4: EAP-EDHOC Hybrid PQC (XWING) — SIGMA (mermaid.md §5).
+    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), revised: no ephemeral X-Wing.
 
-    message_1 = (ctB, pkX, AEAD.enc(K1, Plaintext1))
-    message_2 = (cte, AEAD.enc(K2, Plaintext2))
-        Plaintext2 = (ctA, C_R, ID_CRED_R, VK_R, MAC2, sigma_R)
+    message_1 = (ctB, AEAD.enc(K1, Plaintext1))
+        Plaintext1 = (METHOD, SUITES_I, ID_CRED_I, C_I, EAD_1)
+    message_2 = (ctA, AEAD.enc(K2, Plaintext2))
+        Plaintext2 = (C_R, ID_CRED_R, VK_R, EAD_2, MAC2, sigma_R)
     message_3 = AEAD.enc(K3, Plaintext3)
         Plaintext3 = (EAD3=NpkA, MAC3, VK_I, sigma_I)
     message_4 = AEAD.enc(K4, EAD4)   (carried in EAP-Success)
-        EAD4 = NpkB (responder's next static XWING public key)
+        EAD4 = NpkB
     """
-    # message_1: static-key encaps ct to responder + ephemeral XWING public key
     ct_b = _bstr(XWING_CT)
-    pk_x = _bstr(XWING_PK)
-    plaintext1 = METHOD_F + SUITES_F + CONN_ID
-    m1 = ct_b + pk_x + _bstr(plaintext1 + AEAD_TAG)
+    plaintext1 = METHOD_F + SUITES_F + ID_CRED + CONN_ID
+    m1 = ct_b + _bstr(plaintext1 + AEAD_TAG)
 
-    # message_2: ephemeral encaps ct back + encrypted Plaintext2 (signed by R)
-    cte = _bstr(XWING_CT)
-    plaintext2 = (XWING_CT + CONN_ID + ID_CRED + MLDSA44_PK
-                  + MAC_LEN + MLDSA44_SIG)
-    m2 = cte + _bstr(plaintext2 + AEAD_TAG)
+    ct_a = _bstr(XWING_CT)
+    plaintext2 = CONN_ID + ID_CRED + MLDSA44_PK + MAC_LEN + MLDSA44_SIG
+    m2 = ct_a + _bstr(plaintext2 + AEAD_TAG)
 
-    # message_3: encrypted Plaintext3 (signed by I), EAD3 carries next XWING pk
     plaintext3 = XWING_PK + MAC_LEN + MLDSA44_PK + MLDSA44_SIG
     m3 = _bstr(plaintext3 + AEAD_TAG)
 
-    # message_4: EAP-Success carrying EAD4 = NpkB (responder's next XWING pk)
     plaintext4 = XWING_PK
     m4 = _bstr(plaintext4 + AEAD_TAG)
 

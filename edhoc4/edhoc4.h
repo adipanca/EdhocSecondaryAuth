@@ -6,7 +6,7 @@
  *   - key establishment : XWING hybrid KEM = X25519 (libsodium) + ML-KEM-768
  *                         (PQClean), shared-secret combiner over SHA-256.
  *   - authentication    : ML-DSA-44 signatures on BOTH sides (PQClean) + MAC.
- *   - KDF / AEAD        : HKDF-SHA256 + ChaCha20-Poly1305 (libsodium).
+ *   - KDF / AEAD        : HKDF-SHA256 + AES-128-GCM (mbedTLS).
  *
  * The SAME object file is linked by both the FreeRADIUS responder (C) and the
  * UERANSIM initiator (C++, via extern "C"), so the two peers run byte-for-byte
@@ -48,12 +48,13 @@ extern "C" {
 #define E4_HASH_LEN   32
 #define E4_PRK_LEN    32
 #define E4_MAC_LEN    8
-#define E4_AEAD_KEY   32
+#define E4_AEAD_KEY   16   /* AES-128-GCM */
 #define E4_AEAD_NONCE 12
 #define E4_AEAD_TAG   16
 
 #define E4_CONN_ID    1     /* C_I / C_R length */
-#define E4_ID_CRED    3     /* ID_CRED (kid) length */
+#define E4_ID_CRED    3     /* ID_CRED_I / ID_CRED_R identifier length */
+#define E4_METHOD     0x04  /* method byte in PT1 */
 
 #define E4_MSK_LEN    64
 #define E4_EMSK_LEN   64
@@ -77,6 +78,11 @@ typedef struct {
     uint8_t id_cred[E4_ID_CRED];   /* ID_CRED identifier            */
 } edhoc4_creds;
 
+/* responder-side lookup: ID_CRED_I -> (pk_A, VK_I); return 0 on success */
+typedef int (*edhoc4_lookup_fn)(const uint8_t id_cred[E4_ID_CRED],
+                                uint8_t pk_a[E4_XWING_PK],
+                                uint8_t vk_i[E4_MLDSA_PK], void *arg);
+
 /* ---- handshake context ---- */
 typedef struct {
     int role;                       /* 1 = initiator, 0 = responder */
@@ -89,13 +95,8 @@ typedef struct {
     uint8_t c_i[E4_CONN_ID];
     uint8_t c_r[E4_CONN_ID];
 
-    /* ephemeral XWING keypair (pkX / skX), initiator-generated */
-    uint8_t eph_sk[E4_XWING_SK];
-    uint8_t eph_pk[E4_XWING_PK];
-
     /* shared secrets */
     uint8_t ss_b[E4_XWING_SS];      /* encaps/decaps against pkB (responder static) */
-    uint8_t ss_e[E4_XWING_SS];      /* encaps/decaps against pkX (ephemeral)        */
     uint8_t ss_a[E4_XWING_SS];      /* encaps/decaps against pkA (initiator static) */
 
     /* transcript hashes */
@@ -124,6 +125,10 @@ typedef struct {
     uint8_t msk[E4_MSK_LEN];
     uint8_t emsk[E4_EMSK_LEN];
     int done;                       /* 1 once MSK/EMSK are derived  */
+
+    /* responder: optional per-UE key lookup (set after edhoc4_init_responder) */
+    edhoc4_lookup_fn lookup;
+    void *lookup_arg;
 } edhoc4_ctx;
 
 /* ---- credential generation (test / provisioning helper) ---- */
@@ -136,12 +141,16 @@ int edhoc4_creds_save(const char *path, const edhoc4_creds *c);
 int edhoc4_creds_load(const char *path, edhoc4_creds *c);
 int edhoc4_pub_save(const char *path, const edhoc4_creds *c);
 int edhoc4_pub_load(const char *path, uint8_t peer_kem_pk[E4_XWING_PK]);
+/* crash-safe variants used after every rotation: write path.tmp, fsync,
+ * rename(path.tmp, path). The _raw form stores a bare peer pk (Npk). */
+int edhoc4_creds_save_atomic(const char *path, const edhoc4_creds *c);
+int edhoc4_pub_save_atomic_raw(const char *path, const uint8_t pk[E4_XWING_PK]);
 
 /* ---- initiator (UE) ---- */
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK]);
 
-/* build message_1 (also generates ephemeral key + ss_b) */
+/* build message_1 (encapsulates to pk_B only; no ephemeral key pair) */
 int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *out_len);
 /* consume message_2, build message_3 */
 int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
@@ -160,6 +169,16 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
 int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len);
 
+/* responder: resolve (pk_A, VK_I) from ID_CRED_I carried in message_1.
+ * The caller selects the per-UE record (own one-time sk_B) BEFORE
+ * edhoc4_init_responder, from the EAP identity of the session. */
+void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg);
+
+/* after success: install next-session keys, erase the old one-time sk and the
+ * whole session context. Export MSK/EMSK first, then persist creds/peer_pk. */
+int  edhoc4_commit(edhoc4_ctx *ctx, edhoc4_creds *creds, uint8_t peer_pk[E4_XWING_PK]);
+void edhoc4_ctx_wipe(edhoc4_ctx *ctx);
+
 /* returns a static human-readable string for an error code (<0) */
 const char *edhoc4_strerror(int rc);
 
@@ -173,6 +192,7 @@ const char *edhoc4_strerror(int rc);
 #define E4_ERR_MAC          -6
 #define E4_ERR_SIG          -7
 #define E4_ERR_STATE        -8
+#define E4_ERR_PEER         -9
 
 #ifdef __cplusplus
 }

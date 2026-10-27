@@ -1,0 +1,70 @@
+--- a/benchmark/crypto_bench.c	2026-10-13 16:35:20.533494732 +0900
++++ b/benchmark/crypto_bench.c	2026-10-27 14:29:52.073815803 +0900
+@@ -339,14 +339,13 @@
+     { 1, "SIG-Ed25519 / MAC-X25519",   {1,1,1,0,0,0,0,0,0}, {1,2,0,1,0,0,0,0,0} },
+     { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0,0} },
+     { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0,0,0}, {1,2,0,0,0,0,0,0,0} },
+-    /* method 4: SIGMA XWING — X25519+ML-KEM-768 hybrid KEM + ML-DSA-44 sig.
+-     * XWING KeyGen=xkg+mkg, Encaps=xkg+xdh+me, Decaps=xdh+md.
+-     * Initiator: KeyGen(pkX)+Encaps(pkB)+Decaps(cte)+Decaps(ctA)+KeyGen(NpkA)
+-     *            + ML-DSA verify(sigma_R) + ML-DSA sign(sigma_I).
+-     * Responder: Decaps(ctB)+Encaps(pkX)+Encaps(pkA)+KeyGen(NpkB)
++    /* Method 4 (revised, no ephemeral X-Wing). Role-symmetric:
++     * Initiator: Encaps(pkB) + Decaps(ctA) + KeyGen(NpkA)
++     *            + ML-DSA sign(sigma_I) + ML-DSA verify(sigma_R).
++     * Responder: Decaps(ctB) + Encaps(pkA) + KeyGen(NpkB)
+      *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I). */
+     { 4, "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
+-                                       {3,3,0,0,2,1,2,1,1}, {3,3,0,0,1,2,1,1,1} },
++                                       {2,2,0,0,1,1,1,1,1}, {2,2,0,0,1,1,1,1,1} },
+ };
+ static const int N_METHODS = (int)(sizeof(METHODS) / sizeof(METHODS[0]));
+ 
+--- a/benchmark/edhoc_sizes.py	2026-10-13 16:35:20.533494732 +0900
++++ b/benchmark/edhoc_sizes.py	2026-10-27 14:29:20.931247671 +0900
+@@ -98,33 +98,28 @@
+ 
+ 
+ def _message_sizes_sigma_xwing() -> dict:
+-    """Method 4: EAP-EDHOC Hybrid PQC (XWING) — SIGMA (mermaid.md §5).
++    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), revised: no ephemeral X-Wing.
+ 
+-    message_1 = (ctB, pkX, AEAD.enc(K1, Plaintext1))
+-    message_2 = (cte, AEAD.enc(K2, Plaintext2))
+-        Plaintext2 = (ctA, C_R, ID_CRED_R, VK_R, MAC2, sigma_R)
++    message_1 = (ctB, AEAD.enc(K1, Plaintext1))
++        Plaintext1 = (METHOD, SUITES_I, ID_CRED_I, C_I, EAD_1)
++    message_2 = (ctA, AEAD.enc(K2, Plaintext2))
++        Plaintext2 = (C_R, ID_CRED_R, VK_R, EAD_2, MAC2, sigma_R)
+     message_3 = AEAD.enc(K3, Plaintext3)
+         Plaintext3 = (EAD3=NpkA, MAC3, VK_I, sigma_I)
+     message_4 = AEAD.enc(K4, EAD4)   (carried in EAP-Success)
+-        EAD4 = NpkB (responder's next static XWING public key)
++        EAD4 = NpkB
+     """
+-    # message_1: static-key encaps ct to responder + ephemeral XWING public key
+     ct_b = _bstr(XWING_CT)
+-    pk_x = _bstr(XWING_PK)
+-    plaintext1 = METHOD_F + SUITES_F + CONN_ID
+-    m1 = ct_b + pk_x + _bstr(plaintext1 + AEAD_TAG)
+-
+-    # message_2: ephemeral encaps ct back + encrypted Plaintext2 (signed by R)
+-    cte = _bstr(XWING_CT)
+-    plaintext2 = (XWING_CT + CONN_ID + ID_CRED + MLDSA44_PK
+-                  + MAC_LEN + MLDSA44_SIG)
+-    m2 = cte + _bstr(plaintext2 + AEAD_TAG)
++    plaintext1 = METHOD_F + SUITES_F + ID_CRED + CONN_ID
++    m1 = ct_b + _bstr(plaintext1 + AEAD_TAG)
++
++    ct_a = _bstr(XWING_CT)
++    plaintext2 = CONN_ID + ID_CRED + MLDSA44_PK + MAC_LEN + MLDSA44_SIG
++    m2 = ct_a + _bstr(plaintext2 + AEAD_TAG)
+ 
+-    # message_3: encrypted Plaintext3 (signed by I), EAD3 carries next XWING pk
+     plaintext3 = XWING_PK + MAC_LEN + MLDSA44_PK + MLDSA44_SIG
+     m3 = _bstr(plaintext3 + AEAD_TAG)
+ 
+-    # message_4: EAP-Success carrying EAD4 = NpkB (responder's next XWING pk)
+     plaintext4 = XWING_PK
+     m4 = _bstr(plaintext4 + AEAD_TAG)
+ 

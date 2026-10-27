@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sodium.h>
+#include <mbedtls/gcm.h>
 
 /* ======================================================================== */
 /* Crypto helpers (same construction as edhoc4.c)                            */
@@ -81,17 +82,42 @@ static void e3_derive_k(const uint8_t prk[32], const uint8_t th[32],
     sodium_memzero(okm, sizeof(okm));
 }
 
+/* AES-128-GCM (mbedTLS), 16-byte tag, AAD = TH_x (32 B).  ct = C || tag. */
+static int e3_gcm_seal(const uint8_t key[E3_AEAD_KEY], const uint8_t nonce[E3_AEAD_NONCE],
+                    const uint8_t aad[32], const uint8_t *pt, size_t pt_len, uint8_t *ct)
+{
+    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
+    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E3_AEAD_KEY);
+    if (rc == 0)
+        rc = mbedtls_gcm_crypt_and_tag(&g, MBEDTLS_GCM_ENCRYPT, pt_len, nonce, E3_AEAD_NONCE,
+                                       aad, 32, pt, ct, E3_AEAD_TAG, ct + pt_len);
+    mbedtls_gcm_free(&g);
+    return rc;
+}
+
+static int e3_gcm_open(const uint8_t key[E3_AEAD_KEY], const uint8_t nonce[E3_AEAD_NONCE],
+                    const uint8_t aad[32], const uint8_t *ct, size_t ct_len, uint8_t *pt)
+{
+    size_t n = ct_len - E3_AEAD_TAG;
+    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
+    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E3_AEAD_KEY);
+    if (rc == 0)
+        rc = mbedtls_gcm_auth_decrypt(&g, n, nonce, E3_AEAD_NONCE, aad, 32,
+                                      ct + n, E3_AEAD_TAG, ct, pt);
+    mbedtls_gcm_free(&g);
+    if (rc != 0) sodium_memzero(pt, n);
+    return rc;
+}
+
 static int e3_aead_seal(const uint8_t prk[32], const uint8_t th[32],
                         const uint8_t *pt, size_t pt_len, uint8_t *ct, size_t *ct_len)
 {
     uint8_t key[E3_AEAD_KEY], nonce[E3_AEAD_NONCE];
     e3_derive_k(prk, th, key, nonce);
-    unsigned long long clen = 0;
-    int rc = crypto_aead_chacha20poly1305_ietf_encrypt(
-        ct, &clen, pt, pt_len, th, 32, NULL, nonce, key);
+    int rc = e3_gcm_seal(key, nonce, th, pt, pt_len, ct);
     sodium_memzero(key, sizeof(key));
     if (rc != 0) return E3_ERR_AEAD;
-    *ct_len = (size_t)clen;
+    *ct_len = pt_len + E3_AEAD_TAG;
     return E3_OK;
 }
 
@@ -100,12 +126,11 @@ static int e3_aead_open(const uint8_t prk[32], const uint8_t th[32],
 {
     uint8_t key[E3_AEAD_KEY], nonce[E3_AEAD_NONCE];
     e3_derive_k(prk, th, key, nonce);
-    unsigned long long mlen = 0;
-    int rc = crypto_aead_chacha20poly1305_ietf_decrypt(
-        pt, &mlen, NULL, ct, ct_len, th, 32, nonce, key);
+    if (ct_len < E3_AEAD_TAG) { sodium_memzero(key, sizeof(key)); return E3_ERR_AEAD; }
+    int rc = e3_gcm_open(key, nonce, th, ct, ct_len, pt);
     sodium_memzero(key, sizeof(key));
     if (rc != 0) return E3_ERR_AEAD;
-    *pt_len = (size_t)mlen;
+    *pt_len = ct_len - E3_AEAD_TAG;
     return E3_OK;
 }
 

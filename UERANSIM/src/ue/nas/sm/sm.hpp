@@ -15,6 +15,7 @@
 #include <ue/types.hpp>
 #include <utils/nts.hpp>
 
+#include <string>
 #include <edhoc4.h> // shared EAP-EDHOC method-4 (SIGMA XWING) core
 
 namespace nr::ue
@@ -39,6 +40,10 @@ class NasSm
     uint8_t m_edhocPeerPub[E4_XWING_PK]{};
     int m_edhocRound{-1};
     bool m_edhocProvisioned{false};
+    std::string m_edhocCredsPath{};   // EDHOC_UE_CREDS, rewritten after every rotation
+    std::string m_edhocPubPath{};     // EDHOC_SRV_PUB,  rewritten after every rotation
+    uint8_t m_edhocMsk[E4_MSK_LEN]{};
+    uint8_t m_edhocEmsk[E4_EMSK_LEN]{};
     uint8_t m_edhocIn[E4_MAX_MSG]{};
     size_t m_edhocInLen{0};
     size_t m_edhocInPos{0};

@@ -1,0 +1,890 @@
+--- a/edhoc4/edhoc4.c
++++ b/edhoc4/edhoc4.c
+@@ -1,5 +1,6 @@
+ /*
+- * edhoc4.c — Shared EAP-EDHOC method 4 (SIGMA XWING) core.
++ * edhoc4.c — Shared EAP-EDHOC method 4 (SIGMA XWING) core, revision "no-eph":
++ * no ephemeral X-Wing key pair; forward secrecy from one-time static keys.
+  * See edhoc4.h and mermaid.md §5.
+  */
+ #include "edhoc4.h"
+@@ -7,6 +8,7 @@
+ #include <string.h>
+ #include <stdio.h>
+ #include <sodium.h>
++#include <mbedtls/gcm.h>
+ 
+ /* ---- PQClean (clean reference, namespaced) ---- */
+ int PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk);
+@@ -90,18 +92,43 @@
+     sodium_memzero(okm, sizeof(okm));
+ }
+ 
++/* AES-128-GCM (mbedTLS), 16-byte tag, AAD = TH_x (32 B).  ct = C || tag. */
++static int gcm_seal(const uint8_t key[E4_AEAD_KEY], const uint8_t nonce[E4_AEAD_NONCE],
++                    const uint8_t aad[32], const uint8_t *pt, size_t pt_len, uint8_t *ct)
++{
++    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
++    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E4_AEAD_KEY);
++    if (rc == 0)
++        rc = mbedtls_gcm_crypt_and_tag(&g, MBEDTLS_GCM_ENCRYPT, pt_len, nonce, E4_AEAD_NONCE,
++                                       aad, 32, pt, ct, E4_AEAD_TAG, ct + pt_len);
++    mbedtls_gcm_free(&g);
++    return rc;
++}
++
++static int gcm_open(const uint8_t key[E4_AEAD_KEY], const uint8_t nonce[E4_AEAD_NONCE],
++                    const uint8_t aad[32], const uint8_t *ct, size_t ct_len, uint8_t *pt)
++{
++    size_t n = ct_len - E4_AEAD_TAG;
++    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
++    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E4_AEAD_KEY);
++    if (rc == 0)
++        rc = mbedtls_gcm_auth_decrypt(&g, n, nonce, E4_AEAD_NONCE, aad, 32,
++                                      ct + n, E4_AEAD_TAG, ct, pt);
++    mbedtls_gcm_free(&g);
++    if (rc != 0) sodium_memzero(pt, n);
++    return rc;
++}
++
+ static int aead_seal(const uint8_t prk[32], const uint8_t th[32],
+                      const uint8_t *pt, size_t pt_len,
+                      uint8_t *ct, size_t *ct_len)
+ {
+     uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
+     derive_k(prk, th, key, nonce);
+-    unsigned long long clen = 0;
+-    int rc = crypto_aead_chacha20poly1305_ietf_encrypt(
+-        ct, &clen, pt, pt_len, th, 32, NULL, nonce, key);
++    int rc = gcm_seal(key, nonce, th, pt, pt_len, ct);
+     sodium_memzero(key, sizeof(key));
+     if (rc != 0) return E4_ERR_AEAD;
+-    *ct_len = (size_t)clen;
++    *ct_len = pt_len + E4_AEAD_TAG;
+     return E4_OK;
+ }
+ 
+@@ -111,12 +138,11 @@
+ {
+     uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
+     derive_k(prk, th, key, nonce);
+-    unsigned long long mlen = 0;
+-    int rc = crypto_aead_chacha20poly1305_ietf_decrypt(
+-        pt, &mlen, NULL, ct, ct_len, th, 32, nonce, key);
++    if (ct_len < E4_AEAD_TAG) { sodium_memzero(key, sizeof(key)); return E4_ERR_AEAD; }
++    int rc = gcm_open(key, nonce, th, ct, ct_len, pt);
+     sodium_memzero(key, sizeof(key));
+     if (rc != 0) return E4_ERR_AEAD;
+-    *pt_len = (size_t)mlen;
++    *pt_len = ct_len - E4_AEAD_TAG;
+     return E4_OK;
+ }
+ 
+@@ -299,9 +325,20 @@
+ }
+ 
+ /* ======================================================================== */
++/* Revised protocol (v2): NO ephemeral X-Wing key pair.                      */
++/*   - message_1 carries only ct_B (encapsulation to the responder's         */
++/*     one-time static key pk_B); pk_X is gone.                              */
++/*   - message_2 carries ct_A in the clear, in the place of ct_e.            */
++/*   - PRK_2e = Extract(TH_2, ss_A); PRK_3e2m = Extract(PRK_2e, ss_B);       */
++/*     PRK_4e3m = PRK_3e2m (ss_A is already in the schedule).                */
++/*   - Forward secrecy comes from per-session rotation of pk_A / pk_B and    */
++/*     erasure of the old secret keys (edhoc4_*_commit, edhoc4_ctx_wipe).    */
++/* ======================================================================== */
++
++/* ======================================================================== */
+ /* Message 1  (initiator -> responder)                                       */
+-/*   layout: ctB[1120] || pkX[1216] || AEAD(K1, PT1)                         */
+-/*   PT1 = method(1) || C_I(1)                                               */
++/*   layout: ctB[1120] || AEAD(K1, PT1)                                      */
++/*   PT1 = method(1) || C_I(1) || ID_CRED_I(3)                               */
+ /* ======================================================================== */
+ 
+ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *out_len)
+@@ -309,28 +346,28 @@
+     if (ctx->role != 1) return E4_ERR_STATE;
+ 
+     uint8_t ct_b[E4_XWING_CT];
+-    if (xwing_keypair(ctx->eph_pk, ctx->eph_sk) != E4_OK) return E4_ERR_KEM;
+     if (xwing_encaps(ct_b, ctx->ss_b, ctx->peer_kem_pk) != E4_OK) return E4_ERR_KEM;
+ 
+-    /* TH1 = H(pkX || ctB) */
+-    const uint8_t *segs[2] = { ctx->eph_pk, ct_b };
+-    const size_t lens[2] = { E4_XWING_PK, E4_XWING_CT };
+-    sha256_cat(ctx->th1, segs, lens, 2);
++    /* TH1 = H(ctB) */
++    sha256(ctx->th1, ct_b, E4_XWING_CT);
+ 
+     /* PRK1e = HKDF-Extract(TH1, ss_b) */
+     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
+ 
+-    uint8_t pt1[2] = { 0x04 /* method 4 */, ctx->c_i[0] };
++    /* ID_CRED_I is needed by the responder to look up pk_A before message_2 */
++    uint8_t pt1[2 + E4_ID_CRED];
++    pt1[0] = E4_METHOD;
++    pt1[1] = ctx->c_i[0];
++    memcpy(pt1 + 2, ctx->self.id_cred, E4_ID_CRED);
+     uint8_t ct1[sizeof(pt1) + E4_AEAD_TAG];
+     size_t ct1_len = 0;
+     if (aead_seal(ctx->prk1e, ctx->th1, pt1, sizeof(pt1), ct1, &ct1_len) != E4_OK)
+         return E4_ERR_AEAD;
+ 
+-    size_t need = E4_XWING_CT + E4_XWING_PK + ct1_len;
++    size_t need = E4_XWING_CT + ct1_len;
+     if (need > out_cap) return E4_ERR_BUF;
+     size_t off = 0;
+     memcpy(out + off, ct_b, E4_XWING_CT); off += E4_XWING_CT;
+-    memcpy(out + off, ctx->eph_pk, E4_XWING_PK); off += E4_XWING_PK;
+     memcpy(out + off, ct1, ct1_len); off += ct1_len;
+     *out_len = off;
+ 
+@@ -341,60 +378,55 @@
+ 
+ /* ======================================================================== */
+ /* Message 1 handling + Message 2  (responder)                               */
+-/*   msg2 = cte[1120] || AEAD(K2, PT2)                                       */
+-/*   PT2 = ctA[1120] || C_R[1] || ID_CRED_R[3] || VK_R[1312] ||             */
+-/*         MAC2[8] || sigma_R[2420]                                          */
++/*   msg2 = ctA[1120] || AEAD(K2, PT2)                                       */
++/*   PT2 = C_R[1] || ID_CRED_R[3] || VK_R[1312] || MAC2[8] || sigma_R[2420]  */
+ /* ======================================================================== */
+ 
+ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
+                          uint8_t *out, size_t out_cap, size_t *out_len)
+ {
+     if (ctx->role != 0) return E4_ERR_STATE;
+-    size_t min1 = E4_XWING_CT + E4_XWING_PK + 2 + E4_AEAD_TAG;
++    size_t min1 = E4_XWING_CT + 2 + E4_ID_CRED + E4_AEAD_TAG;
+     if (in_len < min1) return E4_ERR_PARSE;
+ 
+     const uint8_t *ct_b = in;
+-    const uint8_t *pk_x = in + E4_XWING_CT;
+-    const uint8_t *ct1  = pk_x + E4_XWING_PK;
+-    size_t ct1_len = in_len - E4_XWING_CT - E4_XWING_PK;
+-
+-    memcpy(ctx->eph_pk, pk_x, E4_XWING_PK);
++    const uint8_t *ct1  = in + E4_XWING_CT;
++    size_t ct1_len = in_len - E4_XWING_CT;
+ 
+-    /* ss_b = Decaps(ctB, own static sk) */
++    /* ss_b = Decaps(ctB, own static sk_B) */
+     if (xwing_decaps(ctx->ss_b, ct_b, ctx->self.kem_sk) != E4_OK) return E4_ERR_KEM;
+ 
+-    /* TH1 = H(pkX || ctB); PRK1e; decrypt PT1 */
+-    const uint8_t *s1[2] = { pk_x, ct_b };
+-    const size_t l1[2] = { E4_XWING_PK, E4_XWING_CT };
+-    sha256_cat(ctx->th1, s1, l1, 2);
++    /* TH1 = H(ctB); PRK1e; decrypt PT1 */
++    sha256(ctx->th1, ct_b, E4_XWING_CT);
+     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
+ 
+     uint8_t pt1[64]; size_t pt1_len = 0;
+     if (aead_open(ctx->prk1e, ctx->th1, ct1, ct1_len, pt1, &pt1_len) != E4_OK)
+         return E4_ERR_AEAD;
+-    if (pt1_len < 2 || pt1[0] != 0x04) return E4_ERR_PARSE;
++    if (pt1_len != 2 + E4_ID_CRED || pt1[0] != E4_METHOD) return E4_ERR_PARSE;
+     ctx->c_i[0] = pt1[1];
++    memcpy(ctx->peer_id_cred, pt1 + 2, E4_ID_CRED);
++
++    /* (pk_A, VK_I) = Lookup(ID_CRED_I); falls back to the preloaded key */
++    if (ctx->lookup &&
++        ctx->lookup(ctx->peer_id_cred, ctx->peer_kem_pk, ctx->peer_sig_vk,
++                    ctx->lookup_arg) != 0)
++        return E4_ERR_PEER;
+ 
+     /* H(message_1) */
+     uint8_t h_msg1[32];
+     sha256(h_msg1, in, in_len);
+ 
+-    /* (sse, cte) = Encaps(pkX) */
+-    uint8_t cte[E4_XWING_CT];
+-    if (xwing_encaps(cte, ctx->ss_e, ctx->eph_pk) != E4_OK) return E4_ERR_KEM;
++    /* (ssA, ctA) = Encaps(pkA = initiator one-time static key) */
++    if (xwing_encaps(ctx->ct_a, ctx->ss_a, ctx->peer_kem_pk) != E4_OK) return E4_ERR_KEM;
+ 
+-    /* TH2 = H(H(msg1) || cte || C_R) */
+-    const uint8_t *s2[3] = { h_msg1, cte, ctx->c_r };
++    /* TH2 = H(H(msg1) || ctA || C_R) */
++    const uint8_t *s2[3] = { h_msg1, ctx->ct_a, ctx->c_r };
+     const size_t l2[3] = { 32, E4_XWING_CT, E4_CONN_ID };
+     sha256_cat(ctx->th2, s2, l2, 3);
+ 
+-    /* PRK2e = Extract(TH2, sse) */
+-    hkdf_extract(ctx->th2, 32, ctx->ss_e, E4_XWING_SS, ctx->prk2e);
+-
+-    /* (ssA, ctA) = Encaps(pkA = initiator static) */
+-    if (xwing_encaps(ctx->ct_a, ctx->ss_a, ctx->peer_kem_pk) != E4_OK) return E4_ERR_KEM;
+-
+-    /* PRK3e2m = Extract(PRK2e, ss_b) */
++    /* PRK2e = Extract(TH2, ssA); PRK3e2m = Extract(PRK2e, ss_b) */
++    hkdf_extract(ctx->th2, 32, ctx->ss_a, E4_XWING_SS, ctx->prk2e);
+     hkdf_extract(ctx->prk2e, 32, ctx->ss_b, E4_XWING_SS, ctx->prk3e2m);
+ 
+     /* MAC2 + sigma_R */
+@@ -408,18 +440,16 @@
+             sigmsg, sigmsg_len, ctx->self.sig_sk) != 0) return E4_ERR_SIG;
+     if (sig_r_len != E4_MLDSA_SIG) return E4_ERR_SIG;
+ 
+-    /* PT2 = ctA || C_R || ID_CRED_R || VK_R || MAC2 || sigma_R */
+-    uint8_t pt2[E4_XWING_CT + E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK
+-                + E4_MAC_LEN + E4_MLDSA_SIG];
++    /* PT2 = C_R || ID_CRED_R || VK_R || MAC2 || sigma_R   (ctA moved out) */
++    uint8_t pt2[E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK + E4_MAC_LEN + E4_MLDSA_SIG];
+     size_t o = 0;
+-    memcpy(pt2 + o, ctx->ct_a, E4_XWING_CT); o += E4_XWING_CT;
+     memcpy(pt2 + o, ctx->c_r, E4_CONN_ID); o += E4_CONN_ID;
+     memcpy(pt2 + o, ctx->self.id_cred, E4_ID_CRED); o += E4_ID_CRED;
+     memcpy(pt2 + o, ctx->self.sig_vk, E4_MLDSA_PK); o += E4_MLDSA_PK;
+     memcpy(pt2 + o, mac2, E4_MAC_LEN); o += E4_MAC_LEN;
+     memcpy(pt2 + o, sig_r, E4_MLDSA_SIG); o += E4_MLDSA_SIG;
+ 
+-    /* TH3 = H(TH2 || PT2)  (computed here, needed for msg3) */
++    /* TH3 = H(TH2 || PT2) */
+     const uint8_t *s3[2] = { ctx->th2, pt2 };
+     const size_t l3[2] = { 32, o };
+     sha256_cat(ctx->th3, s3, l3, 2);
+@@ -432,7 +462,7 @@
+     size_t need = E4_XWING_CT + ct2_len;
+     if (need > out_cap) return E4_ERR_BUF;
+     size_t off = 0;
+-    memcpy(out + off, cte, E4_XWING_CT); off += E4_XWING_CT;
++    memcpy(out + off, ctx->ct_a, E4_XWING_CT); off += E4_XWING_CT;
+     memcpy(out + off, ct2, ct2_len); off += ct2_len;
+     *out_len = off;
+     return E4_OK;
+@@ -441,7 +471,7 @@
+ /* ======================================================================== */
+ /* Message 2 handling + Message 3  (initiator)                               */
+ /*   msg3 = AEAD(K3, PT3)                                                     */
+-/*   PT3 = EAD3(NpkA)[1216] || MAC3[8] || VK_I[1312] || sigma_I[2420]        */
++/*   PT3 = ID_CRED_I || EAD3(NpkA) || MAC3 || VK_I || sigma_I                */
+ /* ======================================================================== */
+ 
+ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
+@@ -450,43 +480,36 @@
+     if (ctx->role != 1) return E4_ERR_STATE;
+     if (in_len < E4_XWING_CT + E4_AEAD_TAG) return E4_ERR_PARSE;
+ 
+-    const uint8_t *cte = in;
++    memcpy(ctx->ct_a, in, E4_XWING_CT);
+     const uint8_t *ct2 = in + E4_XWING_CT;
+     size_t ct2_len = in_len - E4_XWING_CT;
+ 
+-    /* sse = Decaps(cte, ephemeral sk) */
+-    if (xwing_decaps(ctx->ss_e, cte, ctx->eph_sk) != E4_OK) return E4_ERR_KEM;
++    /* ssA = Decaps(ctA, own one-time static sk_A)  (moved up) */
++    if (xwing_decaps(ctx->ss_a, ctx->ct_a, ctx->self.kem_sk) != E4_OK) return E4_ERR_KEM;
+ 
+-    /* TH2 = H(H(msg1) || cte || C_R); H(msg1) was saved at make_msg1 time */
++    /* TH2 = H(H(msg1) || ctA || C_R) */
+     ctx->c_r[0] = 0x20;               /* responder connection id (fixed)      */
+-    const uint8_t *s2[3] = { ctx->h_msg1, cte, ctx->c_r };
++    const uint8_t *s2[3] = { ctx->h_msg1, ctx->ct_a, ctx->c_r };
+     const size_t l2[3] = { 32, E4_XWING_CT, E4_CONN_ID };
+     sha256_cat(ctx->th2, s2, l2, 3);
+ 
+-    hkdf_extract(ctx->th2, 32, ctx->ss_e, E4_XWING_SS, ctx->prk2e);
++    hkdf_extract(ctx->th2, 32, ctx->ss_a, E4_XWING_SS, ctx->prk2e);
+ 
+     /* decrypt PT2 */
+-    uint8_t pt2[E4_XWING_CT + E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK
+-                + E4_MAC_LEN + E4_MLDSA_SIG + 16];
++    uint8_t pt2[E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK + E4_MAC_LEN + E4_MLDSA_SIG + 16];
+     size_t pt2_len = 0;
+     if (aead_open(ctx->prk2e, ctx->th2, ct2, ct2_len, pt2, &pt2_len) != E4_OK)
+         return E4_ERR_AEAD;
+-    size_t exp2 = E4_XWING_CT + E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK
+-                + E4_MAC_LEN + E4_MLDSA_SIG;
++    size_t exp2 = E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK + E4_MAC_LEN + E4_MLDSA_SIG;
+     if (pt2_len != exp2) return E4_ERR_PARSE;
+ 
+     size_t o = 0;
+-    memcpy(ctx->ct_a, pt2 + o, E4_XWING_CT); o += E4_XWING_CT;
+     memcpy(ctx->c_r, pt2 + o, E4_CONN_ID); o += E4_CONN_ID;
+     memcpy(ctx->peer_id_cred, pt2 + o, E4_ID_CRED); o += E4_ID_CRED;
+     memcpy(ctx->peer_sig_vk, pt2 + o, E4_MLDSA_PK); o += E4_MLDSA_PK;
+     const uint8_t *mac2 = pt2 + o; o += E4_MAC_LEN;
+     const uint8_t *sig_r = pt2 + o; o += E4_MLDSA_SIG;
+ 
+-    /* recompute TH2 already used C_R=0x20; but PT2 carried the real C_R.
+-     * The responder computed TH2 with its own C_R (0x20) before building PT2,
+-     * so our TH2 (also 0x20) matches. Good. */
+-
+     /* PRK3e2m = Extract(PRK2e, ss_b) */
+     hkdf_extract(ctx->prk2e, 32, ctx->ss_b, E4_XWING_SS, ctx->prk3e2m);
+ 
+@@ -506,11 +529,10 @@
+     const size_t l3[2] = { 32, pt2_len };
+     sha256_cat(ctx->th3, s3, l3, 2);
+ 
+-    /* ssA = Decaps(ctA, own static sk); PRK4e3m = Extract(PRK3e2m, ssA) */
+-    if (xwing_decaps(ctx->ss_a, ctx->ct_a, ctx->self.kem_sk) != E4_OK) return E4_ERR_KEM;
+-    hkdf_extract(ctx->prk3e2m, 32, ctx->ss_a, E4_XWING_SS, ctx->prk4e3m);
++    /* PRK4e3m = PRK3e2m  (ss_A already entered at PRK2e) */
++    memcpy(ctx->prk4e3m, ctx->prk3e2m, E4_PRK_LEN);
+ 
+-    /* EAD3 = NpkA (fresh static XWING keypair, ratchet) */
++    /* EAD3 = NpkA (fresh one-time static XWING keypair for the next session) */
+     if (xwing_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
+ 
+     /* MAC3 + sigma_I (EAD3 bound in MAC) */
+@@ -545,9 +567,8 @@
+     memcpy(out, ct3, ct3_len);
+     *out_len = ct3_len;
+ 
+-    /* initiator can now derive PRK_out (msg4 only confirms + ratchets pkB) */
+     derive_prk_out_and_msk(ctx);
+-    ctx->done = 0;   /* not fully done until msg4 processed (pkB ratchet)   */
++    ctx->done = 0;   /* not fully done until msg4 processed (pkB rotation)  */
+     return E4_OK;
+ }
+ 
+@@ -561,10 +582,9 @@
+ {
+     if (ctx->role != 0) return E4_ERR_STATE;
+ 
+-    /* PRK4e3m = Extract(PRK3e2m, ssA) — responder already has ss_a */
+-    hkdf_extract(ctx->prk3e2m, 32, ctx->ss_a, E4_XWING_SS, ctx->prk4e3m);
++    /* PRK4e3m = PRK3e2m */
++    memcpy(ctx->prk4e3m, ctx->prk3e2m, E4_PRK_LEN);
+ 
+-    /* decrypt PT3 with K3 (PRK3e2m, TH3) */
+     uint8_t pt3[E4_ID_CRED + E4_XWING_PK + E4_MAC_LEN + E4_MLDSA_PK + E4_MLDSA_SIG + 16];
+     size_t pt3_len = 0;
+     if (aead_open(ctx->prk3e2m, ctx->th3, in, in_len, pt3, &pt3_len) != E4_OK)
+@@ -573,36 +593,38 @@
+     if (pt3_len != exp3) return E4_ERR_PARSE;
+ 
+     size_t o = 0;
+-    memcpy(ctx->peer_id_cred, pt3 + o, E4_ID_CRED); o += E4_ID_CRED;
++    uint8_t id_i[E4_ID_CRED];
++    memcpy(id_i, pt3 + o, E4_ID_CRED); o += E4_ID_CRED;
++    if (sodium_memcmp(id_i, ctx->peer_id_cred, E4_ID_CRED) != 0) return E4_ERR_PEER;
+     memcpy(ctx->peer_new_pk, pt3 + o, E4_XWING_PK); o += E4_XWING_PK;
+     const uint8_t *mac3 = pt3 + o; o += E4_MAC_LEN;
+-    memcpy(ctx->peer_sig_vk, pt3 + o, E4_MLDSA_PK); o += E4_MLDSA_PK;
++    uint8_t vk_i[E4_MLDSA_PK];
++    memcpy(vk_i, pt3 + o, E4_MLDSA_PK); o += E4_MLDSA_PK;
+     const uint8_t *sig_i = pt3 + o; o += E4_MLDSA_SIG;
++    /* VK_I must match the provisioned one when a lookup is configured */
++    if (ctx->lookup && sodium_memcmp(vk_i, ctx->peer_sig_vk, E4_MLDSA_PK) != 0)
++        return E4_ERR_PEER;
++    memcpy(ctx->peer_sig_vk, vk_i, E4_MLDSA_PK);
+ 
+-    /* verify MAC3 (binds EAD3 = peer_new_pk) */
+     uint8_t mac3_c[E4_MAC_LEN];
+     compute_mac(ctx->prk4e3m, ctx->th3, ctx->peer_id_cred,
+                 ctx->peer_new_pk, E4_XWING_PK, mac3_c);
+     if (sodium_memcmp(mac3_c, mac3, E4_MAC_LEN) != 0) return E4_ERR_MAC;
+ 
+-    /* verify sigma_I */
+     uint8_t sigmsg3[32 + E4_ID_CRED + E4_MAC_LEN];
+     size_t sigmsg3_len = sig_message(sigmsg3, ctx->th3, ctx->peer_id_cred, mac3_c);
+     if (PQCLEAN_MLDSA44_CLEAN_crypto_sign_verify(sig_i, E4_MLDSA_SIG,
+             sigmsg3, sigmsg3_len, ctx->peer_sig_vk) != 0) return E4_ERR_SIG;
+ 
+-    /* TH4 = H(TH3 || PT3) */
+     const uint8_t *s4[2] = { ctx->th3, pt3 };
+     const size_t l4[2] = { 32, pt3_len };
+     sha256_cat(ctx->th4, s4, l4, 2);
+ 
+-    /* PRK_out + MSK/EMSK */
+     derive_prk_out_and_msk(ctx);
+ 
+-    /* EAD4 = NpkB (fresh static XWING keypair, ratchet) */
++    /* EAD4 = NpkB (fresh one-time static XWING keypair for the next session) */
+     if (xwing_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
+ 
+-    /* msg4 = AEAD(K4 = (PRK4e3m, TH4), EAD4) */
+     uint8_t ct4[E4_XWING_PK + E4_AEAD_TAG]; size_t ct4_len = 0;
+     if (aead_seal(ctx->prk4e3m, ctx->th4, ctx->new_pk, E4_XWING_PK, ct4, &ct4_len) != E4_OK)
+         return E4_ERR_AEAD;
+@@ -619,11 +641,46 @@
+     if (aead_open(ctx->prk4e3m, ctx->th4, in, in_len, pt4, &pt4_len) != E4_OK)
+         return E4_ERR_AEAD;
+     if (pt4_len != E4_XWING_PK) return E4_ERR_PARSE;
+-    memcpy(ctx->peer_new_pk, pt4, E4_XWING_PK);   /* ratchet responder pkB */
++    memcpy(ctx->peer_new_pk, pt4, E4_XWING_PK);   /* next responder pk_B */
+     ctx->done = 1;
+     return E4_OK;
+ }
+ 
++/* ======================================================================== */
++/* Rotation commit + erasure (forward secrecy now depends on these)          */
++/* ======================================================================== */
++
++/* Install the next-session keys into *creds / *peer_pk and erase the old
++ * one-time secret key. Call only after the handshake succeeded:
++ *   initiator: after edhoc4_i_handle_msg4 (ctx->done == 1)
++ *   responder: after edhoc4_r_handle_msg3 (ctx->done == 1)
++ * The caller must then persist *creds and *peer_pk (the per-UE record on the
++ * responder side) and overwrite the old files. */
++int edhoc4_commit(edhoc4_ctx *ctx, edhoc4_creds *creds,
++                  uint8_t peer_pk[E4_XWING_PK])
++{
++    if (!ctx || !creds || !peer_pk || !ctx->done) return E4_ERR_STATE;
++    sodium_memzero(creds->kem_sk, E4_XWING_SK);          /* erase old sk      */
++    memcpy(creds->kem_sk, ctx->new_sk, E4_XWING_SK);
++    memcpy(creds->kem_pk, ctx->new_pk, E4_XWING_PK);
++    memcpy(peer_pk, ctx->peer_new_pk, E4_XWING_PK);      /* peer's next pk    */
++    edhoc4_ctx_wipe(ctx);
++    return E4_OK;
++}
++
++/* Erase every secret held in the session context (old sk copy, shared
++ * secrets, PRKs, MSK/EMSK). Export MSK/EMSK before calling this. */
++void edhoc4_ctx_wipe(edhoc4_ctx *ctx)
++{
++    if (ctx) sodium_memzero(ctx, sizeof(*ctx));
++}
++
++void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg)
++{
++    ctx->lookup = fn;
++    ctx->lookup_arg = arg;
++}
++
+ const char *edhoc4_strerror(int rc)
+ {
+     switch (rc) {
+@@ -636,6 +693,7 @@
+     case E4_ERR_MAC:   return "MAC mismatch";
+     case E4_ERR_SIG:   return "signature verify failed";
+     case E4_ERR_STATE: return "wrong role/state";
++    case E4_ERR_PEER:  return "unknown or mismatching peer";
+     default:           return "unknown error";
+     }
+ }
+--- a/edhoc4/edhoc4.h
++++ b/edhoc4/edhoc4.h
+@@ -6,7 +6,7 @@
+  *   - key establishment : XWING hybrid KEM = X25519 (libsodium) + ML-KEM-768
+  *                         (PQClean), shared-secret combiner over SHA-256.
+  *   - authentication    : ML-DSA-44 signatures on BOTH sides (PQClean) + MAC.
+- *   - KDF / AEAD        : HKDF-SHA256 + ChaCha20-Poly1305 (libsodium).
++ *   - KDF / AEAD        : HKDF-SHA256 + AES-128-GCM (mbedTLS).
+  *
+  * The SAME object file is linked by both the FreeRADIUS responder (C) and the
+  * UERANSIM initiator (C++, via extern "C"), so the two peers run byte-for-byte
+@@ -48,12 +48,13 @@
+ #define E4_HASH_LEN   32
+ #define E4_PRK_LEN    32
+ #define E4_MAC_LEN    8
+-#define E4_AEAD_KEY   32
++#define E4_AEAD_KEY   16   /* AES-128-GCM */
+ #define E4_AEAD_NONCE 12
+ #define E4_AEAD_TAG   16
+ 
+ #define E4_CONN_ID    1     /* C_I / C_R length */
+ #define E4_ID_CRED    3     /* ID_CRED (kid) length */
++#define E4_METHOD     0x04  /* method byte in PT1 */
+ 
+ #define E4_MSK_LEN    64
+ #define E4_EMSK_LEN   64
+@@ -77,6 +78,11 @@
+     uint8_t id_cred[E4_ID_CRED];   /* ID_CRED identifier            */
+ } edhoc4_creds;
+ 
++/* responder-side lookup: ID_CRED_I -> (pk_A, VK_I); return 0 on success */
++typedef int (*edhoc4_lookup_fn)(const uint8_t id_cred[E4_ID_CRED],
++                                uint8_t pk_a[E4_XWING_PK],
++                                uint8_t vk_i[E4_MLDSA_PK], void *arg);
++
+ /* ---- handshake context ---- */
+ typedef struct {
+     int role;                       /* 1 = initiator, 0 = responder */
+@@ -89,13 +95,8 @@
+     uint8_t c_i[E4_CONN_ID];
+     uint8_t c_r[E4_CONN_ID];
+ 
+-    /* ephemeral XWING keypair (pkX / skX), initiator-generated */
+-    uint8_t eph_sk[E4_XWING_SK];
+-    uint8_t eph_pk[E4_XWING_PK];
+-
+     /* shared secrets */
+     uint8_t ss_b[E4_XWING_SS];      /* encaps/decaps against pkB (responder static) */
+-    uint8_t ss_e[E4_XWING_SS];      /* encaps/decaps against pkX (ephemeral)        */
+     uint8_t ss_a[E4_XWING_SS];      /* encaps/decaps against pkA (initiator static) */
+ 
+     /* transcript hashes */
+@@ -124,6 +125,10 @@
+     uint8_t msk[E4_MSK_LEN];
+     uint8_t emsk[E4_EMSK_LEN];
+     int done;                       /* 1 once MSK/EMSK are derived  */
++
++    /* responder: optional per-UE key lookup (set after edhoc4_init_responder) */
++    edhoc4_lookup_fn lookup;
++    void *lookup_arg;
+ } edhoc4_ctx;
+ 
+ /* ---- credential generation (test / provisioning helper) ---- */
+@@ -141,7 +146,7 @@
+ void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
+                            const uint8_t peer_kem_pk[E4_XWING_PK]);
+ 
+-/* build message_1 (also generates ephemeral key + ss_b) */
++/* build message_1 (encapsulates to pk_B only; no ephemeral key pair) */
+ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *out_len);
+ /* consume message_2, build message_3 */
+ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
+@@ -160,6 +165,16 @@
+ int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
+                          uint8_t *out, size_t out_cap, size_t *out_len);
+ 
++/* responder: resolve (pk_A, VK_I) from ID_CRED_I carried in message_1.
++ * The caller selects the per-UE record (own one-time sk_B) BEFORE
++ * edhoc4_init_responder, from the EAP identity of the session. */
++void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg);
++
++/* after success: install next-session keys, erase the old one-time sk and the
++ * whole session context. Export MSK/EMSK first, then persist creds/peer_pk. */
++int  edhoc4_commit(edhoc4_ctx *ctx, edhoc4_creds *creds, uint8_t peer_pk[E4_XWING_PK]);
++void edhoc4_ctx_wipe(edhoc4_ctx *ctx);
++
+ /* returns a static human-readable string for an error code (<0) */
+ const char *edhoc4_strerror(int rc);
+ 
+@@ -173,6 +188,7 @@
+ #define E4_ERR_MAC          -6
+ #define E4_ERR_SIG          -7
+ #define E4_ERR_STATE        -8
++#define E4_ERR_PEER         -9
+ 
+ #ifdef __cplusplus
+ }
+--- a/edhoc4/selftest.c
++++ b/edhoc4/selftest.c
+@@ -1,10 +1,16 @@
+ /*
+- * selftest.c — In-process EAP-EDHOC method 4 (SIGMA XWING) handshake test.
++ * selftest.c — In-process EAP-EDHOC method 4 v2 handshake test
++ * (no ephemeral X-Wing; forward secrecy from one-time rotated static keys).
+  *
+- * Runs the full initiator<->responder exchange (message_1..4) using the shared
+- * edhoc4 core and checks that both parties derive identical MSK/EMSK. This is
+- * the same core linked by FreeRADIUS and UERANSIM, so a PASS here means the two
+- * live peers share a byte-identical crypto/serialization implementation.
++ * Runs THREE consecutive sessions between one UE and the DN-AAA:
++ *   - each session: message_1..4, MSK/EMSK must match on both sides;
++ *   - after each session both sides call edhoc4_commit(): the next session
++ *     must use the rotated keys, and the old secret keys must be erased;
++ *   - the responder resolves pk_A / VK_I from ID_CRED_I through a lookup
++ *     callback (per-UE record), as in a multi-UE deployment;
++ *   - two UEs: the DN-AAA picks the per-UE record (its one-time sk_B) from
++ *     the EAP identity of the session (RADIUS User-Name), before EDHOC;
++ *   - a stale-key check: re-running with the erased pre-rotation key fails.
+  */
+ #include "edhoc4.h"
+ 
+@@ -12,72 +18,140 @@
+ #include <string.h>
+ #include <sodium.h>
+ 
+-static int hexdump_eq(const char *label, const uint8_t *a, const uint8_t *b, size_t n)
+-{
+-    int eq = (memcmp(a, b, n) == 0);
+-    printf("  %-6s : %s (", label, eq ? "MATCH" : "MISMATCH");
+-    for (size_t i = 0; i < 8 && i < n; i++) printf("%02x", a[i]);
+-    printf("...)\n");
+-    return eq;
+-}
++/* DN-AAA per-UE record: (own one-time X-Wing key for this UE, ID_CRED_I,
++ * current pk_A, VK_I) */
++typedef struct {
++    char eap_identity[32];
++    edhoc4_creds server;
++    uint8_t id[E4_ID_CRED];
++    uint8_t pk_a[E4_XWING_PK];
++    uint8_t vk_i[E4_MLDSA_PK];
++} ue_record;
+ 
+-int main(void)
++static int lookup(const uint8_t id[E4_ID_CRED], uint8_t pk_a[E4_XWING_PK],
++                  uint8_t vk_i[E4_MLDSA_PK], void *arg)
+ {
+-    if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
++    ue_record *r = (ue_record *)arg;
++    if (memcmp(id, r->id, E4_ID_CRED) != 0) return -1;
++    memcpy(pk_a, r->pk_a, E4_XWING_PK);
++    memcpy(vk_i, r->vk_i, E4_MLDSA_PK);
++    return 0;
++}
+ 
+-    printf("[edhoc4 selftest] method 4 SIGMA XWING (X25519+ML-KEM-768 / ML-DSA-44)\n");
++#define NUE 2
++static ue_record db[NUE];
+ 
+-    /* provision long-term credentials */
+-    edhoc4_creds ue, aaa;
+-    uint8_t idI[E4_ID_CRED] = { 0x00, 0x00, 0x01 };
+-    uint8_t idR[E4_ID_CRED] = { 0x00, 0x00, 0x02 };
+-    if (edhoc4_gen_creds(&ue, idI) != E4_OK) { fprintf(stderr, "gen UE creds failed\n"); return 1; }
+-    if (edhoc4_gen_creds(&aaa, idR) != E4_OK) { fprintf(stderr, "gen AAA creds failed\n"); return 1; }
+-    printf("  provisioned UE + DN-AAA XWING + ML-DSA-44 credentials\n");
++/* DN-AAA: select the per-UE record from the EAP identity of the session */
++static ue_record *select_record(const char *eap_identity)
++{
++    for (int i = 0; i < NUE; i++)
++        if (strcmp(eap_identity, db[i].eap_identity) == 0) return &db[i];
++    return NULL;
++}
+ 
++static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
++                       int verbose)
++{
+     edhoc4_ctx I, R;
+-    edhoc4_init_initiator(&I, &ue, aaa.kem_pk);
+-    edhoc4_init_responder(&R, &aaa, ue.kem_pk);
+-
+     uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG], m3[E4_MAX_MSG], m4[E4_MAX_MSG];
+     size_t n1, n2, n3, n4;
+     int rc;
+ 
+-    rc = edhoc4_i_make_msg1(&I, m1, sizeof(m1), &n1);
+-    if (rc != E4_OK) { fprintf(stderr, "msg1: %s\n", edhoc4_strerror(rc)); return 1; }
+-    printf("  message_1 : %zu bytes\n", n1);
+-
+-    rc = edhoc4_r_handle_msg1(&R, m1, n1, m2, sizeof(m2), &n2);
+-    if (rc != E4_OK) { fprintf(stderr, "handle msg1 / build msg2: %s\n", edhoc4_strerror(rc)); return 1; }
+-    printf("  message_2 : %zu bytes\n", n2);
+-
+-    rc = edhoc4_i_handle_msg2(&I, m2, n2, m3, sizeof(m3), &n3);
+-    if (rc != E4_OK) { fprintf(stderr, "handle msg2 / build msg3: %s\n", edhoc4_strerror(rc)); return 1; }
+-    printf("  message_3 : %zu bytes\n", n3);
+-
+-    rc = edhoc4_r_handle_msg3(&R, m3, n3, m4, sizeof(m4), &n4);
+-    if (rc != E4_OK) { fprintf(stderr, "handle msg3 / build msg4: %s\n", edhoc4_strerror(rc)); return 1; }
+-    printf("  message_4 : %zu bytes\n", n4);
+-
+-    rc = edhoc4_i_handle_msg4(&I, m4, n4);
+-    if (rc != E4_OK) { fprintf(stderr, "handle msg4: %s\n", edhoc4_strerror(rc)); return 1; }
+-
+-    printf("[key confirmation]\n");
+-    int ok = 1;
+-    ok &= hexdump_eq("MSK",  I.msk,  R.msk,  E4_MSK_LEN);
+-    ok &= hexdump_eq("EMSK", I.emsk, R.emsk, E4_EMSK_LEN);
+-    ok &= hexdump_eq("TH4",  I.th4,  R.th4,  E4_HASH_LEN);
+-    /* ratchet keys: each side learned the other's next static public key */
+-    ok &= (memcmp(I.new_pk, R.peer_new_pk, E4_XWING_PK) == 0);   /* NpkA */
+-    ok &= (memcmp(R.new_pk, I.peer_new_pk, E4_XWING_PK) == 0);   /* NpkB */
+-    printf("  ratchet: NpkA %s, NpkB %s\n",
+-           memcmp(I.new_pk, R.peer_new_pk, E4_XWING_PK) == 0 ? "ok" : "BAD",
+-           memcmp(R.new_pk, I.peer_new_pk, E4_XWING_PK) == 0 ? "ok" : "BAD");
+-
+-    if (!ok || !I.done || !R.done) {
+-        printf("\nRESULT: FAIL\n");
+-        return 1;
++    char ident[32];
++    snprintf(ident, sizeof(ident), "ue%02x@dn.example", ue->id_cred[2]);
++    ue_record *rec = select_record(ident);      /* from EAP-Response/Identity */
++    edhoc4_init_initiator(&I, ue, ue_peer_pk);
++    if ((rc = edhoc4_i_make_msg1(&I, m1, sizeof(m1), &n1)) != E4_OK) return rc;
++    if (!rec) return E4_ERR_PEER;
++    edhoc4_creds *aaa = &rec->server;
++    edhoc4_init_responder(&R, aaa, rec->pk_a);
++    edhoc4_set_lookup(&R, lookup, rec);
++    if ((rc = edhoc4_r_handle_msg1(&R, m1, n1, m2, sizeof(m2), &n2)) != E4_OK) return rc;
++    if ((rc = edhoc4_i_handle_msg2(&I, m2, n2, m3, sizeof(m3), &n3)) != E4_OK) return rc;
++    if ((rc = edhoc4_r_handle_msg3(&R, m3, n3, m4, sizeof(m4), &n4)) != E4_OK) return rc;
++    if ((rc = edhoc4_i_handle_msg4(&I, m4, n4)) != E4_OK) return rc;
++
++    if (verbose)
++        printf("  message_1 : %zu bytes\n  message_2 : %zu bytes\n"
++               "  message_3 : %zu bytes\n  message_4 : %zu bytes\n"
++               "  total     : %zu bytes\n", n1, n2, n3, n4, n1 + n2 + n3 + n4);
++
++    int ok = memcmp(I.msk, R.msk, E4_MSK_LEN) == 0 &&
++             memcmp(I.emsk, R.emsk, E4_EMSK_LEN) == 0 && I.done && R.done;
++    printf("  UE %02x run %d: MSK/EMSK %s\n", ue->id_cred[2], n, ok ? "MATCH" : "MISMATCH");
++    if (!ok) return E4_ERR_MAC;
++
++    /* rotate: UE installs NskA/NpkA and NpkB; DN-AAA installs NskB/NpkB and
++     * the UE's next pk_A in the per-UE record; both erase the old sk. */
++    uint8_t old_ue_sk[E4_XWING_SK];
++    memcpy(old_ue_sk, ue->kem_sk, E4_XWING_SK);
++    if ((rc = edhoc4_commit(&I, ue, ue_peer_pk)) != E4_OK) return rc;
++    if ((rc = edhoc4_commit(&R, aaa, rec->pk_a)) != E4_OK) return rc;
++    int rotated = memcmp(old_ue_sk, ue->kem_sk, E4_XWING_SK) != 0 &&
++                  memcmp(ue->kem_pk, rec->pk_a, E4_XWING_PK) == 0 &&
++                  memcmp(aaa->kem_pk, ue_peer_pk, E4_XWING_PK) == 0;
++    sodium_memzero(old_ue_sk, sizeof(old_ue_sk));
++    printf("  UE %02x run %d: rotation committed, old sk erased: %s\n", ue->id_cred[2], n,
++           rotated ? "ok" : "BAD");
++    return rotated ? E4_OK : E4_ERR_STATE;
++}
++
++int main(void)
++{
++    if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
++    printf("[edhoc4 selftest v2] SIGMA XWING without ephemeral key pair\n");
++
++    edhoc4_creds ue[NUE];
++    uint8_t ue_peer_pk[NUE][E4_XWING_PK];        /* each UE's copy of its pk_B */
++    for (int i = 0; i < NUE; i++) {
++        uint8_t idI[E4_ID_CRED] = { 0x00, 0x00, (uint8_t)(0x01 + i) };
++        uint8_t idR[E4_ID_CRED] = { 0x00, 0x00, 0x02 };
++        if (edhoc4_gen_creds(&ue[i], idI) != E4_OK ||
++            edhoc4_gen_creds(&db[i].server, idR) != E4_OK) {
++            fprintf(stderr, "credential generation failed\n"); return 1;
++        }
++        /* one ML-DSA-44 key for the DN-AAA, one X-Wing key per UE record */
++        if (i > 0) {
++            memcpy(db[i].server.sig_sk, db[0].server.sig_sk, E4_MLDSA_SK);
++            memcpy(db[i].server.sig_vk, db[0].server.sig_vk, E4_MLDSA_PK);
++        }
++        memcpy(ue_peer_pk[i], db[i].server.kem_pk, E4_XWING_PK);
++        memcpy(db[i].id, idI, E4_ID_CRED);
++        snprintf(db[i].eap_identity, sizeof(db[i].eap_identity), "ue%02x@dn.example", idI[2]);
++        memcpy(db[i].pk_a, ue[i].kem_pk, E4_XWING_PK);
++        memcpy(db[i].vk_i, ue[i].sig_vk, E4_MLDSA_PK);
+     }
+-    printf("\nRESULT: PASS — both peers derived identical MSK/EMSK\n");
++    edhoc4_creds ue0_before = ue[0];             /* snapshot to test stale keys */
++
++    for (int n = 1; n <= 3; n++)
++        for (int i = 0; i < NUE; i++) {
++            int rc = run_session(n, &ue[i], ue_peer_pk[i], n == 1 && i == 0);
++            if (rc != E4_OK) {
++                printf("\nRESULT: FAIL at UE %d run %d: %s\n", i, n, edhoc4_strerror(rc));
++                return 1;
++            }
++        }
++
++    /* stale-key check: UE 0 still holding its pre-rotation (erased) key pair
++     * and the old pk_B must not complete a handshake. */
++    edhoc4_ctx I, R;
++    uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG], m3[E4_MAX_MSG];
++    size_t n1, n2, n3;
++    edhoc4_init_initiator(&I, &ue0_before, ue0_before.kem_pk /* placeholder */);
++    memcpy(I.peer_kem_pk, db[0].server.kem_pk, E4_XWING_PK);   /* even with the current pk_B */
++    int rc = edhoc4_i_make_msg1(&I, m1, sizeof(m1), &n1);
++    ue_record *rec = (rc == E4_OK) ? select_record("ue01@dn.example") : NULL;
++    if (rec) {
++        edhoc4_init_responder(&R, &rec->server, rec->pk_a);
++        edhoc4_set_lookup(&R, lookup, rec);
++        rc = edhoc4_r_handle_msg1(&R, m1, n1, m2, sizeof(m2), &n2);
++        if (rc == E4_OK) rc = edhoc4_i_handle_msg2(&I, m2, n2, m3, sizeof(m3), &n3);
++    } else rc = E4_ERR_PEER;
++    printf("  stale pre-rotation key of UE 01: %s (%s)\n",
++           rc == E4_OK ? "ACCEPTED (BAD)" : "rejected", edhoc4_strerror(rc));
++    sodium_memzero(&ue0_before, sizeof(ue0_before));
++    if (rc == E4_OK) { printf("\nRESULT: FAIL\n"); return 1; }
++
++    printf("\nRESULT: PASS — 2 UEs x 3 runs, identical MSK/EMSK, per-UE keys rotated every run\n");
+     return 0;
+ }
+--- a/edhoc4/edhoc03.c
++++ b/edhoc4/edhoc03.c
+@@ -17,6 +17,7 @@
+ #include <string.h>
+ #include <stdio.h>
+ #include <sodium.h>
++#include <mbedtls/gcm.h>
+ 
+ /* ======================================================================== */
+ /* Crypto helpers (same construction as edhoc4.c)                            */
+@@ -81,17 +82,42 @@
+     sodium_memzero(okm, sizeof(okm));
+ }
+ 
++/* AES-128-GCM (mbedTLS), 16-byte tag, AAD = TH_x (32 B).  ct = C || tag. */
++static int e3_gcm_seal(const uint8_t key[E3_AEAD_KEY], const uint8_t nonce[E3_AEAD_NONCE],
++                    const uint8_t aad[32], const uint8_t *pt, size_t pt_len, uint8_t *ct)
++{
++    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
++    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E3_AEAD_KEY);
++    if (rc == 0)
++        rc = mbedtls_gcm_crypt_and_tag(&g, MBEDTLS_GCM_ENCRYPT, pt_len, nonce, E3_AEAD_NONCE,
++                                       aad, 32, pt, ct, E3_AEAD_TAG, ct + pt_len);
++    mbedtls_gcm_free(&g);
++    return rc;
++}
++
++static int e3_gcm_open(const uint8_t key[E3_AEAD_KEY], const uint8_t nonce[E3_AEAD_NONCE],
++                    const uint8_t aad[32], const uint8_t *ct, size_t ct_len, uint8_t *pt)
++{
++    size_t n = ct_len - E3_AEAD_TAG;
++    mbedtls_gcm_context g; mbedtls_gcm_init(&g);
++    int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E3_AEAD_KEY);
++    if (rc == 0)
++        rc = mbedtls_gcm_auth_decrypt(&g, n, nonce, E3_AEAD_NONCE, aad, 32,
++                                      ct + n, E3_AEAD_TAG, ct, pt);
++    mbedtls_gcm_free(&g);
++    if (rc != 0) sodium_memzero(pt, n);
++    return rc;
++}
++
+ static int e3_aead_seal(const uint8_t prk[32], const uint8_t th[32],
+                         const uint8_t *pt, size_t pt_len, uint8_t *ct, size_t *ct_len)
+ {
+     uint8_t key[E3_AEAD_KEY], nonce[E3_AEAD_NONCE];
+     e3_derive_k(prk, th, key, nonce);
+-    unsigned long long clen = 0;
+-    int rc = crypto_aead_chacha20poly1305_ietf_encrypt(
+-        ct, &clen, pt, pt_len, th, 32, NULL, nonce, key);
++    int rc = e3_gcm_seal(key, nonce, th, pt, pt_len, ct);
+     sodium_memzero(key, sizeof(key));
+     if (rc != 0) return E3_ERR_AEAD;
+-    *ct_len = (size_t)clen;
++    *ct_len = pt_len + E3_AEAD_TAG;
+     return E3_OK;
+ }
+ 
+@@ -100,12 +126,11 @@
+ {
+     uint8_t key[E3_AEAD_KEY], nonce[E3_AEAD_NONCE];
+     e3_derive_k(prk, th, key, nonce);
+-    unsigned long long mlen = 0;
+-    int rc = crypto_aead_chacha20poly1305_ietf_decrypt(
+-        pt, &mlen, NULL, ct, ct_len, th, 32, nonce, key);
++    if (ct_len < E3_AEAD_TAG) { sodium_memzero(key, sizeof(key)); return E3_ERR_AEAD; }
++    int rc = e3_gcm_open(key, nonce, th, ct, ct_len, pt);
+     sodium_memzero(key, sizeof(key));
+     if (rc != 0) return E3_ERR_AEAD;
+-    *pt_len = (size_t)mlen;
++    *pt_len = ct_len - E3_AEAD_TAG;
+     return E3_OK;
+ }
+ 
+--- a/edhoc4/edhoc03.h
++++ b/edhoc4/edhoc03.h
+@@ -11,7 +11,7 @@
+  *
+  * Key establishment : ephemeral X25519 ECDH (G_X / G_Y), libsodium.
+  * Authentication    : Ed25519 signature (SIG role) or static-DH X25519 MAC (STAT role).
+- * KDF / AEAD        : HKDF-SHA256 + ChaCha20-Poly1305 (libsodium), identical
++ * KDF / AEAD        : HKDF-SHA256 + AES-128-GCM (mbedTLS), identical
+  *                     construction to the method-4 core so the two share the
+  *                     same key-schedule/exporter shape and MSK/EMSK labels.
+  *
+@@ -42,7 +42,7 @@
+ #define E3_HASH_LEN    32
+ #define E3_PRK_LEN     32
+ #define E3_MAC_LEN      8
+-#define E3_AEAD_KEY    32
++#define E3_AEAD_KEY    16   /* AES-128-GCM */
+ #define E3_AEAD_NONCE  12
+ #define E3_AEAD_TAG    16
+ 
+--- a/edhoc4/Makefile
++++ b/edhoc4/Makefile
+@@ -1,6 +1,7 @@
+ # Makefile for the shared EAP-EDHOC method 4 (SIGMA XWING) core.
+ #
+-#   libsodium : X25519, SHA-256, HKDF(HMAC-SHA256), ChaCha20-Poly1305 AEAD
++#   libsodium : X25519, SHA-256, HKDF(HMAC-SHA256)
++#   mbedTLS   : AES-128-GCM AEAD (-lmbedcrypto)
+ #   PQClean   : ML-KEM-768 + ML-DSA-44 (clean reference)
+ #
+ # Targets:
+@@ -20,7 +21,7 @@
+ 
+ CC      ?= cc
+ CFLAGS  ?= -O2 -Wall -Wextra -std=c11 -fPIC
+-LDLIBS  += -lsodium -lm
++LDLIBS  += -lsodium -lmbedcrypto -lm
+ 
+ PQ_OBJS := $(MLKEM_LIB) $(MLDSA_LIB) $(PQ_COMMON_OBJ)
+ 

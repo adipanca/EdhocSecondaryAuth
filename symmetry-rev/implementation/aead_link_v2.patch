@@ -1,0 +1,34 @@
+diff -ru a/UERANSIM/CMakeLists.txt b/UERANSIM/CMakeLists.txt
+--- a/UERANSIM/CMakeLists.txt	2026-10-27 14:38:21.183631783 +0900
++++ b/UERANSIM/CMakeLists.txt	2026-10-27 14:38:21.196008021 +0900
+@@ -43,7 +43,7 @@
+ target_link_libraries(nr-ue ue)
+ 
+ # EAP-EDHOC method-4 core (must be built first: make -C ../edhoc4)
+-target_link_libraries(nr-ue ${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4/libedhoc4.a sodium)
++target_link_libraries(nr-ue ${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4/libedhoc4.a sodium mbedcrypto)
+ 
+ ###################### IF BINDER ######################
+ add_library(devbnd SHARED src/binder.cpp)
+diff -ru a/benchmark/Makefile b/benchmark/Makefile
+--- a/benchmark/Makefile	2026-10-27 14:38:21.191027798 +0900
++++ b/benchmark/Makefile	2026-10-27 14:38:21.197846722 +0900
+@@ -63,7 +63,7 @@
+ # link convention mirrors how the already-built e2e_radius_bench binary in
+ # this tree was produced (-lsodium -lcrypto -lm, -I../edhoc4).
+ e2e_radius_bench: e2e_radius_bench.c $(EDHOC4_LIB)
+-	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lcrypto -lm
++	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lmbedcrypto -lcrypto -lm
+ 
+ eap_tls_bench: eap_tls_bench.c
+ 	$(CC) $(CFLAGS) -o $@ eap_tls_bench.c -lssl -lcrypto -lm
+diff -ru a/freeradius-v3/src/modules/rlm_eap/types/rlm_eap_edhoc/all.mk b/freeradius-v3/src/modules/rlm_eap/types/rlm_eap_edhoc/all.mk
+--- a/freeradius-v3/src/modules/rlm_eap/types/rlm_eap_edhoc/all.mk	2026-10-27 14:38:21.175302746 +0900
++++ b/freeradius-v3/src/modules/rlm_eap/types/rlm_eap_edhoc/all.mk	2026-10-27 14:38:21.194326675 +0900
+@@ -11,5 +11,5 @@
+ 
+ SRC_CFLAGS	:= -I$(EDHOC4_DIR)
+ SRC_INCDIRS	:= ../../ ../../libeap/
+-TGT_LDLIBS	:= $(EDHOC4_DIR)/libedhoc4.a -lsodium
++TGT_LDLIBS	:= $(EDHOC4_DIR)/libedhoc4.a -lsodium -lmbedcrypto
+ TGT_PREREQS	:= libfreeradius-eap.a

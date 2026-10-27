@@ -63,7 +63,7 @@ interop_vec: interop_vec.c $(MLKEM_LIB) $(PQ_COMMON_OBJ)
 # link convention mirrors how the already-built e2e_radius_bench binary in
 # this tree was produced (-lsodium -lcrypto -lm, -I../edhoc4).
 e2e_radius_bench: e2e_radius_bench.c $(EDHOC4_LIB)
-	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lcrypto -lm
+	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lmbedcrypto -lcrypto -lm
 
 eap_tls_bench: eap_tls_bench.c
 	$(CC) $(CFLAGS) -o $@ eap_tls_bench.c -lssl -lcrypto -lm

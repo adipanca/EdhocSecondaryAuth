@@ -38,6 +38,8 @@ ${BUILD_DIR}/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.${OBJ_EX
  src/freeradius-devel/modules.h \
  src/freeradius-devel/rad_assert.h src/modules/rlm_eap/libeap/eap_types.h \
  ${top_srcdir}/../edhoc4/edhoc4.h \
+ ${top_srcdir}/../edhoc4/edhoc4_db.h \
+ ${top_srcdir}/../edhoc4/edhoc4.h \
  ${top_srcdir}/../edhoc4/edhoc03.h
  :
  src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.c :

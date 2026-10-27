@@ -11,5 +11,5 @@ EDHOC4_DIR	:= $(top_srcdir)/../edhoc4
 
 SRC_CFLAGS	:= -I$(EDHOC4_DIR)
 SRC_INCDIRS	:= ../../ ../../libeap/
-TGT_LDLIBS	:= $(EDHOC4_DIR)/libedhoc4.a -lsodium
+TGT_LDLIBS	:= $(EDHOC4_DIR)/libedhoc4.a -lsodium -lmbedcrypto
 TGT_PREREQS	:= libfreeradius-eap.a

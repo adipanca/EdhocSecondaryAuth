@@ -1,0 +1,220 @@
+(* =====================================================================
+ * edhoc_m4v2_kci.pv
+ * Variant : Revised proposed EAP-EDHOC hybrid PQC (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 SIGMA gate), no ephemeral X-Wing: ct_B in Message1, ct_A in Message2, one-time static keys
+ * Setting : Key-Compromise Impersonation (W1: UE keys leaked, W2: DN keys leaked) with the quantum oracle available
+ * Model   : symbolic (Dolev-Yao), ProVerif 2.05
+ * Part of : EdhocSecondaryAuth -- ProVerif models for
+ *           "Role-Symmetric EAP-EDHOC with Hybrid Post-Quantum Cryptography
+ *            for 5G Secondary Authentication and Application-Server Access"
+ * Expected: all queries true
+ * ===================================================================== *)
+
+(* ---------------- Channel, types ---------------- *)
+free c : channel.
+
+type exponent.          (* X25519 scalar                              *)
+type G.                 (* X25519 group element                       *)
+type kemsk.             (* ML-KEM-768 decapsulation key               *)
+type kempk.             (* ML-KEM-768 encapsulation key               *)
+type edsk.              (* Ed25519 signing key                        *)
+type edpk.              (* Ed25519 verification key                   *)
+type mdsk.              (* ML-DSA-44 signing key                      *)
+type mdpk.              (* ML-DSA-44 verification key                 *)
+
+(* ---------------- X25519 (Diffie-Hellman) ---------------- *)
+const g : G [data].
+fun exp(G, exponent) : G.
+equation forall x:exponent, y:exponent; exp(exp(g, x), y) = exp(exp(g, y), x).
+fun G2b(G) : bitstring [data, typeConverter].
+
+(* ---------------- ML-KEM-768 (IND-CCA KEM) ----------------
+ * Encapsulation: the encapsulator picks a fresh seed s and sends
+ * kem_ct(pk, s); only the holder of the decapsulation key recovers s.
+ * The attacker can encapsulate to any public key with its own seeds. *)
+fun kempub(kemsk) : kempk.
+fun kem_ct(kempk, bitstring) : bitstring.
+reduc forall k:kemsk, s:bitstring; kem_dec(k, kem_ct(kempub(k), s)) = s.
+
+(* ---------------- Ed25519 (EUF-CMA, classical) ---------------- *)
+fun edpub(edsk) : edpk.
+fun edsign(bitstring, edsk) : bitstring.
+reduc forall m:bitstring, k:edsk; edverify(edpub(k), edsign(m, k)) = m.
+
+(* ---------------- ML-DSA-44 (EUF-CMA, post-quantum) ---------------- *)
+fun mdpub(mdsk) : mdpk.
+fun mdsign(bitstring, mdsk) : bitstring.
+reduc forall m:bitstring, k:mdsk; mdverify(mdpub(k), mdsign(m, k)) = m.
+
+(* ---------------- Hash, HKDF, AEAD ---------------- *)
+fun H(bitstring) : bitstring.
+fun extract(bitstring, bitstring) : bitstring.      (* HKDF-Extract(salt, ikm) *)
+fun expands(bitstring, bitstring) : bitstring.      (* HKDF-Expand(prk, info)  *)
+fun AEAD_enc(bitstring, bitstring) : bitstring.
+reduc forall k:bitstring, m:bitstring; AEAD_dec(k, AEAD_enc(k, m)) = m.
+
+(* ---------------- Quantum oracle (used only in *_quantum.pv) ----------------
+ * A quantum adversary solves discrete logarithms (Shor) and therefore
+ * recovers X25519 scalars and Ed25519 signing keys from public values.
+ * No oracle exists for ML-KEM-768 or ML-DSA-44. *)
+reduc forall x:exponent; qdlog(exp(g, x)) = x [private].
+reduc forall k:edsk; qed(edpub(k)) = k [private].
+
+(* ---------------- Constants ---------------- *)
+const W0, W1, W2 : bitstring.             (* world / epoch tags *)
+const SuitesI, CI, CR, EAD2, Len2, Len3, commit : bitstring.
+const M_0, M_1, M_2, M_3, M_4 : bitstring.
+const lbl_K2, lbl_K3, lbl_K4, lbl_MAC2, lbl_MAC3, lbl_out, lbl_MSK, lbl_EMSK : bitstring.
+const lbl_xw, lbl_hyb, lbl_shs, lbl_chs, lbl_scv, lbl_ccv, lbl_sfin, lbl_cfin, lbl_ms, lbl_sapp : bitstring.
+
+(* ---------------- Secrets under test ---------------- *)
+free ID_CREDI : bitstring [private].
+free ID_CREDR : bitstring [private].
+free app_data_UE, app_data_DN : bitstring [private].
+free MSK_test, EMSK_test, MSK_test2, EMSK_test2 : bitstring [private].
+
+(* ---------------- Events (first argument = world/epoch tag) ---------------- *)
+event UE_send_M1(bitstring, bitstring).
+event DN_send_M2(bitstring, bitstring, bitstring).
+event UE_recv_M2(bitstring, bitstring, bitstring).
+event UE_send_M3(bitstring, bitstring, bitstring).
+event DN_recv_M3(bitstring, bitstring, bitstring).
+event DN_send_M4(bitstring, bitstring, bitstring).
+event UE_recv_M4(bitstring, bitstring, bitstring).
+event UE_finish(bitstring, bitstring, bitstring).
+event DN_finish(bitstring, bitstring, bitstring).
+
+let QDH = ! in(c, y:G); out(c, qdlog(y)).
+let QED = ! in(c, p:edpk); out(c, qed(p)).
+
+(* ============================ QUERIES ============================ *)
+(* World W1: UE's long-term keys are known to the attacker from the start.
+ * KCI resistance for the UE requires that the DN is still authenticated to it. *)
+(* split: query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W1, x, t)) ==> inj-event(DN_send_M2(W1, x, t)).   (* Q2: DN authenticated to UE *) *)
+(* split: query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W1, x, t)) ==> inj-event(DN_send_M4(W1, x, t)).   (* Q4: key confirmation by DN *) *)
+(* World W2: DN's long-term keys are known to the attacker from the start.
+ * KCI resistance for the DN requires that the UE is still authenticated to it. *)
+query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W2, x, t)) ==> inj-event(UE_send_M3(W2, x, t)).   (* Q3: UE authenticated to DN *)
+
+(* ============================ PROCESSES ========================== *)
+let UE(w:bitstring, A_pq:kemsk, A_x:exponent, pkB_pq:kempk, pkB_x:G,
+       skSigI:mdsk, pkSigI:mdpk, pkSigR:mdpk) =
+  new sB:bitstring; new eB:exponent;
+  let ctB_x = exp(g, eB) in
+  let ctB_pq = kem_ct(pkB_pq, sB) in
+  let ssB = H((lbl_xw, sB, G2b(exp(pkB_x, eB)), G2b(ctB_x), G2b(pkB_x))) in
+  let PT1 = (M_4, SuitesI, ID_CREDI, CI) in
+  let TH1 = H((ctB_pq, G2b(ctB_x))) in
+  let K1 = expands(extract(TH1, ssB), TH1) in
+  let Message1 = (ctB_pq, ctB_x, AEAD_enc(K1, PT1)) in
+  event UE_send_M1(w, Message1);
+  out(c, Message1);
+  in(c, (ctA_pq:bitstring, ctA_x:G, encP2:bitstring));
+  let s_ssA = kem_dec(A_pq, ctA_pq) in
+  let ssA = H((lbl_xw, s_ssA, G2b(exp(ctA_x, A_x)), G2b(ctA_x), G2b(exp(g, A_x)))) in
+  let TH2 = H((H(Message1), ctA_pq, G2b(ctA_x), CR)) in
+  let PRK2e = extract(TH2, ssA) in
+  let K2 = expands(PRK2e, (lbl_K2, TH2)) in
+  let PT2 = AEAD_dec(K2, encP2) in
+  let (=CR, =ID_CREDR, =pkSigR, =EAD2, MAC2:bitstring, sigR:bitstring) = PT2 in
+  let PRK3e2m = extract(PRK2e, ssB) in
+  let MAC2chk = expands(PRK3e2m, (lbl_MAC2, TH2, ID_CREDR, EAD2, Len2)) in
+  let v2 = mdverify(pkSigR, sigR) in
+  if MAC2 = MAC2chk then
+  if v2 = (TH2, ID_CREDR, MAC2) then
+  event UE_recv_M2(w, MAC2, TH2);
+  let TH3 = H((TH2, PT2)) in
+  let PRK4e3m = PRK3e2m in
+  new NA_pq:kemsk; new NA_x:exponent;
+  let EAD3 = (kempub(NA_pq), exp(g, NA_x)) in
+  let MAC3 = expands(PRK4e3m, (lbl_MAC3, TH3, ID_CREDI, EAD3, Len3)) in
+  let sigI = mdsign((TH3, ID_CREDI, MAC3), skSigI) in
+  let K3 = expands(PRK3e2m, (lbl_K3, TH3)) in
+  let PT3 = (EAD3, MAC3, pkSigI, sigI) in
+  let Message3 = AEAD_enc(K3, PT3) in
+  let TH4 = H((TH3, PT3)) in
+  event UE_send_M3(w, MAC3, TH3);
+  out(c, Message3);
+  in(c, Message4:bitstring);
+  let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
+  let (NpkB_pq:kempk, NpkB_x:G) = AEAD_dec(K4, Message4) in
+  event UE_recv_M4(w, Message4, TH4);
+  let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
+  let MSK = expands(PRKout, lbl_MSK) in
+  let EMSK = expands(PRKout, lbl_EMSK) in
+  event UE_finish(w, MSK, EMSK);
+  out(c, AEAD_enc(MSK, app_data_UE));
+  out(c, AEAD_enc(MSK, MSK_test)).
+
+let DN(w:bitstring, B_pq:kemsk, B_x:exponent, pkA_pq:kempk, pkA_x:G,
+       skSigR:mdsk, pkSigR:mdpk, pkSigI:mdpk) =
+  in(c, Message1:bitstring);
+  let (ctB_pq:bitstring, ctB_x:G, encP1:bitstring) = Message1 in
+  (* (sk_B, pk_B) = per-UE record selected from the EAP identity: process argument *)
+  let s_ssB = kem_dec(B_pq, ctB_pq) in
+  let ssB = H((lbl_xw, s_ssB, G2b(exp(ctB_x, B_x)), G2b(ctB_x), G2b(exp(g, B_x)))) in
+  let TH1 = H((ctB_pq, G2b(ctB_x))) in
+  let K1 = expands(extract(TH1, ssB), TH1) in
+  let (=M_4, =SuitesI, claimedI:bitstring, =CI) = AEAD_dec(K1, encP1) in
+  (* (pk_A, VK_I) = Lookup(ID_CRED_I): the per-UE record is the process argument *)
+  new sA:bitstring; new eA:exponent;
+  let ctA_x = exp(g, eA) in
+  let ctA_pq = kem_ct(pkA_pq, sA) in
+  let ssA = H((lbl_xw, sA, G2b(exp(pkA_x, eA)), G2b(ctA_x), G2b(pkA_x))) in
+  let TH2 = H((H(Message1), ctA_pq, G2b(ctA_x), CR)) in
+  let PRK2e = extract(TH2, ssA) in
+  let K2 = expands(PRK2e, (lbl_K2, TH2)) in
+  let PRK3e2m = extract(PRK2e, ssB) in
+  let MAC2 = expands(PRK3e2m, (lbl_MAC2, TH2, ID_CREDR, EAD2, Len2)) in
+  let sigR = mdsign((TH2, ID_CREDR, MAC2), skSigR) in
+  let PT2 = (CR, ID_CREDR, pkSigR, EAD2, MAC2, sigR) in
+  let TH3 = H((TH2, PT2)) in
+  event DN_send_M2(w, MAC2, TH2);
+  out(c, (ctA_pq, ctA_x, AEAD_enc(K2, PT2)));
+  in(c, Message3:bitstring);
+  let K3 = expands(PRK3e2m, (lbl_K3, TH3)) in
+  let PT3 = AEAD_dec(K3, Message3) in
+  let (EAD3r:bitstring, MAC3r:bitstring, =pkSigI, sigIr:bitstring) = PT3 in
+  let TH4 = H((TH3, PT3)) in
+  let PRK4e3m = PRK3e2m in
+  let MAC3chk = expands(PRK4e3m, (lbl_MAC3, TH3, claimedI, EAD3r, Len3)) in
+  let v3 = mdverify(pkSigI, sigIr) in
+  if MAC3r = MAC3chk then
+  if v3 = (TH3, claimedI, MAC3r) then
+  event DN_recv_M3(w, MAC3r, TH3);
+  let (NpkA_pq:kempk, NpkA_x:G) = EAD3r in
+  new NB_pq:kemsk; new NB_x:exponent;
+  let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
+  let Message4 = AEAD_enc(K4, (kempub(NB_pq), exp(g, NB_x))) in
+  event DN_send_M4(w, Message4, TH4);
+  out(c, Message4);
+  let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
+  let MSK = expands(PRKout, lbl_MSK) in
+  let EMSK = expands(PRKout, lbl_EMSK) in
+  event DN_finish(w, MSK, EMSK);
+  out(c, AEAD_enc(MSK, app_data_DN));
+  out(c, AEAD_enc(EMSK, EMSK_test)).
+
+(* ============================== MAIN ============================= *)
+process
+  new A_pq1:kemsk; new A_x1:exponent; new skSigI1:mdsk;
+  new B_pq1:kemsk; new B_x1:exponent; new skSigR1:mdsk;
+  let pkA_pq1 = kempub(A_pq1) in let pkA_x1 = exp(g, A_x1) in
+  let pkB_pq1 = kempub(B_pq1) in let pkB_x1 = exp(g, B_x1) in
+  let pkSigI1 = mdpub(skSigI1) in let pkSigR1 = mdpub(skSigR1) in
+  out(c, (pkA_pq1, pkA_x1, pkB_pq1, pkB_x1, pkSigI1, pkSigR1));
+  new A_pq2:kemsk; new A_x2:exponent; new skSigI2:mdsk;
+  new B_pq2:kemsk; new B_x2:exponent; new skSigR2:mdsk;
+  let pkA_pq2 = kempub(A_pq2) in let pkA_x2 = exp(g, A_x2) in
+  let pkB_pq2 = kempub(B_pq2) in let pkB_x2 = exp(g, B_x2) in
+  let pkSigI2 = mdpub(skSigI2) in let pkSigR2 = mdpub(skSigR2) in
+  out(c, (pkA_pq2, pkA_x2, pkB_pq2, pkB_x2, pkSigI2, pkSigR2));
+  out(c, ID_CREDR);   (* responder identity public here so authentication is not vacuous *)
+  out(c, A_pq1); out(c, A_x1); out(c, skSigI1);
+  out(c, B_pq2); out(c, B_x2); out(c, skSigR2);
+  (
+      ( ! UE(W1, A_pq1, A_x1, pkB_pq1, pkB_x1, skSigI1, pkSigI1, pkSigR1) )
+    | ( ! DN(W1, B_pq1, B_x1, pkA_pq1, pkA_x1, skSigR1, pkSigR1, pkSigI1) )
+    | ( ! UE(W2, A_pq2, A_x2, pkB_pq2, pkB_x2, skSigI2, pkSigI2, pkSigR2) )
+    | ( ! DN(W2, B_pq2, B_x2, pkA_pq2, pkA_x2, skSigR2, pkSigR2, pkSigI2) )
+    | QDH
+  )

@@ -15,28 +15,38 @@
  *   server -> peer : EAP-Request/EDHOC  (message_4)
  *   peer   -> server: EAP-Response/EDHOC (empty ACK)
  *   server -> peer : EAP-Success  (+ MS-MPPE keys derived from MSK)
+ *
+ * Method 4 keys are per UE and rotated every session (no ephemeral X-Wing):
+ * the record under <db>/<EAP identity>/ is selected before message_1 is
+ * processed, and the rotated keys are committed after message_3 (see
+ * edhoc4_db.h for the grace-key policy when message_4 is lost).
  */
 RCSID("$Id$")
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "eap.h"
 
 #include <freeradius-devel/rad_assert.h>
 
 #include "edhoc4.h"
+#include "edhoc4_db.h"
 #include "edhoc03.h"
 
 typedef struct rlm_eap_edhoc_t {
-	char const	*creds_path;	//!< server.creds (responder credentials, method 4)
-	char const	*peer_pub_path;	//!< ue.pub (UE static XWING public key, method 4)
+	char const	*creds_path;	//!< legacy server.creds, only used to locate the db
+	char const	*peer_pub_path;	//!< legacy ue.pub (unused, kept for old configs)
+	char const	*db_path;	//!< per-UE records <db>/<identity>/ (method 4)
+	char const	*emsk_dir;	//!< optional: <emsk_dir>/<identity>.emsk.hex for aaa_keyexport
+	char		db_buf[1024];
 	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
 	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
-	edhoc4_creds	server;
-	uint8_t		ue_pub[E4_XWING_PK];
 	edhoc03_creds	server03;
 	edhoc03_peer	ue03_pub;
 	int		have03;		//!< classical creds loaded
@@ -44,6 +54,9 @@ typedef struct rlm_eap_edhoc_t {
 
 typedef struct edhoc_session_t {
 	edhoc4_ctx	ctx;		//!< method 4 state
+	edhoc4_db_rec	rec;		//!< method 4 per-UE record in use
+	uint8_t		msk[E4_MSK_LEN];	//!< method 4 MSK, exported before commit
+	uint8_t		emsk[E4_EMSK_LEN];
 	edhoc03_ctx	ctx03;		//!< methods 0-3 state
 	int		mode;		//!< 0 = undetermined, 3 = classical, 4 = pqc
 	int		round;		//!< 0 = start sent, 1 = msg2 sent, 2 = msg4 sent
@@ -59,6 +72,8 @@ static CONF_PARSER module_config[] = {
 	{ "creds", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, creds_path), NULL },
 	{ "peer_pub", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub_path), NULL },
 	{ "creds03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, creds03_path), NULL },
+	{ "db", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, db_path), NULL },
+	{ "emsk_dir", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, emsk_dir), NULL },
 	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };
@@ -72,21 +87,24 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 
 	if (cf_section_parse(cs, inst, module_config) < 0) return -1;
 
-	if (!inst->creds_path || !inst->peer_pub_path) {
-		ERROR("rlm_eap_edhoc: 'creds' and 'peer_pub' must be configured");
+	/* Default db: edhoc_db/ next to the legacy 'creds' file. */
+	if (!inst->db_path) {
+		char const *slash;
+
+		if (!inst->creds_path || !(slash = strrchr(inst->creds_path, '/'))) {
+			ERROR("rlm_eap_edhoc: 'db' (or 'creds' to locate it) must be configured");
+			return -1;
+		}
+		snprintf(inst->db_buf, sizeof(inst->db_buf), "%.*s/edhoc_db",
+			 (int)(slash - inst->creds_path), inst->creds_path);
+		inst->db_path = inst->db_buf;
+	}
+	if (access(inst->db_path, R_OK | W_OK | X_OK) != 0) {
+		ERROR("rlm_eap_edhoc: per-UE record db %s is not accessible", inst->db_path);
 		return -1;
 	}
 
-	if (edhoc4_creds_load(inst->creds_path, &inst->server) != E4_OK) {
-		ERROR("rlm_eap_edhoc: failed to load responder creds from %s", inst->creds_path);
-		return -1;
-	}
-	if (edhoc4_pub_load(inst->peer_pub_path, inst->ue_pub) != E4_OK) {
-		ERROR("rlm_eap_edhoc: failed to load peer public key from %s", inst->peer_pub_path);
-		return -1;
-	}
-
-	INFO("rlm_eap_edhoc: loaded method-4 SIGMA XWING credentials");
+	INFO("rlm_eap_edhoc: method-4 SIGMA XWING per-UE records in %s", inst->db_path);
 
 	/* Classical methods 0-3 credentials are optional. */
 	if (inst->creds03_path && inst->peer_pub03_path) {
@@ -283,6 +301,30 @@ static int edhoc_consume_incoming(edhoc_session_t *sess, const uint8_t *in, size
 	return E4_OK;
 }
 
+static void memset_s_wipe(void *p, size_t n)
+{
+	volatile uint8_t *v = p;
+
+	while (n--) *v++ = 0;
+}
+
+/* EMSK for the key-bootstrapping step (bootstrap/aaa_keyexport.py --emsk-file) */
+static void edhoc_export_emsk(rlm_eap_edhoc_t *inst, eap_handler_t *handler, uint8_t const *emsk)
+{
+	char path[1200];
+	FILE *f;
+	int fd;
+
+	if (!inst->emsk_dir || !handler->identity || strchr(handler->identity, '/')) return;
+	snprintf(path, sizeof(path), "%s/%s.emsk.hex", inst->emsk_dir, handler->identity);
+	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (fd < 0) return;
+	f = fdopen(fd, "w");
+	if (!f) { close(fd); return; }
+	for (int i = 0; i < E4_EMSK_LEN; i++) fprintf(f, "%02x", emsk[i]);
+	fclose(f);
+}
+
 static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 {
 	EAP_DS		*eap_ds = handler->eap_ds;
@@ -359,13 +401,20 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			}
 		} else {
 			rlm_eap_edhoc_t *inst4 = (rlm_eap_edhoc_t *) instance;
-			edhoc4_init_responder(&sess->ctx, &inst4->server, inst4->ue_pub);
-			rc = edhoc4_r_handle_msg1(&sess->ctx, msg, msg_len, out, sizeof(out), &out_len);
+			char const *identity = handler->identity;
+
+			/* EAP identity (== RADIUS User-Name) selects the per-UE record */
+			if (!identity && request->username) identity = request->username->vp_strvalue;
+			rc = edhoc4_db_handle_msg1(inst4->db_path, identity, &sess->ctx, &sess->rec,
+						   msg, msg_len, out, sizeof(out), &out_len);
 			if (rc != E4_OK) {
-				REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));
+				REDEBUG("rlm_eap_edhoc: message_1 processing failed for '%s': %s",
+					identity ? identity : "", edhoc4_strerror(rc));
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
+			RDEBUG2("rlm_eap_edhoc: record %s%s", sess->rec.dir,
+				sess->rec.used_prev ? " (grace key prev/, message_4 was lost)" : "");
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
@@ -395,9 +444,23 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		rc = edhoc4_r_handle_msg3(&sess->ctx, msg, msg_len, out, sizeof(out), &out_len);
 		if (rc != E4_OK) {
 			REDEBUG("rlm_eap_edhoc: message_3 processing failed: %s", edhoc4_strerror(rc));
+			edhoc4_ctx_wipe(&sess->ctx);
+			edhoc4_db_rec_wipe(&sess->rec);
 			eap_ds->request->code = PW_EAP_FAILURE;
 			return 0;
 		}
+		/* export MSK/EMSK, then rotate: active record -> prev/, new keys saved */
+		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
+		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
+		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, handler, sess->emsk);
+		rc = edhoc4_db_commit(&sess->ctx, &sess->rec);
+		edhoc4_db_rec_wipe(&sess->rec);
+		if (rc != E4_OK) {
+			REDEBUG("rlm_eap_edhoc: key rotation commit failed: %s", edhoc4_strerror(rc));
+			eap_ds->request->code = PW_EAP_FAILURE;
+			return 0;
+		}
+		sess->ctx.done = 1;	/* ctx was wiped by the commit; keys live in sess */
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 2;
 		RDEBUG2("rlm_eap_edhoc: sent message_4 (%zu bytes), handshake keys derived", out_len);
@@ -416,8 +479,10 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		}
 		eap_ds->request->code = PW_EAP_SUCCESS;
 		/* MSK: first 32 bytes -> Recv-Key, next 32 -> Send-Key (RFC 2548/3748) */
-		eap_add_reply(request, "MS-MPPE-Recv-Key", sess->ctx.msk, 32);
-		eap_add_reply(request, "MS-MPPE-Send-Key", sess->ctx.msk + 32, 32);
+		eap_add_reply(request, "MS-MPPE-Recv-Key", sess->msk, 32);
+		eap_add_reply(request, "MS-MPPE-Send-Key", sess->msk + 32, 32);
+		memset_s_wipe(sess->msk, sizeof(sess->msk));
+		memset_s_wipe(sess->emsk, sizeof(sess->emsk));
 		RDEBUG2("rlm_eap_edhoc: authentication success, MSK exported");
 		return 1;
 

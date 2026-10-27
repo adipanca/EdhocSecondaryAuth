@@ -1,0 +1,559 @@
+Linear part:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Completing equations...
+Completed equations:
+exp(exp(g,x),y) = exp(exp(g,y),x)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new A_pq1: kemsk;
+{2}new A_x1: exponent;
+{3}new skSigI1: mdsk;
+{4}new B_pq1: kemsk;
+{5}new B_x1: exponent;
+{6}new skSigR1: mdsk;
+{7}let pkA_pq1: kempk = kempub(A_pq1) in
+{8}let pkA_x1: G = exp(g,A_x1) in
+{9}let pkB_pq1: kempk = kempub(B_pq1) in
+{10}let pkB_x1: G = exp(g,B_x1) in
+{11}let pkSigI1: mdpk = mdpub(skSigI1) in
+{12}let pkSigR1: mdpk = mdpub(skSigR1) in
+{13}out(c, (pkA_pq1,pkA_x1,pkB_pq1,pkB_x1,pkSigI1,pkSigR1));
+{14}new A_pq2: kemsk;
+{15}new A_x2: exponent;
+{16}new skSigI2: mdsk;
+{17}new B_pq2: kemsk;
+{18}new B_x2: exponent;
+{19}new skSigR2: mdsk;
+{20}let pkA_pq2: kempk = kempub(A_pq2) in
+{21}let pkA_x2: G = exp(g,A_x2) in
+{22}let pkB_pq2: kempk = kempub(B_pq2) in
+{23}let pkB_x2: G = exp(g,B_x2) in
+{24}let pkSigI2: mdpk = mdpub(skSigI2) in
+{25}let pkSigR2: mdpk = mdpub(skSigR2) in
+{26}out(c, (pkA_pq2,pkA_x2,pkB_pq2,pkB_x2,pkSigI2,pkSigR2));
+{27}out(c, ID_CREDR);
+{28}out(c, A_pq1);
+{29}out(c, A_x1);
+{30}out(c, skSigI1);
+{31}out(c, B_pq2);
+{32}out(c, B_x2);
+{33}out(c, skSigR2);
+(
+    {34}!
+    {35}let w: bitstring = W1 in
+    {36}let A_pq: kemsk = A_pq1 in
+    {37}let A_x: exponent = A_x1 in
+    {38}let skSigI: mdsk = skSigI1 in
+    {39}new sB: bitstring;
+    {40}new eB: exponent;
+    {41}let ctB_x: G = exp(g,eB) in
+    {42}let ctB_pq: bitstring = kem_ct(pkB_pq1,sB) in
+    {43}let ssB: bitstring = H((lbl_xw,sB,exp(pkB_x1,eB),ctB_x,pkB_x1)) in
+    {44}let PT1: bitstring = (M_4,SuitesI,ID_CREDI,CI) in
+    {45}let TH1: bitstring = H((ctB_pq,ctB_x)) in
+    {46}let K1: bitstring = expands(extract(TH1,ssB),TH1) in
+    {47}let Message1: bitstring = (ctB_pq,ctB_x,AEAD_enc(K1,PT1)) in
+    {48}event UE_send_M1(w,Message1);
+    {49}out(c, Message1);
+    {50}in(c, (ctA_pq: bitstring,ctA_x: G,encP2: bitstring));
+    {51}let s_ssA: bitstring = kem_dec(A_pq,ctA_pq) in
+    {52}let ssA: bitstring = H((lbl_xw,s_ssA,exp(ctA_x,A_x),ctA_x,exp(g,A_x))) in
+    {53}let TH2: bitstring = H((H(Message1),ctA_pq,ctA_x,CR)) in
+    {54}let PRK2e: bitstring = extract(TH2,ssA) in
+    {55}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {56}let PT2: bitstring = AEAD_dec(K2,encP2) in
+    {57}let (=CR,=ID_CREDR,=pkSigR1,=EAD2,MAC2: bitstring,sigR: bitstring) = PT2 in
+    {58}let PRK3e2m: bitstring = extract(PRK2e,ssB) in
+    {59}let MAC2chk: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,EAD2,Len2)) in
+    {60}let v2: bitstring = mdverify(pkSigR1,sigR) in
+    {61}if (MAC2 = MAC2chk) then
+    {62}if (v2 = (TH2,ID_CREDR,MAC2)) then
+    {63}event UE_recv_M2(w,MAC2,TH2);
+    {64}let TH3: bitstring = H((TH2,PT2)) in
+    {65}let PRK4e3m: bitstring = PRK3e2m in
+    {66}new NA_pq: kemsk;
+    {67}new NA_x: exponent;
+    {68}let EAD3: bitstring = (kempub(NA_pq),exp(g,NA_x)) in
+    {69}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,EAD3,Len3)) in
+    {70}let sigI: bitstring = mdsign((TH3,ID_CREDI,MAC3),skSigI) in
+    {71}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {72}let PT3: bitstring = (EAD3,MAC3,pkSigI1,sigI) in
+    {73}let Message3: bitstring = AEAD_enc(K3,PT3) in
+    {74}let TH4: bitstring = H((TH3,PT3)) in
+    {75}event UE_send_M3(w,MAC3,TH3);
+    {76}out(c, Message3);
+    {77}in(c, Message4: bitstring);
+    {78}let K4: bitstring = expands(PRK4e3m,(lbl_K4,TH4)) in
+    {79}let (NpkB_pq: kempk,NpkB_x: G) = AEAD_dec(K4,Message4) in
+    {80}event UE_recv_M4(w,Message4,TH4);
+    {81}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {82}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {83}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {84}event UE_finish(w,MSK,EMSK);
+    {85}out(c, AEAD_enc(MSK,app_data_UE));
+    {86}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {87}!
+    {88}let w_1: bitstring = W1 in
+    {89}let B_pq: kemsk = B_pq1 in
+    {90}let B_x: exponent = B_x1 in
+    {91}let skSigR: mdsk = skSigR1 in
+    {92}in(c, Message1_1: bitstring);
+    {93}let (ctB_pq_1: bitstring,ctB_x_1: G,encP1: bitstring) = Message1_1 in
+    {94}let s_ssB: bitstring = kem_dec(B_pq,ctB_pq_1) in
+    {95}let ssB_1: bitstring = H((lbl_xw,s_ssB,exp(ctB_x_1,B_x),ctB_x_1,exp(g,B_x))) in
+    {96}let TH1_1: bitstring = H((ctB_pq_1,ctB_x_1)) in
+    {97}let K1_1: bitstring = expands(extract(TH1_1,ssB_1),TH1_1) in
+    {98}let (=M_4,=SuitesI,claimedI: bitstring,=CI) = AEAD_dec(K1_1,encP1) in
+    {99}new sA: bitstring;
+    {100}new eA: exponent;
+    {101}let ctA_x_1: G = exp(g,eA) in
+    {102}let ctA_pq_1: bitstring = kem_ct(pkA_pq1,sA) in
+    {103}let ssA_1: bitstring = H((lbl_xw,sA,exp(pkA_x1,eA),ctA_x_1,pkA_x1)) in
+    {104}let TH2_1: bitstring = H((H(Message1_1),ctA_pq_1,ctA_x_1,CR)) in
+    {105}let PRK2e_1: bitstring = extract(TH2_1,ssA_1) in
+    {106}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {107}let PRK3e2m_1: bitstring = extract(PRK2e_1,ssB_1) in
+    {108}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,EAD2,Len2)) in
+    {109}let sigR_1: bitstring = mdsign((TH2_1,ID_CREDR,MAC2_1),skSigR) in
+    {110}let PT2_1: bitstring = (CR,ID_CREDR,pkSigR1,EAD2,MAC2_1,sigR_1) in
+    {111}let TH3_1: bitstring = H((TH2_1,PT2_1)) in
+    {112}event DN_send_M2(w_1,MAC2_1,TH2_1);
+    {113}out(c, (ctA_pq_1,ctA_x_1,AEAD_enc(K2_1,PT2_1)));
+    {114}in(c, Message3_1: bitstring);
+    {115}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {116}let PT3_1: bitstring = AEAD_dec(K3_1,Message3_1) in
+    {117}let (EAD3r: bitstring,MAC3r: bitstring,=pkSigI1,sigIr: bitstring) = PT3_1 in
+    {118}let TH4_1: bitstring = H((TH3_1,PT3_1)) in
+    {119}let PRK4e3m_1: bitstring = PRK3e2m_1 in
+    {120}let MAC3chk: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,claimedI,EAD3r,Len3)) in
+    {121}let v3: bitstring = mdverify(pkSigI1,sigIr) in
+    {122}if (MAC3r = MAC3chk) then
+    {123}if (v3 = (TH3_1,claimedI,MAC3r)) then
+    {124}event DN_recv_M3(w_1,MAC3r,TH3_1);
+    {125}let (NpkA_pq: kempk,NpkA_x: G) = EAD3r in
+    {126}new NB_pq: kemsk;
+    {127}new NB_x: exponent;
+    {128}let K4_1: bitstring = expands(PRK4e3m_1,(lbl_K4,TH4_1)) in
+    {129}let Message4_1: bitstring = AEAD_enc(K4_1,(kempub(NB_pq),exp(g,NB_x))) in
+    {130}event DN_send_M4(w_1,Message4_1,TH4_1);
+    {131}out(c, Message4_1);
+    {132}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {133}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {134}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {135}event DN_finish(w_1,MSK_1,EMSK_1);
+    {136}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {137}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {138}!
+    {139}let w_2: bitstring = W2 in
+    {140}let A_pq_1: kemsk = A_pq2 in
+    {141}let A_x_1: exponent = A_x2 in
+    {142}let skSigI_1: mdsk = skSigI2 in
+    {143}new sB_1: bitstring;
+    {144}new eB_1: exponent;
+    {145}let ctB_x_2: G = exp(g,eB_1) in
+    {146}let ctB_pq_2: bitstring = kem_ct(pkB_pq2,sB_1) in
+    {147}let ssB_2: bitstring = H((lbl_xw,sB_1,exp(pkB_x2,eB_1),ctB_x_2,pkB_x2)) in
+    {148}let PT1_1: bitstring = (M_4,SuitesI,ID_CREDI,CI) in
+    {149}let TH1_2: bitstring = H((ctB_pq_2,ctB_x_2)) in
+    {150}let K1_2: bitstring = expands(extract(TH1_2,ssB_2),TH1_2) in
+    {151}let Message1_2: bitstring = (ctB_pq_2,ctB_x_2,AEAD_enc(K1_2,PT1_1)) in
+    {152}event UE_send_M1(w_2,Message1_2);
+    {153}out(c, Message1_2);
+    {154}in(c, (ctA_pq_2: bitstring,ctA_x_2: G,encP2_1: bitstring));
+    {155}let s_ssA_1: bitstring = kem_dec(A_pq_1,ctA_pq_2) in
+    {156}let ssA_2: bitstring = H((lbl_xw,s_ssA_1,exp(ctA_x_2,A_x_1),ctA_x_2,exp(g,A_x_1))) in
+    {157}let TH2_2: bitstring = H((H(Message1_2),ctA_pq_2,ctA_x_2,CR)) in
+    {158}let PRK2e_2: bitstring = extract(TH2_2,ssA_2) in
+    {159}let K2_2: bitstring = expands(PRK2e_2,(lbl_K2,TH2_2)) in
+    {160}let PT2_2: bitstring = AEAD_dec(K2_2,encP2_1) in
+    {161}let (=CR,=ID_CREDR,=pkSigR2,=EAD2,MAC2_2: bitstring,sigR_2: bitstring) = PT2_2 in
+    {162}let PRK3e2m_2: bitstring = extract(PRK2e_2,ssB_2) in
+    {163}let MAC2chk_1: bitstring = expands(PRK3e2m_2,(lbl_MAC2,TH2_2,ID_CREDR,EAD2,Len2)) in
+    {164}let v2_1: bitstring = mdverify(pkSigR2,sigR_2) in
+    {165}if (MAC2_2 = MAC2chk_1) then
+    {166}if (v2_1 = (TH2_2,ID_CREDR,MAC2_2)) then
+    {167}event UE_recv_M2(w_2,MAC2_2,TH2_2);
+    {168}let TH3_2: bitstring = H((TH2_2,PT2_2)) in
+    {169}let PRK4e3m_2: bitstring = PRK3e2m_2 in
+    {170}new NA_pq_1: kemsk;
+    {171}new NA_x_1: exponent;
+    {172}let EAD3_1: bitstring = (kempub(NA_pq_1),exp(g,NA_x_1)) in
+    {173}let MAC3_1: bitstring = expands(PRK4e3m_2,(lbl_MAC3,TH3_2,ID_CREDI,EAD3_1,Len3)) in
+    {174}let sigI_1: bitstring = mdsign((TH3_2,ID_CREDI,MAC3_1),skSigI_1) in
+    {175}let K3_2: bitstring = expands(PRK3e2m_2,(lbl_K3,TH3_2)) in
+    {176}let PT3_2: bitstring = (EAD3_1,MAC3_1,pkSigI2,sigI_1) in
+    {177}let Message3_2: bitstring = AEAD_enc(K3_2,PT3_2) in
+    {178}let TH4_2: bitstring = H((TH3_2,PT3_2)) in
+    {179}event UE_send_M3(w_2,MAC3_1,TH3_2);
+    {180}out(c, Message3_2);
+    {181}in(c, Message4_2: bitstring);
+    {182}let K4_2: bitstring = expands(PRK4e3m_2,(lbl_K4,TH4_2)) in
+    {183}let (NpkB_pq_1: kempk,NpkB_x_1: G) = AEAD_dec(K4_2,Message4_2) in
+    {184}event UE_recv_M4(w_2,Message4_2,TH4_2);
+    {185}let PRKout_2: bitstring = expands(PRK4e3m_2,(lbl_out,TH4_2)) in
+    {186}let MSK_2: bitstring = expands(PRKout_2,lbl_MSK) in
+    {187}let EMSK_2: bitstring = expands(PRKout_2,lbl_EMSK) in
+    {188}event UE_finish(w_2,MSK_2,EMSK_2);
+    {189}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {190}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {191}!
+    {192}let w_3: bitstring = W2 in
+    {193}let B_pq_1: kemsk = B_pq2 in
+    {194}let B_x_1: exponent = B_x2 in
+    {195}let skSigR_1: mdsk = skSigR2 in
+    {196}in(c, Message1_3: bitstring);
+    {197}let (ctB_pq_3: bitstring,ctB_x_3: G,encP1_1: bitstring) = Message1_3 in
+    {198}let s_ssB_1: bitstring = kem_dec(B_pq_1,ctB_pq_3) in
+    {199}let ssB_3: bitstring = H((lbl_xw,s_ssB_1,exp(ctB_x_3,B_x_1),ctB_x_3,exp(g,B_x_1))) in
+    {200}let TH1_3: bitstring = H((ctB_pq_3,ctB_x_3)) in
+    {201}let K1_3: bitstring = expands(extract(TH1_3,ssB_3),TH1_3) in
+    {202}let (=M_4,=SuitesI,claimedI_1: bitstring,=CI) = AEAD_dec(K1_3,encP1_1) in
+    {203}new sA_1: bitstring;
+    {204}new eA_1: exponent;
+    {205}let ctA_x_3: G = exp(g,eA_1) in
+    {206}let ctA_pq_3: bitstring = kem_ct(pkA_pq2,sA_1) in
+    {207}let ssA_3: bitstring = H((lbl_xw,sA_1,exp(pkA_x2,eA_1),ctA_x_3,pkA_x2)) in
+    {208}let TH2_3: bitstring = H((H(Message1_3),ctA_pq_3,ctA_x_3,CR)) in
+    {209}let PRK2e_3: bitstring = extract(TH2_3,ssA_3) in
+    {210}let K2_3: bitstring = expands(PRK2e_3,(lbl_K2,TH2_3)) in
+    {211}let PRK3e2m_3: bitstring = extract(PRK2e_3,ssB_3) in
+    {212}let MAC2_3: bitstring = expands(PRK3e2m_3,(lbl_MAC2,TH2_3,ID_CREDR,EAD2,Len2)) in
+    {213}let sigR_3: bitstring = mdsign((TH2_3,ID_CREDR,MAC2_3),skSigR_1) in
+    {214}let PT2_3: bitstring = (CR,ID_CREDR,pkSigR2,EAD2,MAC2_3,sigR_3) in
+    {215}let TH3_3: bitstring = H((TH2_3,PT2_3)) in
+    {216}event DN_send_M2(w_3,MAC2_3,TH2_3);
+    {217}out(c, (ctA_pq_3,ctA_x_3,AEAD_enc(K2_3,PT2_3)));
+    {218}in(c, Message3_3: bitstring);
+    {219}let K3_3: bitstring = expands(PRK3e2m_3,(lbl_K3,TH3_3)) in
+    {220}let PT3_3: bitstring = AEAD_dec(K3_3,Message3_3) in
+    {221}let (EAD3r_1: bitstring,MAC3r_1: bitstring,=pkSigI2,sigIr_1: bitstring) = PT3_3 in
+    {222}let TH4_3: bitstring = H((TH3_3,PT3_3)) in
+    {223}let PRK4e3m_3: bitstring = PRK3e2m_3 in
+    {224}let MAC3chk_1: bitstring = expands(PRK4e3m_3,(lbl_MAC3,TH3_3,claimedI_1,EAD3r_1,Len3)) in
+    {225}let v3_1: bitstring = mdverify(pkSigI2,sigIr_1) in
+    {226}if (MAC3r_1 = MAC3chk_1) then
+    {227}if (v3_1 = (TH3_3,claimedI_1,MAC3r_1)) then
+    {228}event DN_recv_M3(w_3,MAC3r_1,TH3_3);
+    {229}let (NpkA_pq_1: kempk,NpkA_x_1: G) = EAD3r_1 in
+    {230}new NB_pq_1: kemsk;
+    {231}new NB_x_1: exponent;
+    {232}let K4_3: bitstring = expands(PRK4e3m_3,(lbl_K4,TH4_3)) in
+    {233}let Message4_3: bitstring = AEAD_enc(K4_3,(kempub(NB_pq_1),exp(g,NB_x_1))) in
+    {234}event DN_send_M4(w_3,Message4_3,TH4_3);
+    {235}out(c, Message4_3);
+    {236}let PRKout_3: bitstring = expands(PRK4e3m_3,(lbl_out,TH4_3)) in
+    {237}let MSK_3: bitstring = expands(PRKout_3,lbl_MSK) in
+    {238}let EMSK_3: bitstring = expands(PRKout_3,lbl_EMSK) in
+    {239}event DN_finish(w_3,MSK_3,EMSK_3);
+    {240}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {241}out(c, AEAD_enc(EMSK_3,EMSK_test))
+) | (
+    {242}!
+    {243}in(c, y: G);
+    {244}out(c, qdlog(y))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new A_pq1: kemsk;
+{2}new A_x1: exponent;
+{3}new skSigI1: mdsk;
+{4}new B_pq1: kemsk;
+{5}new B_x1: exponent;
+{6}new skSigR1: mdsk;
+{12}let pkSigR1: mdpk = mdpub(skSigR1) in
+{11}let pkSigI1: mdpk = mdpub(skSigI1) in
+{10}let pkB_x1: G = exp(g,B_x1) in
+{9}let pkB_pq1: kempk = kempub(B_pq1) in
+{8}let pkA_x1: G = exp(g,A_x1) in
+{7}let pkA_pq1: kempk = kempub(A_pq1) in
+{13}out(c, (pkA_pq1,pkA_x1,pkB_pq1,pkB_x1,pkSigI1,pkSigR1));
+{14}new A_pq2: kemsk;
+{15}new A_x2: exponent;
+{16}new skSigI2: mdsk;
+{17}new B_pq2: kemsk;
+{18}new B_x2: exponent;
+{19}new skSigR2: mdsk;
+{25}let pkSigR2: mdpk = mdpub(skSigR2) in
+{24}let pkSigI2: mdpk = mdpub(skSigI2) in
+{23}let pkB_x2: G = exp(g,B_x2) in
+{22}let pkB_pq2: kempk = kempub(B_pq2) in
+{21}let pkA_x2: G = exp(g,A_x2) in
+{20}let pkA_pq2: kempk = kempub(A_pq2) in
+{26}out(c, (pkA_pq2,pkA_x2,pkB_pq2,pkB_x2,pkSigI2,pkSigR2));
+{27}out(c, ID_CREDR);
+{28}out(c, A_pq1);
+{29}out(c, A_x1);
+{30}out(c, skSigI1);
+{31}out(c, B_pq2);
+{32}out(c, B_x2);
+{33}out(c, skSigR2);
+(
+    {34}!
+    {39}new sB: bitstring;
+    {40}new eB: exponent;
+    {42}let ctB_pq: bitstring = kem_ct(pkB_pq1,sB) in
+    {41}let ctB_x: G = exp(g,eB) in
+    {45}let TH1: bitstring = H((ctB_pq,ctB_x)) in
+    {43}let ssB: bitstring = H((lbl_xw,sB,exp(pkB_x1,eB),ctB_x,pkB_x1)) in
+    {46}let K1: bitstring = expands(extract(TH1,ssB),TH1) in
+    {44}let PT1: bitstring = (M_4,SuitesI,ID_CREDI,CI) in
+    {47}let Message1: bitstring = (ctB_pq,ctB_x,AEAD_enc(K1,PT1)) in
+    {35}let w: bitstring = W1 in
+    {48}event UE_send_M1(w,Message1);
+    {49}out(c, Message1);
+    {50}in(c, (ctA_pq: bitstring,ctA_x: G,encP2: bitstring));
+    {36}let A_pq: kemsk = A_pq1 in
+    {51}let s_ssA: bitstring = kem_dec(A_pq,ctA_pq) in
+    {53}let TH2: bitstring = H((H(Message1),ctA_pq,ctA_x,CR)) in
+    {37}let A_x: exponent = A_x1 in
+    {52}let ssA: bitstring = H((lbl_xw,s_ssA,exp(ctA_x,A_x),ctA_x,exp(g,A_x))) in
+    {54}let PRK2e: bitstring = extract(TH2,ssA) in
+    {55}let K2: bitstring = expands(PRK2e,(lbl_K2,TH2)) in
+    {56}let PT2: bitstring = AEAD_dec(K2,encP2) in
+    {57}let (=CR,=ID_CREDR,=pkSigR1,=EAD2,MAC2: bitstring,sigR: bitstring) = PT2 in
+    {60}let v2: bitstring = mdverify(pkSigR1,sigR) in
+    {58}let PRK3e2m: bitstring = extract(PRK2e,ssB) in
+    {59}let MAC2chk: bitstring = expands(PRK3e2m,(lbl_MAC2,TH2,ID_CREDR,EAD2,Len2)) in
+    {61}if (MAC2 = MAC2chk) then
+    {62}if (v2 = (TH2,ID_CREDR,MAC2)) then
+    {63}event UE_recv_M2(w,MAC2,TH2);
+    {66}new NA_pq: kemsk;
+    {67}new NA_x: exponent;
+    {68}let EAD3: bitstring = (kempub(NA_pq),exp(g,NA_x)) in
+    {65}let PRK4e3m: bitstring = PRK3e2m in
+    {64}let TH3: bitstring = H((TH2,PT2)) in
+    {69}let MAC3: bitstring = expands(PRK4e3m,(lbl_MAC3,TH3,ID_CREDI,EAD3,Len3)) in
+    {75}event UE_send_M3(w,MAC3,TH3);
+    {38}let skSigI: mdsk = skSigI1 in
+    {70}let sigI: bitstring = mdsign((TH3,ID_CREDI,MAC3),skSigI) in
+    {72}let PT3: bitstring = (EAD3,MAC3,pkSigI1,sigI) in
+    {71}let K3: bitstring = expands(PRK3e2m,(lbl_K3,TH3)) in
+    {73}let Message3: bitstring = AEAD_enc(K3,PT3) in
+    {76}out(c, Message3);
+    {77}in(c, Message4: bitstring);
+    {74}let TH4: bitstring = H((TH3,PT3)) in
+    {78}let K4: bitstring = expands(PRK4e3m,(lbl_K4,TH4)) in
+    {79}let (NpkB_pq: kempk,NpkB_x: G) = AEAD_dec(K4,Message4) in
+    {80}event UE_recv_M4(w,Message4,TH4);
+    {81}let PRKout: bitstring = expands(PRK4e3m,(lbl_out,TH4)) in
+    {83}let EMSK: bitstring = expands(PRKout,lbl_EMSK) in
+    {82}let MSK: bitstring = expands(PRKout,lbl_MSK) in
+    {84}event UE_finish(w,MSK,EMSK);
+    {85}out(c, AEAD_enc(MSK,app_data_UE));
+    {86}out(c, AEAD_enc(MSK,MSK_test))
+) | (
+    {87}!
+    {92}in(c, Message1_1: bitstring);
+    {93}let (ctB_pq_1: bitstring,ctB_x_1: G,encP1: bitstring) = Message1_1 in
+    {89}let B_pq: kemsk = B_pq1 in
+    {94}let s_ssB: bitstring = kem_dec(B_pq,ctB_pq_1) in
+    {96}let TH1_1: bitstring = H((ctB_pq_1,ctB_x_1)) in
+    {90}let B_x: exponent = B_x1 in
+    {95}let ssB_1: bitstring = H((lbl_xw,s_ssB,exp(ctB_x_1,B_x),ctB_x_1,exp(g,B_x))) in
+    {97}let K1_1: bitstring = expands(extract(TH1_1,ssB_1),TH1_1) in
+    {98}let (=M_4,=SuitesI,claimedI: bitstring,=CI) = AEAD_dec(K1_1,encP1) in
+    {99}new sA: bitstring;
+    {100}new eA: exponent;
+    {102}let ctA_pq_1: bitstring = kem_ct(pkA_pq1,sA) in
+    {101}let ctA_x_1: G = exp(g,eA) in
+    {104}let TH2_1: bitstring = H((H(Message1_1),ctA_pq_1,ctA_x_1,CR)) in
+    {103}let ssA_1: bitstring = H((lbl_xw,sA,exp(pkA_x1,eA),ctA_x_1,pkA_x1)) in
+    {105}let PRK2e_1: bitstring = extract(TH2_1,ssA_1) in
+    {107}let PRK3e2m_1: bitstring = extract(PRK2e_1,ssB_1) in
+    {108}let MAC2_1: bitstring = expands(PRK3e2m_1,(lbl_MAC2,TH2_1,ID_CREDR,EAD2,Len2)) in
+    {88}let w_1: bitstring = W1 in
+    {112}event DN_send_M2(w_1,MAC2_1,TH2_1);
+    {91}let skSigR: mdsk = skSigR1 in
+    {109}let sigR_1: bitstring = mdsign((TH2_1,ID_CREDR,MAC2_1),skSigR) in
+    {110}let PT2_1: bitstring = (CR,ID_CREDR,pkSigR1,EAD2,MAC2_1,sigR_1) in
+    {106}let K2_1: bitstring = expands(PRK2e_1,(lbl_K2,TH2_1)) in
+    {113}out(c, (ctA_pq_1,ctA_x_1,AEAD_enc(K2_1,PT2_1)));
+    {114}in(c, Message3_1: bitstring);
+    {111}let TH3_1: bitstring = H((TH2_1,PT2_1)) in
+    {115}let K3_1: bitstring = expands(PRK3e2m_1,(lbl_K3,TH3_1)) in
+    {116}let PT3_1: bitstring = AEAD_dec(K3_1,Message3_1) in
+    {117}let (EAD3r: bitstring,MAC3r: bitstring,=pkSigI1,sigIr: bitstring) = PT3_1 in
+    {121}let v3: bitstring = mdverify(pkSigI1,sigIr) in
+    {119}let PRK4e3m_1: bitstring = PRK3e2m_1 in
+    {120}let MAC3chk: bitstring = expands(PRK4e3m_1,(lbl_MAC3,TH3_1,claimedI,EAD3r,Len3)) in
+    {122}if (MAC3r = MAC3chk) then
+    {123}if (v3 = (TH3_1,claimedI,MAC3r)) then
+    {124}event DN_recv_M3(w_1,MAC3r,TH3_1);
+    {125}let (NpkA_pq: kempk,NpkA_x: G) = EAD3r in
+    {126}new NB_pq: kemsk;
+    {127}new NB_x: exponent;
+    {118}let TH4_1: bitstring = H((TH3_1,PT3_1)) in
+    {128}let K4_1: bitstring = expands(PRK4e3m_1,(lbl_K4,TH4_1)) in
+    {129}let Message4_1: bitstring = AEAD_enc(K4_1,(kempub(NB_pq),exp(g,NB_x))) in
+    {130}event DN_send_M4(w_1,Message4_1,TH4_1);
+    {131}out(c, Message4_1);
+    {132}let PRKout_1: bitstring = expands(PRK4e3m_1,(lbl_out,TH4_1)) in
+    {134}let EMSK_1: bitstring = expands(PRKout_1,lbl_EMSK) in
+    {133}let MSK_1: bitstring = expands(PRKout_1,lbl_MSK) in
+    {135}event DN_finish(w_1,MSK_1,EMSK_1);
+    {136}out(c, AEAD_enc(MSK_1,app_data_DN));
+    {137}out(c, AEAD_enc(EMSK_1,EMSK_test))
+) | (
+    {138}!
+    {143}new sB_1: bitstring;
+    {144}new eB_1: exponent;
+    {146}let ctB_pq_2: bitstring = kem_ct(pkB_pq2,sB_1) in
+    {145}let ctB_x_2: G = exp(g,eB_1) in
+    {149}let TH1_2: bitstring = H((ctB_pq_2,ctB_x_2)) in
+    {147}let ssB_2: bitstring = H((lbl_xw,sB_1,exp(pkB_x2,eB_1),ctB_x_2,pkB_x2)) in
+    {150}let K1_2: bitstring = expands(extract(TH1_2,ssB_2),TH1_2) in
+    {148}let PT1_1: bitstring = (M_4,SuitesI,ID_CREDI,CI) in
+    {151}let Message1_2: bitstring = (ctB_pq_2,ctB_x_2,AEAD_enc(K1_2,PT1_1)) in
+    {139}let w_2: bitstring = W2 in
+    {152}event UE_send_M1(w_2,Message1_2);
+    {153}out(c, Message1_2);
+    {154}in(c, (ctA_pq_2: bitstring,ctA_x_2: G,encP2_1: bitstring));
+    {140}let A_pq_1: kemsk = A_pq2 in
+    {155}let s_ssA_1: bitstring = kem_dec(A_pq_1,ctA_pq_2) in
+    {157}let TH2_2: bitstring = H((H(Message1_2),ctA_pq_2,ctA_x_2,CR)) in
+    {141}let A_x_1: exponent = A_x2 in
+    {156}let ssA_2: bitstring = H((lbl_xw,s_ssA_1,exp(ctA_x_2,A_x_1),ctA_x_2,exp(g,A_x_1))) in
+    {158}let PRK2e_2: bitstring = extract(TH2_2,ssA_2) in
+    {159}let K2_2: bitstring = expands(PRK2e_2,(lbl_K2,TH2_2)) in
+    {160}let PT2_2: bitstring = AEAD_dec(K2_2,encP2_1) in
+    {161}let (=CR,=ID_CREDR,=pkSigR2,=EAD2,MAC2_2: bitstring,sigR_2: bitstring) = PT2_2 in
+    {164}let v2_1: bitstring = mdverify(pkSigR2,sigR_2) in
+    {162}let PRK3e2m_2: bitstring = extract(PRK2e_2,ssB_2) in
+    {163}let MAC2chk_1: bitstring = expands(PRK3e2m_2,(lbl_MAC2,TH2_2,ID_CREDR,EAD2,Len2)) in
+    {165}if (MAC2_2 = MAC2chk_1) then
+    {166}if (v2_1 = (TH2_2,ID_CREDR,MAC2_2)) then
+    {167}event UE_recv_M2(w_2,MAC2_2,TH2_2);
+    {170}new NA_pq_1: kemsk;
+    {171}new NA_x_1: exponent;
+    {172}let EAD3_1: bitstring = (kempub(NA_pq_1),exp(g,NA_x_1)) in
+    {169}let PRK4e3m_2: bitstring = PRK3e2m_2 in
+    {168}let TH3_2: bitstring = H((TH2_2,PT2_2)) in
+    {173}let MAC3_1: bitstring = expands(PRK4e3m_2,(lbl_MAC3,TH3_2,ID_CREDI,EAD3_1,Len3)) in
+    {179}event UE_send_M3(w_2,MAC3_1,TH3_2);
+    {142}let skSigI_1: mdsk = skSigI2 in
+    {174}let sigI_1: bitstring = mdsign((TH3_2,ID_CREDI,MAC3_1),skSigI_1) in
+    {176}let PT3_2: bitstring = (EAD3_1,MAC3_1,pkSigI2,sigI_1) in
+    {175}let K3_2: bitstring = expands(PRK3e2m_2,(lbl_K3,TH3_2)) in
+    {177}let Message3_2: bitstring = AEAD_enc(K3_2,PT3_2) in
+    {180}out(c, Message3_2);
+    {181}in(c, Message4_2: bitstring);
+    {178}let TH4_2: bitstring = H((TH3_2,PT3_2)) in
+    {182}let K4_2: bitstring = expands(PRK4e3m_2,(lbl_K4,TH4_2)) in
+    {183}let (NpkB_pq_1: kempk,NpkB_x_1: G) = AEAD_dec(K4_2,Message4_2) in
+    {184}event UE_recv_M4(w_2,Message4_2,TH4_2);
+    {185}let PRKout_2: bitstring = expands(PRK4e3m_2,(lbl_out,TH4_2)) in
+    {187}let EMSK_2: bitstring = expands(PRKout_2,lbl_EMSK) in
+    {186}let MSK_2: bitstring = expands(PRKout_2,lbl_MSK) in
+    {188}event UE_finish(w_2,MSK_2,EMSK_2);
+    {189}out(c, AEAD_enc(MSK_2,app_data_UE));
+    {190}out(c, AEAD_enc(MSK_2,MSK_test))
+) | (
+    {191}!
+    {196}in(c, Message1_3: bitstring);
+    {197}let (ctB_pq_3: bitstring,ctB_x_3: G,encP1_1: bitstring) = Message1_3 in
+    {193}let B_pq_1: kemsk = B_pq2 in
+    {198}let s_ssB_1: bitstring = kem_dec(B_pq_1,ctB_pq_3) in
+    {200}let TH1_3: bitstring = H((ctB_pq_3,ctB_x_3)) in
+    {194}let B_x_1: exponent = B_x2 in
+    {199}let ssB_3: bitstring = H((lbl_xw,s_ssB_1,exp(ctB_x_3,B_x_1),ctB_x_3,exp(g,B_x_1))) in
+    {201}let K1_3: bitstring = expands(extract(TH1_3,ssB_3),TH1_3) in
+    {202}let (=M_4,=SuitesI,claimedI_1: bitstring,=CI) = AEAD_dec(K1_3,encP1_1) in
+    {203}new sA_1: bitstring;
+    {204}new eA_1: exponent;
+    {206}let ctA_pq_3: bitstring = kem_ct(pkA_pq2,sA_1) in
+    {205}let ctA_x_3: G = exp(g,eA_1) in
+    {208}let TH2_3: bitstring = H((H(Message1_3),ctA_pq_3,ctA_x_3,CR)) in
+    {207}let ssA_3: bitstring = H((lbl_xw,sA_1,exp(pkA_x2,eA_1),ctA_x_3,pkA_x2)) in
+    {209}let PRK2e_3: bitstring = extract(TH2_3,ssA_3) in
+    {211}let PRK3e2m_3: bitstring = extract(PRK2e_3,ssB_3) in
+    {212}let MAC2_3: bitstring = expands(PRK3e2m_3,(lbl_MAC2,TH2_3,ID_CREDR,EAD2,Len2)) in
+    {192}let w_3: bitstring = W2 in
+    {216}event DN_send_M2(w_3,MAC2_3,TH2_3);
+    {195}let skSigR_1: mdsk = skSigR2 in
+    {213}let sigR_3: bitstring = mdsign((TH2_3,ID_CREDR,MAC2_3),skSigR_1) in
+    {214}let PT2_3: bitstring = (CR,ID_CREDR,pkSigR2,EAD2,MAC2_3,sigR_3) in
+    {210}let K2_3: bitstring = expands(PRK2e_3,(lbl_K2,TH2_3)) in
+    {217}out(c, (ctA_pq_3,ctA_x_3,AEAD_enc(K2_3,PT2_3)));
+    {218}in(c, Message3_3: bitstring);
+    {215}let TH3_3: bitstring = H((TH2_3,PT2_3)) in
+    {219}let K3_3: bitstring = expands(PRK3e2m_3,(lbl_K3,TH3_3)) in
+    {220}let PT3_3: bitstring = AEAD_dec(K3_3,Message3_3) in
+    {221}let (EAD3r_1: bitstring,MAC3r_1: bitstring,=pkSigI2,sigIr_1: bitstring) = PT3_3 in
+    {225}let v3_1: bitstring = mdverify(pkSigI2,sigIr_1) in
+    {223}let PRK4e3m_3: bitstring = PRK3e2m_3 in
+    {224}let MAC3chk_1: bitstring = expands(PRK4e3m_3,(lbl_MAC3,TH3_3,claimedI_1,EAD3r_1,Len3)) in
+    {226}if (MAC3r_1 = MAC3chk_1) then
+    {227}if (v3_1 = (TH3_3,claimedI_1,MAC3r_1)) then
+    {228}event DN_recv_M3(w_3,MAC3r_1,TH3_3);
+    {229}let (NpkA_pq_1: kempk,NpkA_x_1: G) = EAD3r_1 in
+    {230}new NB_pq_1: kemsk;
+    {231}new NB_x_1: exponent;
+    {222}let TH4_3: bitstring = H((TH3_3,PT3_3)) in
+    {232}let K4_3: bitstring = expands(PRK4e3m_3,(lbl_K4,TH4_3)) in
+    {233}let Message4_3: bitstring = AEAD_enc(K4_3,(kempub(NB_pq_1),exp(g,NB_x_1))) in
+    {234}event DN_send_M4(w_3,Message4_3,TH4_3);
+    {235}out(c, Message4_3);
+    {236}let PRKout_3: bitstring = expands(PRK4e3m_3,(lbl_out,TH4_3)) in
+    {238}let EMSK_3: bitstring = expands(PRKout_3,lbl_EMSK) in
+    {237}let MSK_3: bitstring = expands(PRKout_3,lbl_MSK) in
+    {239}event DN_finish(w_3,MSK_3,EMSK_3);
+    {240}out(c, AEAD_enc(MSK_3,app_data_DN));
+    {241}out(c, AEAD_enc(EMSK_3,EMSK_test))
+) | (
+    {242}!
+    {243}in(c, y: G);
+    {244}out(c, qdlog(y))
+)
+
+-- Query inj-event(UE_recv_M2(W1,x,t)) ==> inj-event(DN_send_M2(W1,x,t)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 198 rules (87 with conclusion selected). Queue: 123 rules.
+400 rules inserted. Base: 358 rules (96 with conclusion selected). Queue: 108 rules.
+600 rules inserted. Base: 493 rules (124 with conclusion selected). Queue: 133 rules.
+800 rules inserted. Base: 628 rules (132 with conclusion selected). Queue: 164 rules.
+1000 rules inserted. Base: 731 rules (148 with conclusion selected). Queue: 222 rules.
+1200 rules inserted. Base: 886 rules (148 with conclusion selected). Queue: 296 rules.
+1400 rules inserted. Base: 922 rules (148 with conclusion selected). Queue: 276 rules.
+select attacker(exp(g,x))/-5000
+1600 rules inserted. Base: 964 rules (158 with conclusion selected). Queue: 253 rules.
+1800 rules inserted. Base: 1000 rules (186 with conclusion selected). Queue: 277 rules.
+2000 rules inserted. Base: 1083 rules (245 with conclusion selected). Queue: 400 rules.
+2200 rules inserted. Base: 1177 rules (259 with conclusion selected). Queue: 432 rules.
+2400 rules inserted. Base: 1249 rules (267 with conclusion selected). Queue: 461 rules.
+2600 rules inserted. Base: 1340 rules (271 with conclusion selected). Queue: 675 rules.
+2800 rules inserted. Base: 1421 rules (271 with conclusion selected). Queue: 882 rules.
+3000 rules inserted. Base: 1454 rules (271 with conclusion selected). Queue: 908 rules.
+3200 rules inserted. Base: 1525 rules (271 with conclusion selected). Queue: 945 rules.
+3400 rules inserted. Base: 1572 rules (271 with conclusion selected). Queue: 984 rules.
+3600 rules inserted. Base: 1637 rules (271 with conclusion selected). Queue: 1021 rules.
+3800 rules inserted. Base: 1672 rules (271 with conclusion selected). Queue: 1042 rules.
+4000 rules inserted. Base: 1679 rules (275 with conclusion selected). Queue: 1040 rules.
+4200 rules inserted. Base: 1696 rules (279 with conclusion selected). Queue: 1042 rules.
+4400 rules inserted. Base: 1694 rules (281 with conclusion selected). Queue: 1008 rules.
+4600 rules inserted. Base: 1761 rules (285 with conclusion selected). Queue: 991 rules.
+4800 rules inserted. Base: 1791 rules (287 with conclusion selected). Queue: 971 rules.
+select attacker(exp(g,eA[Message1_1 = (kem_ct(kempub(B_pq1[]),*s_ssB_2),exp(g,x),AEAD_enc(expands(extract(H((kem_ct(kempub(B_pq1[]),*s_ssB_2),exp(g,x))),H((lbl_xw,*s_ssB_2,exp(exp(g,B_x1[]),x),exp(g,x),exp(g,B_x1[])))),H((kem_ct(kempub(B_pq1[]),*s_ssB_2),exp(g,x)))),(M_4,SuitesI,*claimedI_2,CI))),!1 = *@sid]))/-5000
+5000 rules inserted. Base: 1815 rules (291 with conclusion selected). Queue: 991 rules.
+5200 rules inserted. Base: 1819 rules (291 with conclusion selected). Queue: 982 rules.
+select attacker(exp(g,eA_1[Message1_3 = (kem_ct(kempub(B_pq2[]),s_ssB_2),exp(g,x),AEAD_enc(expands(extract(H((kem_ct(kempub(B_pq2[]),s_ssB_2),exp(g,x))),H((lbl_xw,s_ssB_2,exp(exp(g,B_x2[]),x),exp(g,x),exp(g,B_x2[])))),H((kem_ct(kempub(B_pq2[]),s_ssB_2),exp(g,x)))),(M_4,SuitesI,*claimedI_2,CI))),!1 = *@sid]))/-5000
+select attacker(exp(g,eA_1[Message1_3 = (kem_ct(kempub(B_pq2[]),*s_ssB_2),exp(g,x),AEAD_enc(expands(extract(H((kem_ct(kempub(B_pq2[]),*s_ssB_2),exp(g,x))),H((lbl_xw,*s_ssB_2,exp(exp(g,B_x2[]),x),exp(g,x),exp(g,B_x2[])))),H((kem_ct(kempub(B_pq2[]),*s_ssB_2),exp(g,x)))),(M_4,SuitesI,*claimedI_2,CI))),!1 = *@sid]))/-5000
+5400 rules inserted. Base: 1836 rules (295 with conclusion selected). Queue: 995 rules.
+5600 rules inserted. Base: 1832 rules (299 with conclusion selected). Queue: 995 rules.
+5800 rules inserted. Base: 1844 rules (299 with conclusion selected). Queue: 1087 rules.
+6000 rules inserted. Base: 1904 rules (339 with conclusion selected). Queue: 1379 rules.
+6200 rules inserted. Base: 1922 rules (339 with conclusion selected). Queue: 1484 rules.
+6400 rules inserted. Base: 2018 rules (419 with conclusion selected). Queue: 2171 rules.
+6600 rules inserted. Base: 2038 rules (419 with conclusion selected). Queue: 2095 rules.
+6800 rules inserted. Base: 2055 rules (419 with conclusion selected). Queue: 2488 rules.
+7000 rules inserted. Base: 2092 rules (427 with conclusion selected). Queue: 2935 rules.
+7200 rules inserted. Base: 2163 rules (435 with conclusion selected). Queue: 2990 rules.
+7400 rules inserted. Base: 2196 rules (435 with conclusion selected). Queue: 2921 rules.
+7600 rules inserted. Base: 2257 rules (435 with conclusion selected). Queue: 3321 rules.
+7800 rules inserted. Base: 2339 rules (435 with conclusion selected). Queue: 3618 rules.
+8000 rules inserted. Base: 2452 rules (447 with conclusion selected). Queue: 3688 rules.
+Fatal error: allocation failure during minor GC
+timeout: the monitored command dumped core

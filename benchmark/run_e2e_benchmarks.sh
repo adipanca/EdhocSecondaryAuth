@@ -29,6 +29,11 @@ TIMING_ITERS="${TIMING_ITERS:-100}"
 LOSSY_ITERS="${LOSSY_ITERS:-120}"
 RTO_MS="${RTO_MS:-40}"
 MAX_RETX="${MAX_RETX:-6}"
+# Method 4 rotates its one-time keys every handshake: the UE side lives in a
+# user-writable dir (see setup_no_eph.sh) and DN-AAA picks its record by
+# User-Name, which must equal the provisioned record name.
+UE_DIR="${EDHOC_UE_DIR:-/usr/local/etc/edhoc/ue/edhoc-ue}"
+IDENTITY="${EDHOC_IDENTITY:-edhoc-ue}"
 LOSS_RATES=(0 1 5 10 20 30)
 METHODS=(0 1 2 3 4)
 
@@ -40,6 +45,7 @@ rm -f "$HS_CSV" "$LOSS_CSV"
 echo "== handshake timing (loss 0, $TIMING_ITERS iters/method) =="
 for m in "${METHODS[@]}"; do
     "$BIN" --method "$m" --iters "$TIMING_ITERS" --loss 0 \
+           --ue-dir "$UE_DIR" --identity "$IDENTITY" \
            --rto-ms "$RTO_MS" --max-retx "$MAX_RETX" \
            --csv "$HS_CSV" --label handshake | tail -1 || true
 done
@@ -48,6 +54,7 @@ echo "== lossy network (method x loss, $LOSSY_ITERS iters/cell) =="
 for m in "${METHODS[@]}"; do
     for l in "${LOSS_RATES[@]}"; do
         "$BIN" --method "$m" --iters "$LOSSY_ITERS" --loss "$l" \
+               --ue-dir "$UE_DIR" --identity "$IDENTITY" \
                --rto-ms "$RTO_MS" --max-retx "$MAX_RETX" \
                --csv "$LOSS_CSV" --label lossy | tail -1 || true
     done

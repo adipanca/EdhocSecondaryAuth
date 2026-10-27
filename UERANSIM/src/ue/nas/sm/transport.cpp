@@ -352,10 +352,30 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 rc = edhoc4_i_handle_msg4(&m_edhocCtx, msgData, msgLen);
                 if (rc == E4_OK)
                 {
-                    uint8_t ackWire[1] = {0x00};
-                    outData = OctetString::FromArray(ackWire, sizeof(ackWire));
-                    m_edhocRound = 3;
+                    // export MSK/EMSK first: edhoc4_commit wipes the session context
+                    std::memcpy(m_edhocMsk, m_edhocCtx.msk, E4_MSK_LEN);
+                    std::memcpy(m_edhocEmsk, m_edhocCtx.emsk, E4_EMSK_LEN);
                     m_logger->info("EAP-EDHOC: handshake complete, MSK/EMSK derived");
+
+                    // one-time keys: install (Nsk_A, Npk_B), erase old sk_A, persist
+                    rc = edhoc4_commit(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
+                    if (rc == E4_OK &&
+                        (edhoc4_creds_save_atomic(m_edhocCredsPath.c_str(), &m_edhocCreds) != E4_OK ||
+                         edhoc4_pub_save_atomic_raw(m_edhocPubPath.c_str(), m_edhocPeerPub) != E4_OK))
+                    {
+                        m_logger->err("EAP-EDHOC: failed to persist rotated keys to %s / %s",
+                                      m_edhocCredsPath.c_str(), m_edhocPubPath.c_str());
+                        rc = E4_ERR_STATE;
+                    }
+                    // reload from disk on the next session
+                    m_edhocProvisioned = false;
+                    if (rc == E4_OK)
+                    {
+                        uint8_t ackWire[1] = {0x00};
+                        outData = OctetString::FromArray(ackWire, sizeof(ackWire));
+                        m_edhocRound = 3;
+                        m_logger->info("EAP-EDHOC: one-time keys rotated and saved");
+                    }
                 }
             }
             else
@@ -383,9 +403,13 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     }
     else if (msg.eapMessage.eap->eapType == eap::EEapType::IDENTITY)
     {
+        // The DN-AAA selects the per-UE EDHOC record (<db>/<identity>/) from
+        // this identity, so it must match the provisioned record name.
         std::string identity = "imsi-000000000000000";
         if (m_base && m_base->config && m_base->config->supi.has_value())
             identity = m_base->config->supi.value().value;
+        if (const char *eapId = std::getenv("EDHOC_EAP_IDENTITY"))
+            identity = eapId;
 
         resp.eapMessage.eap = std::make_unique<eap::EapIdentity>(
             eap::ECode::RESPONSE,
@@ -417,6 +441,9 @@ bool NasSm::ensureEdhocProvisioned()
         credsPath = "/usr/local/etc/edhoc/ue.creds";
     if (!pubPath)
         pubPath = "/usr/local/etc/edhoc/server.pub";
+
+    m_edhocCredsPath = credsPath;
+    m_edhocPubPath = pubPath;
 
     if (edhoc4_creds_load(credsPath, &m_edhocCreds) != E4_OK)
     {

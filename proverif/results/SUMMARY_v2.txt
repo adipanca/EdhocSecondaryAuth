@@ -1,0 +1,102 @@
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+==================================================================
+edhoc_m4v2_classical.pv  (12 queries, one process each)
+  q1 (24s): query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).
+      -> RESULT not event(UE_finish(W0,a,b)) is false.
+  q2 (24s): query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).
+      -> RESULT not event(DN_finish(W0,a,b)) is false.
+  q3 (23s): query m:bitstring; event(UE_send_M1(W0, m)).
+      -> RESULT not event(UE_send_M1(W0,m)) is false.
+  q4 (86s): query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W0, x, t)) ==> inj-event(DN_send_M2(W0, x, t)).
+      -> RESULT inj-event(UE_recv_M2(W0,x,t)) ==> inj-event(DN_send_M2(W0,x,t)) is true.
+  q5 (62s): query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W0, x, t)) ==> inj-event(UE_send_M3(W0, x, t)).
+      -> OUT OF MEMORY
+  q6 (43s): query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W0, x, t)) ==> inj-event(DN_send_M4(W0, x, t)).
+      -> OUT OF MEMORY
+  q7 (21s): query attacker(ID_CREDI).
+      -> RESULT not attacker_p1(ID_CREDI[]) is true.
+  q8 (21s): query attacker(ID_CREDR).
+      -> RESULT not attacker_p1(ID_CREDR[]) is true.
+  q9 (21s): query attacker(app_data_UE).
+      -> RESULT not attacker_p1(app_data_UE[]) is true.
+  q10 (22s): query attacker(app_data_DN).
+      -> RESULT not attacker_p1(app_data_DN[]) is true.
+  q11 (22s): query attacker(MSK_test).
+      -> RESULT not attacker_p1(MSK_test[]) is true.
+  q12 (21s): query attacker(EMSK_test).
+      -> RESULT not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m4v2_quantum.pv  (12 queries, one process each)
+  q1 (66s): query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).
+      -> OUT OF MEMORY
+  q2 (67s): query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).
+      -> OUT OF MEMORY
+  q3 (65s): query m:bitstring; event(UE_send_M1(W0, m)).
+      -> OUT OF MEMORY
+  q4 (116s): query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W0, x, t)) ==> inj-event(DN_send_M2(W0, x, t)).
+      -> OUT OF MEMORY
+  q5 (60s): query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W0, x, t)) ==> inj-event(UE_send_M3(W0, x, t)).
+      -> OUT OF MEMORY
+  q6 (47s): query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W0, x, t)) ==> inj-event(DN_send_M4(W0, x, t)).
+      -> OUT OF MEMORY
+  q7 (65s): query attacker(ID_CREDI).
+      -> OUT OF MEMORY
+  q8 (64s): query attacker(ID_CREDR).
+      -> OUT OF MEMORY
+  q9 (64s): query attacker(app_data_UE).
+      -> OUT OF MEMORY
+  q10 (64s): query attacker(app_data_DN).
+      -> OUT OF MEMORY
+  q11 (64s): query attacker(MSK_test).
+      -> OUT OF MEMORY
+  q12 (64s): query attacker(EMSK_test).
+      -> OUT OF MEMORY
+==================================================================
+edhoc_m4v2_kci.pv  (3 queries, one process each)
+  q1 (105s): query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W1, x, t)) ==> inj-event(DN_send_M2(W1, x, t)).
+      -> OUT OF MEMORY
+  q2 (78s): query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W1, x, t)) ==> inj-event(DN_send_M4(W1, x, t)).
+      -> OUT OF MEMORY
+  q3 (137s): query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W2, x, t)) ==> inj-event(UE_send_M3(W2, x, t)).
+      -> OUT OF MEMORY
+==================================================================
+edhoc_m4v2_pcs.pv  (6 queries, one process each)
+  q1 (28s): query a:bitstring, b:bitstring; event(UE_finish(W2, a, b)).
+      -> OUT OF MEMORY
+  q2 (33s): query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W2, x, t)) ==> inj-event(DN_send_M2(W2, x, t)).
+      -> OUT OF MEMORY
+  q3 (33s): query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W2, x, t)) ==> inj-event(UE_send_M3(W2, x, t)).
+      -> OUT OF MEMORY
+  q4 (28s): query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W2, x, t)) ==> inj-event(DN_send_M4(W2, x, t)).
+      -> OUT OF MEMORY
+  q5 (32s): query attacker(MSK_test2).
+      -> OUT OF MEMORY
+  q6 (32s): query attacker(EMSK_test2).
+      -> OUT OF MEMORY
+==================================================================
+edhoc_m4v2_fs_noerase.pv  (12 queries, one process each)
+  q1 (146s): query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).
+      -> RESULT not event(UE_finish(W0,a,b)) is false.
+  q2 (144s): query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).
+      -> RESULT not event(DN_finish(W0,a,b)) is false.
+  q3 (139s): query m:bitstring; event(UE_send_M1(W0, m)).
+      -> RESULT not event(UE_send_M1(W0,m)) is false.
+  q4 (87s): query x:bitstring, t:bitstring; inj-event(UE_recv_M2(W0, x, t)) ==> inj-event(DN_send_M2(W0, x, t)).
+      -> OUT OF MEMORY
+  q5 (49s): query x:bitstring, t:bitstring; inj-event(DN_recv_M3(W0, x, t)) ==> inj-event(UE_send_M3(W0, x, t)).
+      -> OUT OF MEMORY
+  q6 (44s): query x:bitstring, t:bitstring; inj-event(UE_recv_M4(W0, x, t)) ==> inj-event(DN_send_M4(W0, x, t)).
+      -> OUT OF MEMORY
+  q7 (144s): query attacker(ID_CREDI).
+      -> RESULT not attacker_p1(ID_CREDI[]) is false.
+  q8 (143s): query attacker(ID_CREDR).
+      -> RESULT not attacker_p1(ID_CREDR[]) is false.
+  q9 (147s): query attacker(app_data_UE).
+      -> RESULT not attacker_p1(app_data_UE[]) is false.
+  q10 (141s): query attacker(app_data_DN).
+      -> RESULT not attacker_p1(app_data_DN[]) is false.
+  q11 (137s): query attacker(MSK_test).
+      -> RESULT not attacker_p1(MSK_test[]) is false.
+  q12 (142s): query attacker(EMSK_test).
+      -> RESULT not attacker_p1(EMSK_test[]) is false.
+DONE

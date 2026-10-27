@@ -339,14 +339,13 @@ static const method_def_t METHODS[] = {
     { 1, "SIG-Ed25519 / MAC-X25519",   {1,1,1,0,0,0,0,0,0}, {1,2,0,1,0,0,0,0,0} },
     { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0,0} },
     { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0,0,0}, {1,2,0,0,0,0,0,0,0} },
-    /* method 4: SIGMA XWING — X25519+ML-KEM-768 hybrid KEM + ML-DSA-44 sig.
-     * XWING KeyGen=xkg+mkg, Encaps=xkg+xdh+me, Decaps=xdh+md.
-     * Initiator: KeyGen(pkX)+Encaps(pkB)+Decaps(cte)+Decaps(ctA)+KeyGen(NpkA)
-     *            + ML-DSA verify(sigma_R) + ML-DSA sign(sigma_I).
-     * Responder: Decaps(ctB)+Encaps(pkX)+Encaps(pkA)+KeyGen(NpkB)
+    /* Method 4 (revised, no ephemeral X-Wing). Role-symmetric:
+     * Initiator: Encaps(pkB) + Decaps(ctA) + KeyGen(NpkA)
+     *            + ML-DSA sign(sigma_I) + ML-DSA verify(sigma_R).
+     * Responder: Decaps(ctB) + Encaps(pkA) + KeyGen(NpkB)
      *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I). */
     { 4, "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
-                                       {3,3,0,0,2,1,2,1,1}, {3,3,0,0,1,2,1,1,1} },
+                                       {2,2,0,0,1,1,1,1,1}, {2,2,0,0,1,1,1,1,1} },
 };
 static const int N_METHODS = (int)(sizeof(METHODS) / sizeof(METHODS[0]));
 

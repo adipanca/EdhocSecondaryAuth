@@ -60,8 +60,11 @@ build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
  /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/arpa/inet.h \
- /usr/include/netinet/in.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
+ /usr/include/strings.h \
+ /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+ /usr/include/arpa/inet.h /usr/include/netinet/in.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/include/x86_64-linux-gnu/sys/socket.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
@@ -80,21 +83,12 @@ build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
  /usr/include/asm-generic/sockios.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
  /usr/include/x86_64-linux-gnu/bits/socket2.h \
- /usr/include/x86_64-linux-gnu/bits/in.h src/modules/rlm_eap/eap.h \
- src/freeradius-devel/radiusd.h src/freeradius-devel/libradius.h \
- src/freeradius-devel/build.h src/freeradius-devel/features.h \
- /usr/include/talloc.h src/freeradius-devel/missing.h \
- /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
- /usr/include/x86_64-linux-gnu/bits/wchar.h \
- /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
- /usr/include/inttypes.h /usr/include/strings.h \
- /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
- /usr/include/string.h \
- /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
- /usr/include/netdb.h /usr/include/rpc/netdb.h \
- /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
- /usr/include/x86_64-linux-gnu/bits/netdb.h /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/in.h /usr/include/fcntl.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
+ /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/bits/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl2.h /usr/include/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
  /usr/include/x86_64-linux-gnu/bits/environments.h \
  /usr/include/x86_64-linux-gnu/bits/confname.h \
@@ -103,7 +97,17 @@ build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
  /usr/include/x86_64-linux-gnu/bits/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/unistd-decl.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
- /usr/include/linux/close_range.h /usr/include/errno.h \
+ /usr/include/linux/close_range.h src/modules/rlm_eap/eap.h \
+ src/freeradius-devel/radiusd.h src/freeradius-devel/libradius.h \
+ src/freeradius-devel/build.h src/freeradius-devel/features.h \
+ /usr/include/talloc.h src/freeradius-devel/missing.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
+ /usr/include/inttypes.h /usr/include/netdb.h /usr/include/rpc/netdb.h \
+ /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
+ /usr/include/x86_64-linux-gnu/bits/netdb.h /usr/include/errno.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
@@ -214,5 +218,7 @@ build/objs/src/modules/rlm_eap/types/rlm_eap_edhoc/rlm_eap_edhoc.o: \
  src/freeradius-devel/process.h src/freeradius-devel/listen.h \
  /usr/include/pwd.h /usr/include/grp.h src/freeradius-devel/modules.h \
  src/freeradius-devel/rad_assert.h src/modules/rlm_eap/libeap/eap_types.h \
+ /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc4.h \
+ /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc4_db.h \
  /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc4.h \
  /home/admin-vb/EdhocSecondaryAuth/freeradius-v3/../edhoc4/edhoc03.h

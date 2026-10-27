@@ -43,7 +43,7 @@ target_link_libraries(nr-ue common-lib)
 target_link_libraries(nr-ue ue)
 
 # EAP-EDHOC method-4 core (must be built first: make -C ../edhoc4)
-target_link_libraries(nr-ue ${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4/libedhoc4.a sodium)
+target_link_libraries(nr-ue ${CMAKE_CURRENT_SOURCE_DIR}/../edhoc4/libedhoc4.a sodium mbedcrypto)
 
 ###################### IF BINDER ######################
 add_library(devbnd SHARED src/binder.cpp)

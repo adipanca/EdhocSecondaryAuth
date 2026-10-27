@@ -18,6 +18,14 @@
  * EAP round-trips, per-message byte sizes and EAP fragment counts, plus
  * optional network-loss emulation (drop + retransmit) for the lossy table.
  *
+ * Method 4 uses one-time X-Wing keys: after message_4 the rotated keys are
+ * committed and written atomically (fsync + rename) to <ue-dir>/ue.creds and
+ * <ue-dir>/server.pub, so every iteration runs under fresh keys and the
+ * rotation cost is part of the measured handshake. If message_4 is lost the
+ * UE does not commit; the DN-AAA grace key (prev/) resynchronises the next run.
+ * The DN-AAA record is selected by g_identity, which must match
+ * <db>/<identity>/ on the responder.
+ *
  * This is a benchmark / interoperability harness, not production code.
  */
 #define _POSIX_C_SOURCE 200809L
@@ -36,6 +44,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <sodium.h>
 
 #include <openssl/md5.h>
 #include <openssl/hmac.h>
@@ -74,6 +84,7 @@ static const char *g_secret   = "testing123";
 static const char *g_server   = "127.0.0.1";
 static int         g_port     = 1812;
 static const char *g_creddir  = "/usr/local/etc/edhoc";
+static const char *g_uedir    = NULL;   /* method 4 UE files, default g_creddir */
 static const char *g_identity = "edhoc-ue";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
@@ -218,6 +229,8 @@ static int eng_consume(eng_t *e, const uint8_t *in, size_t in_len,
  * length; sets *is_final_ack when we sent the closing empty ACK.
  * Returns -1 on protocol error.
  */
+static int commit_creds(eng_t *e);
+
 static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
 {
     const uint8_t *msg = NULL;
@@ -267,6 +280,7 @@ static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
         rc = edhoc4_i_handle_msg4(&e->c4, msg, msg_len);
         if (rc != 0) return -1;
         memcpy(e->msk, e->c4.msk, 64);
+        if (commit_creds(e) != 0) return -1;   /* export first, then rotate */
         e->step = 3;
         wire[0] = 0x00;      /* empty ACK; server replies EAP-Success */
         return 1;
@@ -442,12 +456,32 @@ static int load_creds(eng_t *e)
         edhoc03_init_initiator(&e->c3, e->method, &self, &peer);
     } else {
         edhoc4_creds self; uint8_t peer_pk[E4_XWING_PK];
-        snprintf(p, sizeof(p), "%s/ue.creds", g_creddir);
+        snprintf(p, sizeof(p), "%s/ue.creds", g_uedir);
         if (edhoc4_creds_load(p, &self) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
-        snprintf(p, sizeof(p), "%s/server.pub", g_creddir);
+        snprintf(p, sizeof(p), "%s/server.pub", g_uedir);
         if (edhoc4_pub_load(p, peer_pk) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
         edhoc4_init_initiator(&e->c4, &self, peer_pk);
+        sodium_memzero(&self, sizeof(self));
     }
+    return 0;
+}
+
+/* method 4: install the rotated keys and persist them (old sk erased) */
+static int commit_creds(eng_t *e)
+{
+    char p[512];
+    edhoc4_creds self;
+    uint8_t peer_pk[E4_XWING_PK];
+    int rc;
+
+    snprintf(p, sizeof(p), "%s/ue.creds", g_uedir);
+    if (edhoc4_creds_load(p, &self) != E4_OK) return -1;
+    rc = edhoc4_commit(&e->c4, &self, peer_pk);
+    if (rc == E4_OK) rc = edhoc4_creds_save_atomic(p, &self);
+    sodium_memzero(&self, sizeof(self));
+    if (rc != E4_OK) { fprintf(stderr, "save %s failed\n", p); return -1; }
+    snprintf(p, sizeof(p), "%s/server.pub", g_uedir);
+    if (edhoc4_pub_save_atomic_raw(p, peer_pk) != E4_OK) { fprintf(stderr, "save %s failed\n", p); return -1; }
     return 0;
 }
 
@@ -591,6 +625,8 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--port") && i + 1 < argc) g_port = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--secret") && i + 1 < argc) g_secret = argv[++i];
         else if (!strcmp(argv[i], "--creds-dir") && i + 1 < argc) g_creddir = argv[++i];
+        else if (!strcmp(argv[i], "--ue-dir") && i + 1 < argc) g_uedir = argv[++i];
+        else if (!strcmp(argv[i], "--identity") && i + 1 < argc) g_identity = argv[++i];
         else if (!strcmp(argv[i], "--loss") && i + 1 < argc) g_loss = atof(argv[++i]) / 100.0;
         else if (!strcmp(argv[i], "--max-retx") && i + 1 < argc) g_max_retx = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--rto-ms") && i + 1 < argc) g_rto_ms = atof(argv[++i]);
@@ -604,6 +640,8 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    if (!g_uedir) g_uedir = g_creddir;
+    if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
     srand((unsigned)(time(NULL) ^ getpid()));
 
     FILE *cf = NULL;

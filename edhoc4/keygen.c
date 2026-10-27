@@ -1,49 +1,115 @@
 /*
- * keygen.c — provisioning tool for EAP-EDHOC method 4 (SIGMA XWING).
+ * keygen.c — provisioning tool for EAP-EDHOC method 4 (SIGMA XWING, no-eph).
  *
- * Generates a matched credential set shared by the two live peers:
- *   <dir>/server.creds  full DN-AAA (responder) credentials  [secret]
- *   <dir>/server.pub    DN-AAA static XWING public key
- *   <dir>/ue.creds      full UE (initiator) credentials       [secret]
- *   <dir>/ue.pub        UE static XWING public key
+ *   edhoc4_keygen <dir> [eap_identity ...]      (default identity: edhoc-ue)
  *
- * FreeRADIUS loads server.creds + ue.pub; UERANSIM loads ue.creds + server.pub.
- * Run once during provisioning so both sides pin each other's static key.
+ * pk_B is per UE and rotated every session, so the DN-AAA keeps one record
+ * per UE, selected by the EAP identity (RADIUS User-Name). For each identity:
+ *
+ *   DN-AAA side  <dir>/edhoc_db/<identity>/
+ *       server.creds  sk_B/pk_B for this UE + DN-AAA ML-DSA key  [secret]
+ *       ue.pub        pk_A  (UE one-time X-Wing public key)
+ *       ue.vk         VK_I  (UE ML-DSA-44 verification key)
+ *       id_cred       ID_CRED_I
+ *   UE side      <dir>/ue/<identity>/
+ *       ue.creds      sk_A/pk_A + UE ML-DSA key                 [secret]
+ *       server.pub    pk_B
+ *
+ * The DN-AAA ML-DSA key is the same for every UE. The first identity is
+ * also written flat as <dir>/{server.creds,server.pub,ue.creds,ue.pub,ue.vk}
+ * for single-UE tools. Re-run before every benchmark series to start from a
+ * clean (non-rotated) state.
  */
 #include "edhoc4.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sodium.h>
 
-static int save_pair(const char *dir, const char *name,
-                     const edhoc4_creds *c)
+static int mkdir_p(const char *path)
+{
+    char tmp[512];
+    snprintf(tmp, sizeof(tmp), "%s", path);
+    for (char *p = tmp + 1; *p; p++) {
+        if (*p != '/') continue;
+        *p = 0;
+        if (mkdir(tmp, 0700) != 0 && errno != EEXIST) return -1;
+        *p = '/';
+    }
+    return (mkdir(tmp, 0700) != 0 && errno != EEXIST) ? -1 : 0;
+}
+
+static int save_raw(const char *dir, const char *name, const void *buf, size_t len)
 {
     char p[512];
-    snprintf(p, sizeof(p), "%s/%s.creds", dir, name);
-    if (edhoc4_creds_save(p, c) != E4_OK) { fprintf(stderr, "write %s failed\n", p); return 1; }
-    snprintf(p, sizeof(p), "%s/%s.pub", dir, name);
-    if (edhoc4_pub_save(p, c) != E4_OK) { fprintf(stderr, "write %s failed\n", p); return 1; }
+    snprintf(p, sizeof(p), "%s/%s", dir, name);
+    FILE *f = fopen(p, "wb");
+    if (!f) { fprintf(stderr, "write %s failed\n", p); return 1; }
+    size_t n = fwrite(buf, 1, len, f);
+    fclose(f);
+    if (n != len) { fprintf(stderr, "write %s failed\n", p); return 1; }
+    return 0;
+}
+
+/* DN-AAA record + UE files for one identity */
+static int save_record(const char *dn_dir, const char *ue_dir,
+                       const edhoc4_creds *server, const edhoc4_creds *ue)
+{
+    if (mkdir_p(dn_dir) || mkdir_p(ue_dir)) { fprintf(stderr, "mkdir failed\n"); return 1; }
+    if (save_raw(dn_dir, "server.creds", server, sizeof(*server))) return 1;
+    if (save_raw(dn_dir, "ue.pub", ue->kem_pk, E4_XWING_PK)) return 1;
+    if (save_raw(dn_dir, "ue.vk", ue->sig_vk, E4_MLDSA_PK)) return 1;
+    if (save_raw(dn_dir, "id_cred", ue->id_cred, E4_ID_CRED)) return 1;
+    if (save_raw(ue_dir, "ue.creds", ue, sizeof(*ue))) return 1;
+    if (save_raw(ue_dir, "server.pub", server->kem_pk, E4_XWING_PK)) return 1;
     return 0;
 }
 
 int main(int argc, char **argv)
 {
     const char *dir = (argc > 1) ? argv[1] : ".";
+    static const char *def_ids[] = { "edhoc-ue" };
+    const char **ids = (argc > 2) ? (const char **)&argv[2] : def_ids;
+    int nids = (argc > 2) ? argc - 2 : 1;
+    char dn_dir[512], ue_dir[512];
+
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
+    if (mkdir_p(dir)) { fprintf(stderr, "mkdir %s failed\n", dir); return 1; }
 
-    edhoc4_creds server, ue;
-    uint8_t id_srv[E4_ID_CRED] = { 0x00, 0x00, 0x02 };  /* DN-AAA */
-    uint8_t id_ue[E4_ID_CRED]  = { 0x00, 0x00, 0x01 };  /* UE     */
+    /* one DN-AAA ML-DSA key for every UE */
+    edhoc4_creds dn_sig;
+    uint8_t id_srv[E4_ID_CRED] = { 0x00, 0x00, 0x02 };
+    if (edhoc4_gen_creds(&dn_sig, id_srv) != E4_OK) { fprintf(stderr, "gen DN-AAA failed\n"); return 1; }
 
-    if (edhoc4_gen_creds(&server, id_srv) != E4_OK) { fprintf(stderr, "gen server failed\n"); return 1; }
-    if (edhoc4_gen_creds(&ue, id_ue) != E4_OK) { fprintf(stderr, "gen ue failed\n"); return 1; }
+    for (int i = 0; i < nids; i++) {
+        edhoc4_creds server, ue;
+        uint8_t id_ue[E4_ID_CRED] = { 0x00, (uint8_t)((i + 1) >> 8), (uint8_t)(i + 1) };
 
-    if (save_pair(dir, "server", &server)) return 1;
-    if (save_pair(dir, "ue", &ue)) return 1;
+        /* per-UE X-Wing pair for the DN-AAA, shared ML-DSA identity */
+        if (edhoc4_gen_creds(&server, id_srv) != E4_OK) { fprintf(stderr, "gen server failed\n"); return 1; }
+        memcpy(server.sig_sk, dn_sig.sig_sk, E4_MLDSA_SK);
+        memcpy(server.sig_vk, dn_sig.sig_vk, E4_MLDSA_PK);
+        if (edhoc4_gen_creds(&ue, id_ue) != E4_OK) { fprintf(stderr, "gen ue failed\n"); return 1; }
 
-    printf("provisioned EDHOC method-4 credentials in %s/\n", dir);
-    printf("  server.creds (%zu B), server.pub (%d B)\n", sizeof(server), E4_XWING_PK);
-    printf("  ue.creds     (%zu B), ue.pub     (%d B)\n", sizeof(ue), E4_XWING_PK);
+        snprintf(dn_dir, sizeof(dn_dir), "%s/edhoc_db/%s", dir, ids[i]);
+        snprintf(ue_dir, sizeof(ue_dir), "%s/ue/%s", dir, ids[i]);
+        if (save_record(dn_dir, ue_dir, &server, &ue)) return 1;
+
+        if (i == 0) {
+            if (save_raw(dir, "server.creds", &server, sizeof(server))) return 1;
+            if (save_raw(dir, "server.pub", server.kem_pk, E4_XWING_PK)) return 1;
+            if (save_raw(dir, "ue.creds", &ue, sizeof(ue))) return 1;
+            if (save_raw(dir, "ue.pub", ue.kem_pk, E4_XWING_PK)) return 1;
+            if (save_raw(dir, "ue.vk", ue.sig_vk, E4_MLDSA_PK)) return 1;
+        }
+        printf("  %-16s DN-AAA %s/  UE %s/\n", ids[i], dn_dir, ue_dir);
+        sodium_memzero(&server, sizeof(server));
+        sodium_memzero(&ue, sizeof(ue));
+    }
+    sodium_memzero(&dn_sig, sizeof(dn_sig));
+
+    printf("provisioned %d EDHOC method-4 record(s) in %s/\n", nids, dir);
     return 0;
 }
