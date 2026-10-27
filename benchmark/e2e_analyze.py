@@ -326,6 +326,38 @@ def main():
                  "dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.")
         L.append("")
 
+    # ---- 1c-4. Storage ablation for method 4: durable disk vs tmpfs ----
+    tmpfs_path = os.path.join(RESULTS, "e2e-handshake-tmpfs.csv")
+    if os.path.exists(tmpfs_path):
+        L.append("### Ablation biaya penyimpanan kunci method 4 (durable vs tmpfs)")
+        L.append("")
+        L.append("Run yang sama dengan direktori kunci (`/usr/local/etc/edhoc`: `edhoc_db/` DN-AAA "
+                 "dan `ue/` UE) di disk VM (A, durable) dan di tmpfs (B), tempat `fsync`/`fdatasync` "
+                 "praktis gratis. Selisih A - B adalah biaya penyimpanan yang terukur. "
+                 "Sumber B: `e2e-handshake-tmpfs.csv`, `e2e-lossy-tmpfs.csv`.")
+        L.append("")
+        L.append("| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | Initiator mean (ms) | Responder mean (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        abl = {}
+        for name, rows in [("A durable (disk VM)", by_m.get(4, [])),
+                           ("B tmpfs", [r for r in load_rows(tmpfs_path) if int(r["method"]) == 4])]:
+            ok = [r for r in rows if r["status"] == "PASS"]
+            d = [float(r["duration_ms"]) for r in ok]
+            abl[name] = (statistics.mean(d), statistics.median(d), pct(d, 95),
+                         statistics.mean(float(r["initiator_ms"]) for r in ok),
+                         statistics.mean(float(r["responder_ms"]) for r in ok))
+            L.append(f"| {name} | {len(ok)} | " + " | ".join(f"{v:.3f}" for v in abl[name]) + " |")
+        a, b = abl.values()
+        L.append(f"| **A - B (biaya penyimpanan)** | | **{a[0]-b[0]:.3f}** | **{a[1]-b[1]:.3f}** | "
+                 f"{a[2]-b[2]:.3f} | {a[3]-b[3]:.3f} | {a[4]-b[4]:.3f} |")
+        L.append("")
+        L.append("- Flush per handshake (`strace -c -f -e trace=fsync,fdatasync`, 20 handshake): "
+                 "UE 2 `fsync` (simpan `ue.creds` + `server.pub` baru: write, fsync, rename); "
+                 "DN-AAA 2 `fsync` (simpan record baru sebelum Message4, write-ahead) + 2 "
+                 "`fdatasync` (overwrite `prev/` yang dihapus). Jumlah panggilan sama di tmpfs; "
+                 "hanya biayanya yang hilang.")
+        L.append("")
+
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
     sec1a = carry_section(analysis_text, "## 1a. Breakdown komputasi primitif kriptografi",
                           ["## "])
