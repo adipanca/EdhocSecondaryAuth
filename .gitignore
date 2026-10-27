@@ -25,3 +25,21 @@ pqc-tls/oqs-provider/
 pqc-tls/oqs-provider-install/
 pqc-tls/openssl32/
 pqc-tls/openssl32-install/
+
+# build artifacts (do not commit; rebuild with make)
+*.o
+*.a
+*.so
+*.pyc
+__pycache__/
+benchmark/crypto_bench
+benchmark/e2e_radius_bench
+benchmark/eap_tls_bench
+benchmark/eap_tls_hybrid_bench
+benchmark/interop_vec
+edhoc4/edhoc4_keygen
+edhoc4/edhoc4_selftest
+edhoc4/edhoc4_dbtest
+edhoc4/edhoc03_keygen
+edhoc4/edhoc03_selftest
+opam-2.6.1-x86_64-linux
