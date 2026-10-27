@@ -6,8 +6,8 @@ set -u
 cd "$(dirname "$0")"
 TIMEOUT="${TIMEOUT:-1800}"
 mkdir -p results
-: > results/SUMMARY.txt
-proverif -help 2>&1 | head -1 | tee -a results/SUMMARY.txt
+: > results/SUMMARY_v2.txt
+proverif -help 2>&1 | head -1 | tee -a results/SUMMARY_v2.txt
 for f in edhoc_m4v2_classical.pv edhoc_m4v2_quantum.pv edhoc_m4v2_kci.pv \
          edhoc_m4v2_pcs.pv edhoc_m4v2_fs_noerase.pv; do
   [ -f "$f" ] || continue
@@ -22,6 +22,6 @@ for f in edhoc_m4v2_classical.pv edhoc_m4v2_quantum.pv edhoc_m4v2_kci.pv \
     if [ $rc -eq 124 ]; then echo "  TIMEOUT after ${TIMEOUT}s"; fi
     grep -iE "^Error|error:" "$out" | head -5
     sed -n '/Verification summary/,/^-\{20,\}/p' "$out" | grep -E "Query|cannot be proved"
-  } | tee -a results/SUMMARY.txt
+  } | tee -a results/SUMMARY_v2.txt
 done
-echo; echo "Full outputs in results/, combined summary in results/SUMMARY.txt"
+echo; echo "Full outputs in results/, combined summary in results/SUMMARY_v2.txt"

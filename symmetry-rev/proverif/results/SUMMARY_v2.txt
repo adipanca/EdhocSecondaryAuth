@@ -1,0 +1,63 @@
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+Compact X-Wing models (symmetry-rev/proverif/gen_v3.py), one ProVerif process per query, cap 4500000KB / 3600s
+==================================================================
+edhoc_m4v2_classical.pv
+  query     time  peakmem  result
+  q1       1.3s    346MB  not event(UE_finish(W0,a,b)) is false.
+  q2       1.2s    351MB  not event(DN_finish(W0,a,b)) is false.
+  q3       1.2s    336MB  not event(UE_send_M1(W0,m)) is false.
+  q4       2.8s    677MB  inj-event(UE_recv_M2(W0,x,t)) ==> inj-event(DN_send_M2(W0,x,t)) is true.
+  q5       5.3s   1342MB  inj-event(DN_recv_M3(W0,x,t)) ==> inj-event(UE_send_M3(W0,x,t)) is true.
+  q6       7.1s   2012MB  inj-event(UE_recv_M4(W0,x,t)) ==> inj-event(DN_send_M4(W0,x,t)) is true.
+  q7       1.2s    333MB  not attacker_p1(ID_CREDI[]) is true.
+  q8       1.1s    333MB  not attacker_p1(ID_CREDR[]) is true.
+  q9       1.1s    333MB  not attacker_p1(app_data_UE[]) is true.
+  q10      1.1s    333MB  not attacker_p1(app_data_DN[]) is true.
+  q11      1.1s    333MB  not attacker_p1(MSK_test[]) is true.
+  q12      1.2s    333MB  not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m4v2_quantum.pv
+  query     time  peakmem  result
+  q1       1.2s    352MB  not event(UE_finish(W0,a,b)) is false.
+  q2       1.2s    358MB  not event(DN_finish(W0,a,b)) is false.
+  q3       1.1s    336MB  not event(UE_send_M1(W0,m)) is false.
+  q4       2.4s    677MB  inj-event(UE_recv_M2(W0,x,t)) ==> inj-event(DN_send_M2(W0,x,t)) is true.
+  q5       4.9s   1340MB  inj-event(DN_recv_M3(W0,x,t)) ==> inj-event(UE_send_M3(W0,x,t)) is true.
+  q6       6.7s   2011MB  inj-event(UE_recv_M4(W0,x,t)) ==> inj-event(DN_send_M4(W0,x,t)) is true.
+  q7       1.1s    334MB  not attacker_p1(ID_CREDI[]) is true.
+  q8       1.1s    334MB  not attacker_p1(ID_CREDR[]) is true.
+  q9       1.1s    334MB  not attacker_p1(app_data_UE[]) is true.
+  q10      1.1s    334MB  not attacker_p1(app_data_DN[]) is true.
+  q11      1.1s    334MB  not attacker_p1(MSK_test[]) is true.
+  q12      1.2s    334MB  not attacker_p1(EMSK_test[]) is true.
+==================================================================
+edhoc_m4v2_kci.pv
+  query     time  peakmem  result
+  q1       2.4s    359MB  inj-event(UE_recv_M2(W1,x,t)) ==> inj-event(DN_send_M2(W1,x,t)) is true.
+  q2       5.0s    897MB  inj-event(UE_recv_M4(W1,x,t)) ==> inj-event(DN_send_M4(W1,x,t)) is true.
+  q3       2.9s    501MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+==================================================================
+edhoc_m4v2_pcs.pv
+  query     time  peakmem  result
+  q1       0.3s     93MB  not event(UE_finish(W2,a,b)) is false.
+  q2       0.4s    102MB  inj-event(UE_recv_M2(W2,x,t)) ==> inj-event(DN_send_M2(W2,x,t)) is true.
+  q3       0.5s    130MB  inj-event(DN_recv_M3(W2,x,t)) ==> inj-event(UE_send_M3(W2,x,t)) is true.
+  q4       1.0s    260MB  inj-event(UE_recv_M4(W2,x,t)) ==> inj-event(DN_send_M4(W2,x,t)) is true.
+  q5       0.3s     73MB  not attacker(MSK_test2[]) is true.
+  q6       0.2s     73MB  not attacker(EMSK_test2[]) is true.
+==================================================================
+edhoc_m4v2_fs_noerase.pv
+  query     time  peakmem  result
+  q1       3.8s    515MB  not event(UE_finish(W0,a,b)) is false.
+  q2       3.6s    521MB  not event(DN_finish(W0,a,b)) is false.
+  q3       3.7s    503MB  not event(UE_send_M1(W0,m)) is false.
+  q4    2178.9s   1612MB  NOT CONCLUDED (stopped by user after ~36 min)
+  q5    2177.8s   3350MB  NOT CONCLUDED (stopped by user after ~36 min)
+  q6    1113.7s   4136MB  NOT CONCLUDED (out of memory)
+  q7       3.8s    503MB  not attacker_p1(ID_CREDI[]) is false.
+  q8       3.8s    503MB  not attacker_p1(ID_CREDR[]) is false.
+  q9       3.7s    513MB  not attacker_p1(app_data_UE[]) is false.
+  q10      3.8s    513MB  not attacker_p1(app_data_DN[]) is false.
+  q11      3.8s    513MB  not attacker_p1(MSK_test[]) is false.
+  q12      3.7s    513MB  not attacker_p1(EMSK_test[]) is false.
+DONE
