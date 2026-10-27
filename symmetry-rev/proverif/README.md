@@ -24,7 +24,7 @@ All files target **ProVerif 2.05**. Run them with:
 | `edhoc_m4v2_quantum.pv` | Same as classical, plus the X25519 discrete-log oracle in every phase. | Same as classical |
 | `edhoc_m4v2_kci.pv` | W1: the UE's long-term keys leak from the start. W2: the DN's long-term keys leak from the start. Same structure as `edhoc_m4_hybrid_kci.pv`. | All queries true |
 | `edhoc_m4v2_pcs.pv` | The old one-time keys of both parties are known from the start; every run uses a fresh rotated key pair per party. Same abstraction as `edhoc_m4_hybrid_pcs.pv` (epoch 1 is covered by Q3/Q4/Q8/Q9 of `_classical`). | Sanity query false (reachable); Q2–Q4 (W2), Q10, Q11 true |
-| `edhoc_m4v2_fs_noerase.pv` | **Negative control.** Same as classical, but the old one-time keys are **not** erased and also leak in phase 1. | **Q5, Q5b, Q6–Q9 false.** Q2–Q4 true |
+| `edhoc_m4v2_fs_noerase.pv` | **Negative control.** Same as classical, but the old one-time keys are **not** erased and also leak in phase 1. | **Q5, Q5b, Q6–Q9 false.** Secrecy only: Q2–Q4 are omitted |
 
 The negative control shows two things:
 - Forward secrecy and the concealment of ID_CRED_I depend on erasing the old key.
@@ -60,7 +60,7 @@ If `edhoc_m4v2_fs_noerase.pv` reports Q8/Q9 **true**, the attacker is not receiv
    - In `_kci` and `_pcs` it is given to the attacker at the start. Otherwise authentication could hold only because the attacker cannot guess the responder's identity.
    - R1 should therefore be read from Q2–Q4 in `_kci` and `_pcs`. Q2–Q4 in `_classical` are a weaker check.
 3. **Behaviour that is expected and therefore not queried.** If the **current** one-time keys of **both** parties leak **before** a run, a passive attacker can read that run, because no ephemeral secret is left. Security returns from the next run, because the rotated secret keys are generated locally and never sent. This one-run delay in PCS is the cost of removing the ephemeral X-Wing key pair, and the paper states it.
-4. **Generator.** `python3 gen_v3.py <dir>` regenerates the five files into `<dir>` (default: this folder). Its declarations are copied verbatim from `edhoc_m4_hybrid_classical.pv`; the only change is that ID_CRED_R is a private name. `python3 lint.py <dir>` checks that no DH equational theory is left, that the query counts match, and that the quantum oracle appears only in `_quantum` and `_kci`. The checker is not a substitute for running ProVerif.
+4. **Generator.** `python3 gen_v3.py ../../proverif/edhoc_m4_hybrid_classical.pv <dir>` regenerates the five files into `<dir>`. Its declarations are copied verbatim from `edhoc_m4_hybrid_classical.pv`; the only change is that ID_CRED_R is a private name. `python3 lint.py <dir>` checks parentheses, identifier scoping and arities. The checker is not a substitute for running ProVerif.
 
 ## Results (ProVerif 2.05, one process per query)
 
@@ -72,9 +72,9 @@ Full table with time and peak memory per query: `results/SUMMARY_v2.txt`.
 | `_quantum` | 12/12 as expected | Q4: 6.7 s, 2.0 GB |
 | `_kci` | 3/3 true | 5.0 s, 0.9 GB |
 | `_pcs` | 6/6 as expected | 1.0 s, 0.3 GB |
-| `_fs_noerase` | Q0/Q1 false (reachable); **Q5, Q5b, Q6–Q9 false** as the negative control requires | Q2–Q4 **not concluded** (stopped after ~36 min / out of memory at 4.5 GB) |
+| `_fs_noerase` | 9/9 as expected: Q0/Q1 false (reachable); **Q5, Q5b, Q6–Q9 false** as the negative control requires | 3.6 s, 0.5 GB per query |
 
-Q2–Q4 of the negative control are not needed for its purpose: they are proved in `_classical`, `_quantum`, `_kci` and `_pcs`, and the control only has to show that the secrecy queries fail without erasure. They are reported as "not concluded", not as false.
+The negative control queries only secrecy. Its extra keys leak in phase 1, after every phase-0 authentication event, so its Q2–Q4 coincide with those of `_classical`. An earlier version that kept Q2–Q4 did not terminate (stopped after ~36 min / out of memory at 4.5 GB).
 
 ## How the paper table changes
 

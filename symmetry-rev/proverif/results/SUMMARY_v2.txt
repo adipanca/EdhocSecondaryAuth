@@ -46,18 +46,15 @@ edhoc_m4v2_pcs.pv
   q5       0.3s     73MB  not attacker(MSK_test2[]) is true.
   q6       0.2s     73MB  not attacker(EMSK_test2[]) is true.
 ==================================================================
-edhoc_m4v2_fs_noerase.pv
+edhoc_m4v2_fs_noerase.pv   (secrecy only; Q2-Q4 coincide with edhoc_m4v2_classical)
   query     time  peakmem  result
-  q1       3.8s    515MB  not event(UE_finish(W0,a,b)) is false.
-  q2       3.6s    521MB  not event(DN_finish(W0,a,b)) is false.
-  q3       3.7s    503MB  not event(UE_send_M1(W0,m)) is false.
-  q4    2178.9s   1612MB  NOT CONCLUDED (stopped by user after ~36 min)
-  q5    2177.8s   3350MB  NOT CONCLUDED (stopped by user after ~36 min)
-  q6    1113.7s   4136MB  NOT CONCLUDED (out of memory)
-  q7       3.8s    503MB  not attacker_p1(ID_CREDI[]) is false.
-  q8       3.8s    503MB  not attacker_p1(ID_CREDR[]) is false.
-  q9       3.7s    513MB  not attacker_p1(app_data_UE[]) is false.
-  q10      3.8s    513MB  not attacker_p1(app_data_DN[]) is false.
-  q11      3.8s    513MB  not attacker_p1(MSK_test[]) is false.
-  q12      3.7s    513MB  not attacker_p1(EMSK_test[]) is false.
+  q1       3.6s    516MB  not event(UE_finish(W0,a,b)) is false.
+  q2       3.5s    519MB  not event(DN_finish(W0,a,b)) is false.
+  q3       3.1s    505MB  not event(UE_send_M1(W0,m)) is false.
+  q4       3.4s    504MB  not attacker_p1(ID_CREDI[]) is false.
+  q5       3.1s    503MB  not attacker_p1(ID_CREDR[]) is false.
+  q6       3.5s    513MB  not attacker_p1(app_data_UE[]) is false.
+  q7       3.3s    513MB  not attacker_p1(app_data_DN[]) is false.
+  q8       3.5s    513MB  not attacker_p1(MSK_test[]) is false.
+  q9       3.5s    513MB  not attacker_p1(EMSK_test[]) is false.
 DONE

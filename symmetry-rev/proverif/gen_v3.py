@@ -156,16 +156,21 @@ def auth(w, which=("Q2", "Q3", "Q4")):
          "Q4": f"query x:bitstring, t:bitstring; inj-event(UE_recv_M4({w}, x, t)) ==> inj-event(DN_send_M4({w}, x, t)).   (* Q4: key confirmation by DN *)\n"}
     return "".join(q[k] for k in which)
 
-QUERIES = ("(* Q0: honest runs complete (sanity check; expected 'is false') *)\n"
-           "query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).\n"
-           "query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).\n"
-           "(* Q1 *)\nquery m:bitstring; event(UE_send_M1(W0, m)).\n" + auth("W0") +
+SANITY = ("(* Q0: honest runs complete (sanity check; expected 'is false') *)\n"
+          "query a:bitstring, b:bitstring; event(UE_finish(W0, a, b)).\n"
+          "query a:bitstring, b:bitstring; event(DN_finish(W0, a, b)).\n"
+          "(* Q1 *)\nquery m:bitstring; event(UE_send_M1(W0, m)).\n")
+SECRECY = (
            "query attacker(ID_CREDI).        (* Q5: identity concealment (initiator) *)\n"
            "query attacker(ID_CREDR).        (* Q5b: identity concealment (responder) *)\n"
            "query attacker(app_data_UE).     (* Q6: confidentiality *)\n"
            "query attacker(app_data_DN).     (* Q7: confidentiality *)\n"
            "query attacker(MSK_test).        (* Q8: MSK secrecy + FS through rotation *)\n"
            "query attacker(EMSK_test).       (* Q9: EMSK secrecy + FS through rotation *)\n")
+QUERIES = SANITY + auth("W0") + SECRECY
+# the negative control leaks its extra keys in phase 1, after every phase-0
+# authentication event, so Q2-Q4 coincide with the classical model: secrecy only
+QUERIES_NOERASE = SANITY + SECRECY
 
 def one_time_main(quantum):
     oracle = "\n    | QXW | (phase 1; QXW)" if quantum else ""
@@ -206,8 +211,9 @@ files.append(write("edhoc_m4v2_quantum.pv",
 files.append(write("edhoc_m4v2_fs_noerase.pv",
     "NEGATIVE CONTROL: as edhoc_m4v2_classical, but the used one-time X-Wing keys are\n"
     " *           NOT erased and leak in phase 1",
-    "Q5, Q5b, Q6-Q9 FALSE (FS and identity concealment rely on erasure); Q2-Q4 true",
-    QUERIES, procs(UE_T_KEEP, DN_T_KEEP), one_time_main(False)))
+    "Q0/Q1 false (reachable); Q5, Q5b, Q6-Q9 FALSE (FS and identity concealment rely\n"
+    " *           on erasure); Q2-Q4 omitted (identical to edhoc_m4v2_classical)",
+    QUERIES_NOERASE, procs(UE_T_KEEP, DN_T_KEEP), one_time_main(False)))
 
 # ---- KCI (same structure as edhoc_m4_hybrid_kci.pv)
 def keys(s):

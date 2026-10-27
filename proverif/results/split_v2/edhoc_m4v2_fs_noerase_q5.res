@@ -1,1 +1,1 @@
-edhoc_m4v2_fs_noerase	q5	2177.8s	3350MB	NOT CONCLUDED (stopped by user after ~36 min)
+edhoc_m4v2_fs_noerase	q5	3.1s	503MB	not attacker_p1(ID_CREDR[]) is false.
