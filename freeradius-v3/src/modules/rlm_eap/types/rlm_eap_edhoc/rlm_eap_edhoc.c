@@ -414,7 +414,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 				return 0;
 			}
 			RDEBUG2("rlm_eap_edhoc: record %s%s", sess->rec.dir,
-				sess->rec.used_prev ? " (grace key prev/, message_4 was lost)" : "");
+				sess->rec.used_prev ? " (grace key: prev slot, message_4 was lost)" : "");
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
@@ -449,7 +449,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			eap_ds->request->code = PW_EAP_FAILURE;
 			return 0;
 		}
-		/* export MSK/EMSK, then rotate: active record -> prev/, new keys saved */
+		/* export MSK/EMSK, then rotate: new keys to the inactive slot (one flush) */
 		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
 		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
 		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, handler, sess->emsk);
