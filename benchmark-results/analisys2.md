@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T17:37:28._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T18:04:13._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -76,16 +76,16 @@ Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 (beda RAD
 
 | Method | Profil | N | Mean (ms) | Median (ms) | Trimmed mean (ms) | Stddev (ms) | Outlier >5ms | Median 95% CI (ms) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 10000 | 0.990 | 0.874 | 0.887 | 0.774 | 58 | [0.8710, 0.8760] |
-| 1 | SIG/STAT | 10000 | 0.954 | 0.871 | 0.881 | 0.581 | 42 | [0.8690, 0.8740] |
-| 2 | STAT/SIG | 10000 | 0.964 | 0.886 | 0.893 | 0.591 | 32 | [0.8840, 0.8880] |
-| 3 | STAT/STAT | 10000 | 0.995 | 0.881 | 0.896 | 0.790 | 72 | [0.8790, 0.8850] |
+| 0 | SIG/SIG | 10000 | 1.162 | 1.014 | 1.047 | 1.014 | 72 | [1.0115, 1.0180] |
+| 1 | SIG/STAT | 10000 | 1.155 | 1.032 | 1.071 | 0.684 | 48 | [1.0295, 1.0360] |
+| 2 | STAT/SIG | 10000 | 1.192 | 1.029 | 1.063 | 1.216 | 83 | [1.0260, 1.0320] |
+| 3 | STAT/STAT | 10000 | 1.035 | 0.987 | 1.000 | 0.345 | 10 | [0.9850, 0.9900] |
 
-- Urutan median (N=10000, dua arah digabung): **method 1 (0.871 ms) < method 0 (0.874 ms) < method 3 (0.881 ms) < method 2 (0.886 ms)**.
-- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): method 0 vs 1, dan method 2 vs 3. Pasangan lintas-kelompok (0/1 vs 2/3) semuanya terpisah signifikan.
-- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan dikontrol, method 0-3 terbagi jadi dua kelompok yang stabil dan reproducible: **{0,1} (~0.87ms, initiator melakukan SIGNATURE) sedikit lebih cepat dari {2,3} (~0.88ms, initiator melakukan static-DH/MAC)** — selisihnya cuma ~10-15µs, jauh lebih kecil dari klaim awal (~30-60µs) dan TIDAK mengikuti urutan compute-only (section 1b memprediksi method 3 termurah, method 0 termahal). Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "lookup kredensial" sebelumnya **terbukti salah**. Kode `edhoc03.c` memang punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk hitungan section 1b) tapi itu juga terlalu kecil untuk menjelaskan selisih 10-15µs yang teramati.
+- Urutan median (N=10000, dua arah digabung): **method 3 (0.987 ms) < method 0 (1.014 ms) < method 2 (1.029 ms) < method 1 (1.032 ms)**.
+- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): method 1 vs 2. Terpisah signifikan: method 0 vs 1, method 0 vs 2, method 0 vs 3, method 1 vs 3, method 2 vs 3.
+- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan dikontrol, selisih median tercepat-terlambat method 0-3 hanya **45 µs**. Urutannya TIDAK mengikuti urutan compute-only section 1b secara konsisten antar rerun. Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "lookup kredensial" **terbukti salah**. Kode `edhoc03.c` punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk hitungan section 1b), terlalu kecil untuk menjelaskan selisih yang teramati.
 
-> **Verifikasi lapis terakhir — `strace -f -c` langsung ke proses `radiusd` hidup** (1500 handshake method 0 vs 1500 handshake method 3, masing-masing di-trace terpisah): profil syscall-nya **identik** — sendmsg/recvfrom/recvmsg/getsockname sama-sama persis 4500 kali (3/handshake, cocok RADIUS round-trip), tidak ada satu pun syscall tambahan yang membedakan method 0 dari method 3 (tidak ada file I/O ekstra, tidak ada alokasi berbeda). Yang mendominasi waktu trace di **kedua** method secara setara: `futex` (85.79% method 0, 85.40% method 3) — itu overhead sinkronisasi thread-pool internal FreeRADIUS (worker thread bangun/tidur lewat mutex/condition-variable tiap request masuk, karena harness mengirim request satu-satu/sekuensial), sama sekali bukan bagian dari logika EDHOC. **Kesimpulan final: method 3 TIDAK seharusnya jauh lebih cepat dari method 0** — biaya kripto EDHOC (ratusan nanodetik/operasi) memang microscopic dibanding overhead scheduling thread-pool FreeRADIUS (puluhan-ratusan µs/request) yang besarnya SAMA untuk semua method karena bukan bagian dari protokol sama sekali. Selisih 10-15µs yang tersisa di kelompok {0,1} vs {2,3} kemungkinan besar cuma variasi acak dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.
+> **Verifikasi lapis terakhir — `strace -f -c` langsung ke proses `radiusd` hidup** (1500 handshake method 0 vs 1500 handshake method 3, masing-masing di-trace terpisah): profil syscall-nya **identik** — sendmsg/recvfrom/recvmsg/getsockname sama-sama persis 4500 kali (3/handshake, cocok RADIUS round-trip), tidak ada satu pun syscall tambahan yang membedakan method 0 dari method 3 (tidak ada file I/O ekstra, tidak ada alokasi berbeda). Yang mendominasi waktu trace di **kedua** method secara setara: `futex` (85.79% method 0, 85.40% method 3) — itu overhead sinkronisasi thread-pool internal FreeRADIUS (worker thread bangun/tidur lewat mutex/condition-variable tiap request masuk, karena harness mengirim request satu-satu/sekuensial), sama sekali bukan bagian dari logika EDHOC. **Kesimpulan final: method 3 TIDAK seharusnya jauh lebih cepat dari method 0** — biaya kripto EDHOC (ratusan nanodetik/operasi) memang microscopic dibanding overhead scheduling thread-pool FreeRADIUS (puluhan-ratusan µs/request) yang besarnya SAMA untuk semua method karena bukan bagian dari protokol sama sekali. Selisih puluhan µs yang tersisa antar method 0-3 kemungkinan besar cuma variasi acak dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.
 
 > Bagian 1a dan 1b berikut adalah pengukuran primitif/komputasi yang **identik** dengan `analysis.md` (independen terhadap transport), disertakan agar kedua dokumen memiliki kolom yang sama persis.
 

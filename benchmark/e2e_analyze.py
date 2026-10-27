@@ -289,21 +289,23 @@ def main():
         by_med = sorted(stab_rows, key=lambda r: float(r["median_ms"]))
         order_str = " < ".join(f"method {r['method']} ({float(r['median_ms']):.3f} ms)" for r in by_med)
         L.append(f"- Urutan median (N=10000, dua arah digabung): **{order_str}**.")
+        ci = {int(r["method"]): (float(r["median_ci95_low_ms"]), float(r["median_ci95_high_ms"]))
+              for r in stab_rows}
+        pairs = [(a, b) for a in sorted(ci) for b in sorted(ci) if a < b]
+        overlap = [f"method {a} vs {b}" for a, b in pairs if ci[a][0] <= ci[b][1] and ci[b][0] <= ci[a][1]]
+        separate = [f"method {a} vs {b}" for a, b in pairs if not (ci[a][0] <= ci[b][1] and ci[b][0] <= ci[a][1])]
         L.append("- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): "
-                 "method 0 vs 1, dan method 2 vs 3. Pasangan lintas-kelompok (0/1 vs 2/3) "
-                 "semuanya terpisah signifikan.")
-        L.append("- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan "
-                 "dikontrol, method 0-3 terbagi jadi dua kelompok yang stabil dan reproducible: "
-                 "**{0,1} (~0.87ms, initiator melakukan SIGNATURE) sedikit lebih cepat dari "
-                 "{2,3} (~0.88ms, initiator melakukan static-DH/MAC)** — selisihnya cuma "
-                 "~10-15µs, jauh lebih kecil dari klaim awal (~30-60µs) dan TIDAK mengikuti "
-                 "urutan compute-only (section 1b memprediksi method 3 termurah, method 0 "
-                 "termahal). Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali "
-                 "saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "
-                 "\"lookup kredensial\" sebelumnya **terbukti salah**. Kode `edhoc03.c` memang "
-                 "punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk "
-                 "hitungan section 1b) tapi itu juga terlalu kecil untuk menjelaskan selisih "
-                 "10-15µs yang teramati.")
+                 + (", ".join(overlap) if overlap else "tidak ada") + ". Terpisah signifikan: "
+                 + (", ".join(separate) if separate else "tidak ada") + ".")
+        spread_us = (float(by_med[-1]["median_ms"]) - float(by_med[0]["median_ms"])) * 1000
+        L.append(f"- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan dikontrol, "
+                 f"selisih median tercepat-terlambat method 0-3 hanya **{spread_us:.0f} µs**. "
+                 "Urutannya TIDAK mengikuti urutan compute-only section 1b secara konsisten antar "
+                 "rerun. Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali saat "
+                 "startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "
+                 "\"lookup kredensial\" **terbukti salah**. Kode `edhoc03.c` punya 1 panggilan "
+                 "HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk hitungan section 1b), "
+                 "terlalu kecil untuk menjelaskan selisih yang teramati.")
         L.append("")
         L.append("> **Verifikasi lapis terakhir — `strace -f -c` langsung ke proses `radiusd` "
                  "hidup** (1500 handshake method 0 vs 1500 handshake method 3, masing-masing "
@@ -319,8 +321,8 @@ def main():
                  "seharusnya jauh lebih cepat dari method 0** — biaya kripto EDHOC (ratusan "
                  "nanodetik/operasi) memang microscopic dibanding overhead scheduling "
                  "thread-pool FreeRADIUS (puluhan-ratusan µs/request) yang besarnya SAMA untuk "
-                 "semua method karena bukan bagian dari protokol sama sekali. Selisih 10-15µs "
-                 "yang tersisa di kelompok {0,1} vs {2,3} kemungkinan besar cuma variasi acak "
+                 "semua method karena bukan bagian dari protokol sama sekali. Selisih puluhan µs "
+                 "yang tersisa antar method 0-3 kemungkinan besar cuma variasi acak "
                  "dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.")
         L.append("")
 
