@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-08-14T15:42:03._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T17:27:01._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -28,28 +28,28 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 
 | Method | timestamp | iteration | status | duration_ms | pdu_success_count |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 2026-08-14T15:05:37+0900 | 1 | PASS | 4.135 | 1 |
-| 1 | 2026-08-14T15:05:37+0900 | 1 | PASS | 1.288 | 1 |
-| 2 | 2026-08-14T15:05:37+0900 | 1 | PASS | 1.920 | 1 |
-| 3 | 2026-08-14T15:05:37+0900 | 1 | PASS | 3.047 | 1 |
-| 4 | 2026-08-14T15:05:38+0900 | 1 | PASS | 6.854 | 1 |
-| 5 | 2026-08-14T15:10:36+0900 | 1 | PASS | 3.287 | 1 |
-| 6 | 2026-08-14T15:16:27+0900 | 1 | PASS | 12.615 | 1 |
+| 0 | 2026-10-27T17:10:34+0900 | 1 | PASS | 6.767 | 1 |
+| 1 | 2026-10-27T17:10:34+0900 | 1 | PASS | 1.596 | 1 |
+| 2 | 2026-10-27T17:10:35+0900 | 1 | PASS | 4.892 | 1 |
+| 3 | 2026-10-27T17:10:35+0900 | 1 | PASS | 1.607 | 1 |
+| 4 | 2026-10-27T17:10:35+0900 | 1 | PASS | 13.598 | 1 |
+| 5 | 2026-10-27T17:15:06+0900 | 1 | PASS | 3.679 | 1 |
+| 6 | 2026-10-27T17:20:47+0900 | 1 | PASS | 8.708 | 1 |
 
 ### Ringkasan statistik handshake end-to-end per method
 
 | Method | Profil | Iterasi | Sukses % | Mean (ms) | Median (ms) | p95 (ms) | Min (ms) | Max (ms) | RADIUS round-trips | EAP round-trips |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 100 | 100.0 | 0.992 | 0.726 | 2.332 | 0.475 | 10.929 | 3 | 3 |
-| 1 | SIG/STAT | 100 | 100.0 | 0.821 | 0.786 | 1.071 | 0.655 | 1.469 | 3 | 3 |
-| 2 | STAT/SIG | 100 | 100.0 | 0.872 | 0.808 | 1.179 | 0.658 | 2.887 | 3 | 3 |
-| 3 | STAT/STAT | 100 | 100.0 | 0.910 | 0.835 | 1.220 | 0.689 | 3.047 | 3 | 3 |
-| 4 | SIGMA-XWING-PQC | 100 | 100.0 | 7.493 | 5.410 | 14.226 | 3.747 | 86.583 | 17 | 17 |
-| 5 | EAP-TLS-Classic | 100 | 100.0 | 2.835 | 2.577 | 3.886 | 2.133 | 9.028 | 6 | 6 |
-| 6 | EAP-TLS-Hybrid-PQC | 100 | 100.0 | 9.241 | 8.435 | 14.626 | 6.610 | 28.219 | 28 | 28 |
+| 0 | SIG/SIG | 100 | 100.0 | 2.325 | 1.035 | 7.930 | 0.798 | 29.936 | 3 | 3 |
+| 1 | SIG/STAT | 100 | 100.0 | 2.835 | 1.035 | 15.633 | 0.527 | 25.693 | 3 | 3 |
+| 2 | STAT/SIG | 100 | 100.0 | 1.362 | 0.980 | 2.354 | 0.743 | 15.227 | 3 | 3 |
+| 3 | STAT/STAT | 100 | 100.0 | 0.956 | 0.913 | 1.209 | 0.768 | 2.574 | 3 | 3 |
+| 4 | SIGMA-XWING-PQC | 100 | 100.0 | 19.383 | 13.752 | 57.933 | 11.360 | 146.915 | 14 | 14 |
+| 5 | EAP-TLS-Classic | 100 | 100.0 | 2.895 | 2.790 | 3.619 | 2.519 | 5.221 | 6 | 6 |
+| 6 | EAP-TLS-Hybrid-PQC | 100 | 100.0 | 10.066 | 8.447 | 21.988 | 5.566 | 42.396 | 28 | 28 |
 
-- Handshake end-to-end tercepat: **method 1** (SIG/STAT).
-- Handshake end-to-end terlambat: **method 6** (EAP-TLS-Hybrid-PQC), karena fragmentasi EAP membutuhkan 28 round-trip RADIUS dibanding 3 untuk method klasik.
+- Handshake end-to-end tercepat: **method 3** (STAT/STAT).
+- Handshake end-to-end terlambat: **method 4** (SIGMA-XWING-PQC), karena fragmentasi EAP membutuhkan 14 round-trip RADIUS dibanding 3 untuk method klasik.
 
 ### Pembagian beban initiator vs responder (live, wall-clock nyata)
 
@@ -57,16 +57,16 @@ Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang dihabi
 
 | Method | Profil | Initiator mean (ms) | Responder mean (ms) | Initiator % | Responder % | Total mean (ms) |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 0.110 | 0.882 | 11.1% | 88.9% | 0.992 |
-| 1 | SIG/STAT | 0.101 | 0.720 | 12.3% | 87.7% | 0.821 |
-| 2 | STAT/SIG | 0.120 | 0.753 | 13.7% | 86.3% | 0.872 |
-| 3 | STAT/STAT | 0.119 | 0.792 | 13.1% | 86.9% | 0.910 |
-| 4 | SIGMA-XWING-PQC | 0.872 | 6.620 | 11.6% | 88.4% | 7.493 |
-| 5 | EAP-TLS-Classic | 0.640 | 2.195 | 22.6% | 77.4% | 2.835 |
-| 6 | EAP-TLS-Hybrid-PQC | 0.729 | 8.512 | 7.9% | 92.1% | 9.241 |
+| 0 | SIG/SIG | 0.197 | 2.128 | 8.5% | 91.5% | 2.325 |
+| 1 | SIG/STAT | 0.165 | 2.670 | 5.8% | 94.2% | 2.835 |
+| 2 | STAT/SIG | 0.151 | 1.211 | 11.1% | 88.9% | 1.362 |
+| 3 | STAT/STAT | 0.128 | 0.829 | 13.3% | 86.7% | 0.956 |
+| 4 | SIGMA-XWING-PQC | 4.569 | 14.813 | 23.6% | 76.4% | 19.383 |
+| 5 | EAP-TLS-Classic | 0.607 | 2.288 | 21.0% | 79.0% | 2.895 |
+| 6 | EAP-TLS-Hybrid-PQC | 0.802 | 9.264 | 8.0% | 92.0% | 10.066 |
 
 - Di semua method, beban **responder** (AAA/FreeRADIUS) mendominasi total waktu handshake — wajar, karena responder-lah yang benar-benar memproses paket RADIUS (parsing, dispatch modul, verifikasi kripto) dan initiator cuma menunggu selama itu; porsi initiator yang genuinely CPU-bound (encode paket + panggilan engine lokal) jauh lebih kecil dari total.
-- Proporsi responder tertinggi: **method 6** (EAP-TLS-Hybrid-PQC).
+- Proporsi responder tertinggi: **method 1** (SIG/STAT).
 
 ### Uji stabilitas statistik method 0-3 (N=10000/method, bootstrap CI)
 
@@ -95,23 +95,23 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 
 | Operation | Lib | Iter | Mean (ns) | Median (ns) | p95 (ns) | p99 (ns) | Stddev (ns) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Keygen_X25519 | libsodium | 3000 | 24004.0 | 20536.0 | 21961.0 | 111065.0 | 28270.9 |
-| ScalarMult_X25519 | libsodium | 3000 | 24888.8 | 21961.0 | 23550.0 | 117989.0 | 16869.7 |
-| Keygen_Ed25519 | libsodium | 3000 | 10882.0 | 9464.0 | 10396.0 | 72195.0 | 12332.9 |
-| Signature_Ed25519 | libsodium | 3000 | 11225.8 | 9664.0 | 10350.0 | 65055.0 | 16348.0 |
-| Verify_Ed25519 | libsodium | 3000 | 29693.1 | 26632.0 | 30303.0 | 107835.0 | 21513.7 |
-| SHA256 | libsodium | 3000 | 262.8 | 262.0 | 266.0 | 267.0 | 2.7 |
-| HKDF_SHA256 | libsodium | 3000 | 1447.6 | 1117.0 | 1148.0 | 1252.0 | 5968.8 |
-| AES128GCM | mbedTLS | 3000 | 254.8 | 228.0 | 230.0 | 231.0 | 1266.2 |
-| Keygen_MLKEM768 | PQClean | 3000 | 34582.4 | 30688.0 | 41467.0 | 129760.0 | 19357.5 |
-| Encaps_MLKEM768 | PQClean | 3000 | 39528.4 | 33147.0 | 58460.0 | 152274.0 | 47954.9 |
-| Decaps_MLKEM768 | PQClean | 3000 | 47707.7 | 42002.0 | 85800.0 | 166671.0 | 34353.1 |
-| Keygen_MLDSA44 | PQClean | 3000 | 57264.4 | 49737.0 | 100359.0 | 207756.0 | 39540.4 |
-| Signature_MLDSA44 | PQClean | 3000 | 237660.0 | 185264.0 | 583052.0 | 976302.0 | 203541.2 |
-| Verify_MLDSA44 | PQClean | 3000 | 62322.5 | 53773.0 | 121024.0 | 196086.0 | 41195.9 |
-| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 107049255.0 | 102318402.0 | 189754320.6 | 202904756.9 | 44155227.4 |
-| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 387713.9 | 350887.0 | 503803.9 | 959024.5 | 219517.6 |
-| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 25334.4 | 20013.5 | 29807.4 | 144692.5 | 34113.2 |
+| Keygen_X25519 | libsodium | 3000 | 25535.0 | 20908.0 | 37063.0 | 119769.0 | 29916.4 |
+| ScalarMult_X25519 | libsodium | 3000 | 25163.6 | 21986.0 | 38243.0 | 96128.0 | 19026.1 |
+| Keygen_Ed25519 | libsodium | 3000 | 10730.4 | 9453.0 | 9865.0 | 24795.0 | 17311.9 |
+| Signature_Ed25519 | libsodium | 3000 | 11069.9 | 9660.0 | 10270.0 | 57661.0 | 10090.7 |
+| Verify_Ed25519 | libsodium | 3000 | 29438.8 | 26193.0 | 31224.0 | 112777.0 | 20344.7 |
+| SHA256 | libsodium | 3000 | 299.6 | 262.0 | 275.0 | 277.0 | 1233.2 |
+| HKDF_SHA256 | libsodium | 3000 | 1455.6 | 1107.0 | 1147.0 | 1936.0 | 5021.7 |
+| AES128GCM | mbedTLS | 3000 | 226.0 | 225.0 | 229.0 | 230.0 | 20.7 |
+| Keygen_MLKEM768 | PQClean | 3000 | 32440.5 | 28845.0 | 33769.0 | 121631.0 | 24175.8 |
+| Encaps_MLKEM768 | PQClean | 3000 | 33775.5 | 30744.0 | 34407.0 | 120757.0 | 19317.3 |
+| Decaps_MLKEM768 | PQClean | 3000 | 41870.0 | 38544.0 | 44115.0 | 127021.0 | 21982.2 |
+| Keygen_MLDSA44 | PQClean | 3000 | 56853.6 | 49436.0 | 99271.0 | 188883.0 | 41449.2 |
+| Signature_MLDSA44 | PQClean | 3000 | 223240.5 | 161314.0 | 524059.0 | 1017444.0 | 212971.3 |
+| Verify_MLDSA44 | PQClean | 3000 | 59596.1 | 53955.0 | 77449.0 | 182822.0 | 28309.9 |
+| Keygen_RSA2048 | pyca/cryptography(OpenSSL) | 30 | 120316211.1 | 97294573.5 | 216257887.7 | 261913624.5 | 58562015.0 |
+| Signature_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 413753.9 | 366106.5 | 631892.9 | 965104.2 | 124882.5 |
+| Verify_RSA2048 | pyca/cryptography(OpenSSL) | 500 | 22266.8 | 20089.0 | 27313.6 | 88074.0 | 12917.6 |
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
@@ -119,105 +119,105 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 
 | Method | Role | Operation | Primitive | Count | Compute (ns) |
 | --- | --- | --- | --- | --- | --- |
-| 0 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 0 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 0 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 0 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
 | 0 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 0 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 0 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
-| 0 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 0 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 0 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 0 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
+| 0 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 0 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 0 | responder | ScalarMult | X25519 | 1 | 25163.6 |
 | 0 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 0 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 0 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
-| 0 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 1 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 1 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 0 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
+| 0 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 1 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 1 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
 | 1 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 1 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 1 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 1 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
 | 1 | initiator | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 1 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 1 | responder | ScalarMult | X25519 | 2 | 49777.6 |
+| 1 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 1 | responder | ScalarMult | X25519 | 2 | 50327.3 |
 | 1 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 1 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 1 | responder | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 1 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 2 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 2 | initiator | ScalarMult | X25519 | 2 | 49777.6 |
+| 1 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 2 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 2 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
 | 2 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 2 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 2 | initiator | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 2 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 2 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 2 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 2 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 2 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 2 | responder | ScalarMult | X25519 | 1 | 25163.6 |
 | 2 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 2 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 2 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
+| 2 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
 | 2 | responder | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 3 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 3 | initiator | ScalarMult | X25519 | 2 | 49777.6 |
+| 3 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 3 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
 | 3 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | initiator | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | initiator | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 3 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 3 | responder | ScalarMult | X25519 | 2 | 49777.6 |
+| 3 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 3 | responder | ScalarMult | X25519 | 2 | 50327.3 |
 | 3 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | responder | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | responder | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 4 | initiator | Keygen | X25519/ML-KEM-768 | 5 | 141177.0 |
-| 4 | initiator | ScalarMult | X25519 | 3 | 74666.4 |
-| 4 | initiator | Encaps | ML-KEM-768 | 1 | 39528.4 |
-| 4 | initiator | Decaps | ML-KEM-768 | 2 | 95415.3 |
-| 4 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 4 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 4 | responder | Keygen | X25519/ML-KEM-768 | 4 | 106594.5 |
-| 4 | responder | ScalarMult | X25519 | 3 | 74666.4 |
-| 4 | responder | Encaps | ML-KEM-768 | 2 | 79056.9 |
-| 4 | responder | Decaps | ML-KEM-768 | 1 | 47707.7 |
-| 4 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 4 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 4 | initiator | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
+| 4 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
+| 4 | initiator | Encaps | ML-KEM-768 | 1 | 33775.5 |
+| 4 | initiator | Decaps | ML-KEM-768 | 1 | 41870.0 |
+| 4 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
+| 4 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
+| 4 | responder | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
+| 4 | responder | ScalarMult | X25519 | 2 | 50327.3 |
+| 4 | responder | Encaps | ML-KEM-768 | 1 | 33775.5 |
+| 4 | responder | Decaps | ML-KEM-768 | 1 | 41870.0 |
+| 4 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
+| 4 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
+| 5 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 5 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
 | 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
-| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 5 | responder | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
+| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 5 | responder | ScalarMult | X25519 | 1 | 25163.6 |
 | 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11225.8 |
-| 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29693.1 |
-| 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 58586.4 |
-| 6 | initiator | ScalarMult | X25519 | 1 | 24888.8 |
+| 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
+| 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 57975.5 |
+| 6 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
 | 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
-| 6 | initiator | Decaps | ML-KEM-768 | 1 | 47707.7 |
-| 6 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
-| 6 | responder | Keygen | X25519/ML-KEM-768 | 1 | 24004.0 |
-| 6 | responder | ScalarMult | X25519 | 1 | 24888.8 |
-| 6 | responder | Encaps | ML-KEM-768 | 1 | 39528.4 |
+| 6 | initiator | Decaps | ML-KEM-768 | 1 | 41870.0 |
+| 6 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
+| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
+| 6 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 6 | responder | ScalarMult | X25519 | 1 | 25163.6 |
+| 6 | responder | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
-| 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 237660.0 |
-| 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 62322.5 |
+| 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
+| 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
 
 ### Total komputasi handshake per method
 
 | Method | Profil | Initiator (us) | Responder (us) | Total (us) |
 | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG Ed25519 | 89.812 | 89.812 | 179.623 |
-| 1 | SIG-Ed25519 / MAC-X25519 | 60.119 | 103.475 | 163.593 |
-| 2 | MAC-X25519 / SIG-Ed25519 | 103.475 | 60.119 | 163.593 |
-| 3 | MAC/MAC static-DH X25519 | 73.782 | 73.782 | 147.563 |
-| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 650.770 | 608.008 | 1258.778 |
-| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 89.812 | 89.812 | 179.623 |
-| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 431.165 | 388.404 | 819.569 |
+| 0 | SIG/SIG Ed25519 | 91.207 | 91.207 | 182.415 |
+| 1 | SIG-Ed25519 / MAC-X25519 | 61.769 | 105.301 | 167.070 |
+| 2 | MAC-X25519 / SIG-Ed25519 | 105.301 | 61.769 | 167.070 |
+| 3 | MAC/MAC static-DH X25519 | 75.862 | 75.862 | 151.725 |
+| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 492.320 | 492.320 | 984.640 |
+| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 91.207 | 91.207 | 182.415 |
+| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 407.846 | 367.311 | 775.156 |
 
-- Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 147.563 us).
-- Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 1258.778 us).
+- Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 151.725 us).
+- Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 984.640 us).
 
 > **Peringatan baca:** urutan termurah/termahal di atas HANYA waktu komputasi kripto murni (µs) — TIDAK termasuk round-trip jaringan RADIUS/fragmentasi EAP. Urutan itu BUKAN urutan kecepatan handshake end-to-end nyata. Untuk urutan yang sebenarnya dialami pengguna (termasuk RTT), lihat `analisys2.md` section 1c — di sana method 6 (EAP-TLS Hybrid PQC) adalah yang paling lambat secara live, bukan method 4, justru karena jumlah round-trip fragmentasi EAP-nya yang jauh lebih banyak, sesuatu yang tidak tertangkap oleh tabel compute murni ini.
 
@@ -227,48 +227,48 @@ Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP (RT
 
 | Method | Loss % | Success % | Mean (ms) | p95 (ms) | Mean retx |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 0.0 | 100.0 | 1.089 | 2.384 | 0.000 |
-| 0 | 1.0 | 100.0 | 2.433 | 4.049 | 0.025 |
-| 0 | 5.0 | 100.0 | 18.413 | 84.533 | 0.400 |
-| 0 | 10.0 | 100.0 | 38.930 | 126.381 | 0.875 |
-| 0 | 20.0 | 100.0 | 77.387 | 181.579 | 1.783 |
-| 0 | 30.0 | 95.8 | 122.439 | 265.129 | 2.642 |
-| 1 | 0.0 | 100.0 | 1.098 | 2.223 | 0.000 |
-| 1 | 1.0 | 100.0 | 3.243 | 9.121 | 0.050 |
-| 1 | 5.0 | 100.0 | 14.725 | 85.466 | 0.292 |
-| 1 | 10.0 | 100.0 | 23.699 | 85.831 | 0.525 |
-| 1 | 20.0 | 100.0 | 78.173 | 216.189 | 1.800 |
-| 1 | 30.0 | 97.5 | 131.235 | 305.769 | 2.942 |
-| 2 | 0.0 | 100.0 | 1.306 | 2.803 | 0.000 |
-| 2 | 1.0 | 100.0 | 3.706 | 12.881 | 0.058 |
-| 2 | 5.0 | 100.0 | 16.489 | 83.666 | 0.358 |
-| 2 | 10.0 | 100.0 | 28.594 | 102.732 | 0.642 |
-| 2 | 20.0 | 100.0 | 76.968 | 217.711 | 1.758 |
-| 2 | 30.0 | 97.5 | 135.790 | 278.733 | 3.050 |
-| 3 | 0.0 | 100.0 | 0.885 | 1.494 | 0.000 |
-| 3 | 1.0 | 100.0 | 2.552 | 4.016 | 0.033 |
-| 3 | 5.0 | 100.0 | 13.752 | 52.711 | 0.283 |
-| 3 | 10.0 | 100.0 | 37.503 | 133.917 | 0.825 |
-| 3 | 20.0 | 100.0 | 73.442 | 211.972 | 1.692 |
-| 3 | 30.0 | 95.8 | 125.528 | 303.074 | 2.800 |
-| 4 | 0.0 | 100.0 | 5.589 | 8.695 | 0.000 |
-| 4 | 1.0 | 100.0 | 21.440 | 61.713 | 0.325 |
-| 4 | 5.0 | 100.0 | 93.037 | 210.512 | 2.000 |
-| 4 | 10.0 | 100.0 | 182.719 | 348.887 | 4.083 |
-| 4 | 20.0 | 99.2 | 409.325 | 741.101 | 9.333 |
-| 4 | 30.0 | 87.5 | 724.610 | 1197.131 | 14.742 |
-| 5 | 0.0 | 100.0 | 2.802 | 3.498 | 0.000 |
-| 5 | 1.0 | 100.0 | 9.604 | 46.031 | 0.142 |
-| 5 | 5.0 | 100.0 | 37.874 | 130.610 | 0.750 |
-| 5 | 10.0 | 100.0 | 67.026 | 173.252 | 1.475 |
-| 5 | 20.0 | 99.2 | 151.093 | 336.259 | 3.417 |
-| 5 | 30.0 | 95.8 | 267.341 | 559.345 | 5.875 |
-| 6 | 0.0 | 100.0 | 9.378 | 15.506 | 0.000 |
-| 6 | 1.0 | 100.0 | 33.155 | 98.550 | 0.508 |
-| 6 | 5.0 | 100.0 | 162.780 | 319.330 | 3.492 |
-| 6 | 10.0 | 100.0 | 279.546 | 465.440 | 6.283 |
-| 6 | 20.0 | 96.7 | 681.476 | 1034.203 | 15.108 |
-| 6 | 30.0 | 73.3 | 1201.793 | 1786.093 | 20.400 |
+| 0 | 0.0 | 100.0 | 1.496 | 4.083 | 0.000 |
+| 0 | 1.0 | 100.0 | 9.129 | 45.022 | 0.100 |
+| 0 | 5.0 | 100.0 | 14.458 | 53.809 | 0.300 |
+| 0 | 10.0 | 100.0 | 28.010 | 87.961 | 0.600 |
+| 0 | 20.0 | 100.0 | 62.021 | 176.152 | 1.450 |
+| 0 | 30.0 | 99.2 | 128.802 | 295.531 | 2.983 |
+| 1 | 0.0 | 100.0 | 0.795 | 0.970 | 0.000 |
+| 1 | 1.0 | 100.0 | 4.517 | 43.446 | 0.075 |
+| 1 | 5.0 | 100.0 | 13.725 | 49.173 | 0.292 |
+| 1 | 10.0 | 100.0 | 33.958 | 126.599 | 0.767 |
+| 1 | 20.0 | 100.0 | 73.151 | 181.598 | 1.717 |
+| 1 | 30.0 | 97.5 | 115.498 | 292.316 | 2.675 |
+| 2 | 0.0 | 100.0 | 0.921 | 1.387 | 0.000 |
+| 2 | 1.0 | 100.0 | 3.761 | 41.230 | 0.067 |
+| 2 | 5.0 | 100.0 | 14.889 | 49.450 | 0.325 |
+| 2 | 10.0 | 100.0 | 24.358 | 82.890 | 0.567 |
+| 2 | 20.0 | 100.0 | 72.697 | 244.010 | 1.700 |
+| 2 | 30.0 | 98.3 | 106.946 | 290.976 | 2.500 |
+| 3 | 0.0 | 100.0 | 0.817 | 1.023 | 0.000 |
+| 3 | 1.0 | 100.0 | 3.530 | 6.041 | 0.050 |
+| 3 | 5.0 | 100.0 | 14.386 | 53.916 | 0.308 |
+| 3 | 10.0 | 100.0 | 29.853 | 123.283 | 0.683 |
+| 3 | 20.0 | 100.0 | 75.593 | 197.551 | 1.717 |
+| 3 | 30.0 | 96.7 | 140.393 | 288.228 | 3.142 |
+| 4 | 0.0 | 100.0 | 13.666 | 19.409 | 0.000 |
+| 4 | 1.0 | 100.0 | 29.678 | 79.358 | 0.325 |
+| 4 | 5.0 | 100.0 | 85.746 | 214.233 | 1.475 |
+| 4 | 10.0 | 100.0 | 159.155 | 328.925 | 3.208 |
+| 4 | 20.0 | 97.5 | 353.143 | 625.062 | 7.667 |
+| 4 | 30.0 | 86.7 | 608.547 | 985.433 | 11.508 |
+| 5 | 0.0 | 100.0 | 2.842 | 3.169 | 0.000 |
+| 5 | 1.0 | 100.0 | 8.259 | 45.113 | 0.083 |
+| 5 | 5.0 | 100.0 | 36.048 | 133.508 | 0.608 |
+| 5 | 10.0 | 100.0 | 70.965 | 185.607 | 1.367 |
+| 5 | 20.0 | 100.0 | 153.338 | 348.573 | 3.233 |
+| 5 | 30.0 | 98.3 | 279.467 | 542.415 | 5.917 |
+| 6 | 0.0 | 100.0 | 12.699 | 23.590 | 0.000 |
+| 6 | 1.0 | 100.0 | 40.909 | 98.423 | 0.658 |
+| 6 | 5.0 | 100.0 | 133.523 | 275.516 | 2.925 |
+| 6 | 10.0 | 100.0 | 280.645 | 477.453 | 6.450 |
+| 6 | 20.0 | 95.8 | 651.079 | 1010.771 | 14.700 |
+| 6 | 30.0 | 82.5 | 1153.763 | 1613.465 | 22.658 |
 
 > Bagian 3 (interoperabilitas primitif) identik dengan `analysis.md`.
 
@@ -310,8 +310,8 @@ Ukuran pesan dan jumlah fragmen EAP untuk method 0..6 di bawah ini adalah **hasi
 | 3 | message_1 | 34 | 1 | 1 | 1 | no | observasi nyata |
 | 3 | message_2 | 91 | 1 | 1 | 1 | no | observasi nyata |
 | 3 | message_3 | 59 | 1 | 1 | 1 | no | observasi nyata |
-| 4 | message_1 | 2354 | 10 | 3 | 2 | yes | observasi nyata |
-| 4 | message_2 | 6000 | 24 | 7 | 4 | yes | observasi nyata |
+| 4 | message_1 | 1141 | 5 | 2 | 1 | no | observasi nyata |
+| 4 | message_2 | 4880 | 20 | 5 | 4 | yes | observasi nyata |
 | 4 | message_3 | 4975 | 20 | 5 | 4 | yes | observasi nyata |
 | 4 | message_4 | 1232 | 5 | 2 | 1 | no | observasi nyata |
 | 5 | message_1 | 289 | 2 | 1 | 1 | no | observasi nyata |
