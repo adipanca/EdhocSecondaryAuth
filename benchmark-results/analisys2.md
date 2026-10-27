@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T17:27:01._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T17:37:28._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -32,7 +32,7 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 1 | 2026-10-27T17:10:34+0900 | 1 | PASS | 1.596 | 1 |
 | 2 | 2026-10-27T17:10:35+0900 | 1 | PASS | 4.892 | 1 |
 | 3 | 2026-10-27T17:10:35+0900 | 1 | PASS | 1.607 | 1 |
-| 4 | 2026-10-27T17:10:35+0900 | 1 | PASS | 13.598 | 1 |
+| 4 | 2026-10-27T17:34:42+0900 | 1 | PASS | 15.457 | 1 |
 | 5 | 2026-10-27T17:15:06+0900 | 1 | PASS | 3.679 | 1 |
 | 6 | 2026-10-27T17:20:47+0900 | 1 | PASS | 8.708 | 1 |
 
@@ -44,7 +44,7 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 1 | SIG/STAT | 100 | 100.0 | 2.835 | 1.035 | 15.633 | 0.527 | 25.693 | 3 | 3 |
 | 2 | STAT/SIG | 100 | 100.0 | 1.362 | 0.980 | 2.354 | 0.743 | 15.227 | 3 | 3 |
 | 3 | STAT/STAT | 100 | 100.0 | 0.956 | 0.913 | 1.209 | 0.768 | 2.574 | 3 | 3 |
-| 4 | SIGMA-XWING-PQC | 100 | 100.0 | 19.383 | 13.752 | 57.933 | 11.360 | 146.915 | 14 | 14 |
+| 4 | SIGMA-XWING-PQC | 100 | 100.0 | 14.733 | 12.015 | 23.423 | 10.122 | 86.813 | 14 | 14 |
 | 5 | EAP-TLS-Classic | 100 | 100.0 | 2.895 | 2.790 | 3.619 | 2.519 | 5.221 | 6 | 6 |
 | 6 | EAP-TLS-Hybrid-PQC | 100 | 100.0 | 10.066 | 8.447 | 21.988 | 5.566 | 42.396 | 28 | 28 |
 
@@ -61,7 +61,7 @@ Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang dihabi
 | 1 | SIG/STAT | 0.165 | 2.670 | 5.8% | 94.2% | 2.835 |
 | 2 | STAT/SIG | 0.151 | 1.211 | 11.1% | 88.9% | 1.362 |
 | 3 | STAT/STAT | 0.128 | 0.829 | 13.3% | 86.7% | 0.956 |
-| 4 | SIGMA-XWING-PQC | 4.569 | 14.813 | 23.6% | 76.4% | 19.383 |
+| 4 | SIGMA-XWING-PQC | 4.399 | 10.334 | 29.9% | 70.1% | 14.733 |
 | 5 | EAP-TLS-Classic | 0.607 | 2.288 | 21.0% | 79.0% | 2.895 |
 | 6 | EAP-TLS-Hybrid-PQC | 0.802 | 9.264 | 8.0% | 92.0% | 10.066 |
 
@@ -251,12 +251,12 @@ Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP (RT
 | 3 | 10.0 | 100.0 | 29.853 | 123.283 | 0.683 |
 | 3 | 20.0 | 100.0 | 75.593 | 197.551 | 1.717 |
 | 3 | 30.0 | 96.7 | 140.393 | 288.228 | 3.142 |
-| 4 | 0.0 | 100.0 | 13.666 | 19.409 | 0.000 |
-| 4 | 1.0 | 100.0 | 29.678 | 79.358 | 0.325 |
-| 4 | 5.0 | 100.0 | 85.746 | 214.233 | 1.475 |
-| 4 | 10.0 | 100.0 | 159.155 | 328.925 | 3.208 |
-| 4 | 20.0 | 97.5 | 353.143 | 625.062 | 7.667 |
-| 4 | 30.0 | 86.7 | 608.547 | 985.433 | 11.508 |
+| 4 | 0.0 | 100.0 | 14.793 | 24.137 | 0.000 |
+| 4 | 1.0 | 100.0 | 25.838 | 96.010 | 0.225 |
+| 4 | 5.0 | 100.0 | 76.065 | 169.896 | 1.350 |
+| 4 | 10.0 | 100.0 | 162.873 | 325.392 | 3.408 |
+| 4 | 20.0 | 99.2 | 353.908 | 591.015 | 7.933 |
+| 4 | 30.0 | 90.0 | 590.389 | 902.039 | 12.392 |
 | 5 | 0.0 | 100.0 | 2.842 | 3.169 | 0.000 |
 | 5 | 1.0 | 100.0 | 8.259 | 45.113 | 0.083 |
 | 5 | 5.0 | 100.0 | 36.048 | 133.508 | 0.608 |

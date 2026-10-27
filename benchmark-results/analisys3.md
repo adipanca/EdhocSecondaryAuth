@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran Key Bootstrapping ke Aplikasi (dari EMSK)
 
-_Dibuat otomatis oleh bootstrap/analyze_bootstrap.py pada 2026-10-27T17:27:02._
+_Dibuat otomatis oleh bootstrap/analyze_bootstrap.py pada 2026-10-27T17:37:28._
 
 Dokumen ini adalah kelanjutan dari `analysis.md` (microbench EAP-EDHOC) dan `analisys2.md` (end-to-end EAP-over-RADIUS). Fokusnya adalah fase **Key Bootstrapping ke Aplikasi**: turunan USRK/DSRK (RFC 5295) dari EMSK hasil handshake EAP-EDHOC, transport DSRK dari AAA ke Application Server (AS), derivasi konteks OSCORE (RFC 8613), dan kontak pertama UE↔AS. Kolom dibuat sebisa mungkin paralel dengan kedua dokumen sebelumnya agar overhead fase ini dapat dibandingkan langsung dengan handshake utama.
 
@@ -103,7 +103,7 @@ Storage overhead state per sesi (relevan untuk skenario multi-aplikasi per UE):
 - **Bootstrap latency (fase ini)**: ~0.4187 ms (loss 0, jalur kritis).
 - **Login manual/OAuth 2.0 (referensi literatur)**: ~2–10 detik untuk *authorization code grant* dengan input kredensial manusia + redirect (angka literatur/estimasi, bukan pengukuran di testbed ini).
 - Selisih orde besaran: bootstrap otomatis ini **~4,776× lebih cepat** dari batas bawah estimasi login manual — mendukung klaim onboarding aplikasi tanpa langkah login tambahan.
-- **Overhead relatif terhadap handshake EAP-EDHOC method 4** (mean end-to-end 19.383 ms, dari `analisys2.md`): fase bootstrapping menambah ~0.4187 ms (≈ **2.16%** dari waktu handshake utama) — kontribusi kecil terhadap total onboarding.
+- **Overhead relatif terhadap handshake EAP-EDHOC method 4** (mean end-to-end 14.733 ms, dari `analisys2.md`): fase bootstrapping menambah ~0.4187 ms (≈ **2.84%** dari waktu handshake utama) — kontribusi kecil terhadap total onboarding.
 
 ## E. Batasan & threats to validity
 

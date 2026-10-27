@@ -33,33 +33,39 @@ static int exists(const char *dir, const char *name)
     return stat(p, &st) == 0;
 }
 
-/* overwrite a secret file with zeros, fsync, unlink */
-static void wipe_file(const char *dir, const char *name)
+/* Overwrite two secret files with zeros in place, flush both, then unlink.
+ * The overwrite keeps the file size, so fdatasync is enough to reach the
+ * disk (no metadata to commit), and both overwrites go out before the first
+ * flush instead of one flush per file. */
+static void wipe_files(const char *dir, const char *a, const char *b)
 {
-    char p[1200];
-    struct stat st;
-    snprintf(p, sizeof(p), "%s/%s", dir, name);
-    if (stat(p, &st) != 0) return;
-    int fd = open(p, O_WRONLY);
-    if (fd >= 0) {
+    const char *names[2] = { a, b };
+    char p[2][1200];
+    int fd[2] = { -1, -1 };
+    for (int i = 0; i < 2; i++) {
+        struct stat st;
+        snprintf(p[i], sizeof(p[i]), "%s/%s", dir, names[i]);
+        if (stat(p[i], &st) != 0) { p[i][0] = '\0'; continue; }
+        fd[i] = open(p[i], O_WRONLY);
+        if (fd[i] < 0) continue;
         uint8_t z[512] = {0};
         off_t left = st.st_size;
         while (left > 0) {
-            ssize_t n = write(fd, z, left < (off_t)sizeof(z) ? (size_t)left : sizeof(z));
+            ssize_t n = write(fd[i], z, left < (off_t)sizeof(z) ? (size_t)left : sizeof(z));
             if (n <= 0) break;
             left -= n;
         }
-        fsync(fd);
-        close(fd);
     }
-    unlink(p);
+    for (int i = 0; i < 2; i++)
+        if (fd[i] >= 0) { fdatasync(fd[i]); close(fd[i]); }
+    for (int i = 0; i < 2; i++)
+        if (p[i][0]) unlink(p[i]);
 }
 
 static void wipe_prev(const char *dir)
 {
     char p[1100];
-    wipe_file(dir, "prev/server.creds");
-    wipe_file(dir, "prev/ue.pub");
+    wipe_files(dir, "prev/server.creds", "prev/ue.pub");
     snprintf(p, sizeof(p), "%s/prev", dir);
     rmdir(p);
 }
@@ -140,8 +146,7 @@ static int handle_one(const char *dir, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
             /* message_4 was lost, the UE kept its old key: restore prev/ as
              * the active record and drop the unused rotated one */
             char a[1200], b[1200];
-            wipe_file(dir, "server.creds");
-            wipe_file(dir, "ue.pub");
+            wipe_files(dir, "server.creds", "ue.pub");
             snprintf(a, sizeof(a), "%s/prev/server.creds", dir);
             snprintf(b, sizeof(b), "%s/server.creds", dir);
             rename(a, b);
