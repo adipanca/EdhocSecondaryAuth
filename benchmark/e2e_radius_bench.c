@@ -18,11 +18,13 @@
  * EAP round-trips, per-message byte sizes and EAP fragment counts, plus
  * optional network-loss emulation (drop + retransmit) for the lossy table.
  *
- * Method 4 uses one-time X-Wing keys: after message_4 the rotated keys are
- * committed and written atomically (fsync + rename) to <ue-dir>/ue.creds and
- * <ue-dir>/server.pub, so every iteration runs under fresh keys and the
- * rotation cost is part of the measured handshake. If message_4 is lost the
- * UE does not commit; the DN-AAA grace key (prev/) resynchronises the next run.
+ * Method 4 uses one-time X-Wing keys kept in the two-slot record
+ * <ue-dir>/ue.rec. The rotated keys are committed once EAP-Success
+ * (Access-Accept) arrives: one write to the inactive slot and one
+ * fdatasync, timed separately as ue_commit_ms. duration_ms stops at
+ * EAP-Success, as for EAP-TLS. If message_4 or EAP-Success is lost the UE
+ * does not commit; the DN-AAA grace key (prev slot) resynchronises the next
+ * run.
  * The DN-AAA record is selected by g_identity, which must match
  * <db>/<identity>/ on the responder.
  *
@@ -229,8 +231,6 @@ static int eng_consume(eng_t *e, const uint8_t *in, size_t in_len,
  * length; sets *is_final_ack when we sent the closing empty ACK.
  * Returns -1 on protocol error.
  */
-static int commit_creds(eng_t *e);
-
 static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
 {
     const uint8_t *msg = NULL;
@@ -280,8 +280,7 @@ static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
         rc = edhoc4_i_handle_msg4(&e->c4, msg, msg_len);
         if (rc != 0) return -1;
         memcpy(e->msk, e->c4.msk, 64);
-        if (commit_creds(e) != 0) return -1;   /* export first, then rotate */
-        e->step = 3;
+        e->step = 3;         /* rotated keys are committed after EAP-Success */
         wire[0] = 0x00;      /* empty ACK; server replies EAP-Success */
         return 1;
 
@@ -436,6 +435,8 @@ typedef struct {
                             * responder-side processing, not real network
                             * transit) */
     double responder_ms;  /* sum of all rad_exchange() durations this handshake */
+    double ue_commit_ms;  /* method 4: UE key commit after EAP-Success, outside
+                            * duration_ms */
     int    radius_rt;     /* Access-Requests sent           */
     int    eap_rt;        /* EAP-Responses sent             */
     int    access_req, access_chal, access_accept, access_reject;
@@ -456,17 +457,16 @@ static int load_creds(eng_t *e)
         edhoc03_init_initiator(&e->c3, e->method, &self, &peer);
     } else {
         edhoc4_creds self; uint8_t peer_pk[E4_XWING_PK];
-        snprintf(p, sizeof(p), "%s/ue.creds", g_uedir);
-        if (edhoc4_creds_load(p, &self) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
-        snprintf(p, sizeof(p), "%s/server.pub", g_uedir);
-        if (edhoc4_pub_load(p, peer_pk) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
+        snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
+        if (edhoc4_rec_load(p, 0, &self, peer_pk, NULL) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
         edhoc4_init_initiator(&e->c4, &self, peer_pk);
         sodium_memzero(&self, sizeof(self));
     }
     return 0;
 }
 
-/* method 4: install the rotated keys and persist them (old sk erased) */
+/* method 4, after EAP-Success: install the rotated keys and write them to
+ * the inactive slot of ue.rec (one fdatasync); the old slot is zeroed */
 static int commit_creds(eng_t *e)
 {
     char p[512];
@@ -474,14 +474,12 @@ static int commit_creds(eng_t *e)
     uint8_t peer_pk[E4_XWING_PK];
     int rc;
 
-    snprintf(p, sizeof(p), "%s/ue.creds", g_uedir);
-    if (edhoc4_creds_load(p, &self) != E4_OK) return -1;
+    snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
+    if (edhoc4_rec_load(p, 0, &self, peer_pk, NULL) != E4_OK) return -1;
     rc = edhoc4_commit(&e->c4, &self, peer_pk);
-    if (rc == E4_OK) rc = edhoc4_creds_save_atomic(p, &self);
+    if (rc == E4_OK) rc = edhoc4_rec_commit(p, &self, peer_pk, 0);
     sodium_memzero(&self, sizeof(self));
     if (rc != E4_OK) { fprintf(stderr, "save %s failed\n", p); return -1; }
-    snprintf(p, sizeof(p), "%s/server.pub", g_uedir);
-    if (edhoc4_pub_save_atomic_raw(p, peer_pk) != E4_OK) { fprintf(stderr, "save %s failed\n", p); return -1; }
     return 0;
 }
 
@@ -593,6 +591,15 @@ static int run_handshake(int method, result_t *r)
     close(sock);
 
     r->ok = (e.done && !e.failed);
+    if (r->ok && !e.classical) {
+        if (e.step != 3) r->ok = 0;            /* Accept without message_4 */
+        else {
+            double tc = now_ms();
+            if (commit_creds(&e) != 0) r->ok = 0;
+            r->ue_commit_ms = now_ms() - tc;
+        }
+    }
+    if (!e.classical) edhoc4_ctx_wipe(&e.c4);
     for (int i = 0; i < 5; i++) { r->msg_bytes[i] = e.msg_bytes[i]; r->msg_frags[i] = e.msg_frags[i]; }
     return r->ok ? 0 : -1;
 }
@@ -654,7 +661,7 @@ int main(int argc, char **argv)
                         "access_accept,access_reject,retransmits,loss_pct,"
                         "msg1_bytes,msg2_bytes,msg3_bytes,msg4_bytes,"
                         "msg1_frags,msg2_frags,msg3_frags,msg4_frags,"
-                        "initiator_ms,responder_ms\n");
+                        "initiator_ms,responder_ms,ue_commit_ms\n");
     }
 
     int pass = 0;
@@ -684,13 +691,13 @@ int main(int argc, char **argv)
 
         if (cf) {
             fprintf(cf, "%s,%s,%d,%s,%d,%s,%.3f,%d,%d,%d,%d,%d,%d,%d,%.1f,"
-                        "%zu,%zu,%zu,%zu,%d,%d,%d,%d,%.3f,%.3f\n",
+                        "%zu,%zu,%zu,%zu,%d,%d,%d,%d,%.3f,%.3f,%.3f\n",
                     label, ts, method, method_name(method), it, st, r.duration_ms,
                     r.radius_rt, r.eap_rt, r.access_req, r.access_chal,
                     r.access_accept, r.access_reject, r.retx, g_loss * 100.0,
                     r.msg_bytes[1], r.msg_bytes[2], r.msg_bytes[3], r.msg_bytes[4],
                     r.msg_frags[1], r.msg_frags[2], r.msg_frags[3], r.msg_frags[4],
-                    r.initiator_ms, r.responder_ms);
+                    r.initiator_ms, r.responder_ms, r.ue_commit_ms);
         }
     }
 

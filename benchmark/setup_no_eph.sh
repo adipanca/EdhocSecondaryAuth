@@ -15,7 +15,11 @@
 #
 # Identity "edhoc-ue" is always provisioned (e2e_radius_bench default). Add
 # the UERANSIM SUPI (e.g. imsi-001010000000001) for the live 5G stack, and
-# point EDHOC_UE_CREDS / EDHOC_SRV_PUB at /usr/local/etc/edhoc/ue/<SUPI>/.
+# point EDHOC_UE_REC at /usr/local/etc/edhoc/ue/<SUPI>/ue.rec.
+#
+# Key records are two-slot files (rec.bin on the DN-AAA, ue.rec on the UE),
+# one fdatasync per commit. Records from the earlier layout can be converted
+# in place with: edhoc4/edhoc4_keygen --migrate /usr/local/etc/edhoc
 #
 set -euo pipefail
 
@@ -36,7 +40,7 @@ chmod 0700 "$CREDDIR/edhoc_db"
 chmod 0755 "$CREDDIR/ue"
 chown -R "$OWNER" "$CREDDIR/ue"
 chmod 0644 "$CREDDIR/server.pub" "$CREDDIR/ue.pub" "$CREDDIR/ue.vk"
-chmod 0600 "$CREDDIR/server.creds" "$CREDDIR/ue.creds"
+chmod 0600 "$CREDDIR/server.creds" "$CREDDIR/ue.creds" "$CREDDIR/ue.rec"
 
 echo "== restart radiusd (classic TLS config, quiet -f)"
 "$HERE/switch_tls_config.sh" classic

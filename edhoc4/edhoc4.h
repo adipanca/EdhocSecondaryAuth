@@ -146,6 +146,40 @@ int edhoc4_pub_load(const char *path, uint8_t peer_kem_pk[E4_XWING_PK]);
 int edhoc4_creds_save_atomic(const char *path, const edhoc4_creds *c);
 int edhoc4_pub_save_atomic_raw(const char *path, const uint8_t pk[E4_XWING_PK]);
 
+/* ---- two-slot key record (rotating state of one party) ----
+ * One preallocated file per record: a header block and two fixed-size
+ * slots, each holding (own creds, peer's current pk) with a sequence number
+ * and a SHA-256 tag. The valid slot with the highest seq is active, the
+ * other valid slot is prev (the DN-AAA's grace key). A commit writes the
+ * inactive slot and issues ONE fdatasync: the file size never changes, so
+ * no rename, directory flush or metadata commit is needed, and a torn write
+ * fails its tag and leaves the old slot in force. Overwriting a slot is
+ * also how an old key is erased. */
+#define E4_REC_PAYLOAD (sizeof(edhoc4_creds) + E4_XWING_PK)
+
+typedef struct {
+    int      valid[2];
+    uint64_t seq[2];
+    int      active;        /* slot index, -1 if no slot is valid */
+} edhoc4_rec_info;
+
+/* provisioning: allocate and zero the file, write slot 0 (seq 1), fsync */
+int edhoc4_rec_create(const char *path, const edhoc4_creds *self,
+                      const uint8_t peer_pk[E4_XWING_PK]);
+/* read the active (prev = 0) or the prev (prev = 1) slot; info may be NULL */
+int edhoc4_rec_load(const char *path, int prev, edhoc4_creds *self,
+                    uint8_t peer_pk[E4_XWING_PK], edhoc4_rec_info *info);
+/* write (self, peer_pk) to the inactive slot with seq = active + 1 and
+ * fdatasync once. keep_prev = 0 then zeroes the now-previous slot without
+ * a flush (UE: it has no use for its old key). */
+int edhoc4_rec_commit(const char *path, const edhoc4_creds *self,
+                      const uint8_t peer_pk[E4_XWING_PK], int keep_prev);
+/* zero the prev slot without a flush; the next commit's fdatasync, which
+ * covers the same file, makes it durable */
+int edhoc4_rec_erase_prev(const char *path);
+/* lost message_4: copy prev over the active slot with a higher seq, flush */
+int edhoc4_rec_promote_prev(const char *path);
+
 /* ---- initiator (UE) ---- */
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK]);

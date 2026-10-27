@@ -141,6 +141,9 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
 
     freeProcedureTransactionId(msg.pti);
 
+    // EAP-Success of the secondary authentication may arrive here
+    commitEdhocOnSuccess(msg.eapMessage);
+
     auto &pduSession = m_pduSessions[msg.pduSessionId];
     if (pduSession->psState != EPsState::ACTIVE_PENDING)
     {

@@ -287,6 +287,9 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 return;
             }
 
+            // a new session: a commit still pending from a session without
+            // EAP-Success is dropped (the old key stays in force)
+            m_edhocCommitPending = false;
             edhoc4_init_initiator(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
             rc = edhoc4_i_make_msg1(&m_edhocCtx, buf, sizeof(buf), &outLen);
             if (rc == E4_OK)
@@ -357,25 +360,14 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                     std::memcpy(m_edhocEmsk, m_edhocCtx.emsk, E4_EMSK_LEN);
                     m_logger->info("EAP-EDHOC: handshake complete, MSK/EMSK derived");
 
-                    // one-time keys: install (Nsk_A, Npk_B), erase old sk_A, persist
-                    rc = edhoc4_commit(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
-                    if (rc == E4_OK &&
-                        (edhoc4_creds_save_atomic(m_edhocCredsPath.c_str(), &m_edhocCreds) != E4_OK ||
-                         edhoc4_pub_save_atomic_raw(m_edhocPubPath.c_str(), m_edhocPeerPub) != E4_OK))
-                    {
-                        m_logger->err("EAP-EDHOC: failed to persist rotated keys to %s / %s",
-                                      m_edhocCredsPath.c_str(), m_edhocPubPath.c_str());
-                        rc = E4_ERR_STATE;
-                    }
-                    // reload from disk on the next session
-                    m_edhocProvisioned = false;
-                    if (rc == E4_OK)
-                    {
-                        uint8_t ackWire[1] = {0x00};
-                        outData = OctetString::FromArray(ackWire, sizeof(ackWire));
-                        m_edhocRound = 3;
-                        m_logger->info("EAP-EDHOC: one-time keys rotated and saved");
-                    }
+                    // one-time keys: committed only after EAP-Success (commitEdhocOnSuccess).
+                    // The UE needs them from the next session on; if EAP-Success never
+                    // arrives, the old key stays in force and the DN-AAA grace key
+                    // accepts it.
+                    m_edhocCommitPending = true;
+                    uint8_t ackWire[1] = {0x00};
+                    outData = OctetString::FromArray(ackWire, sizeof(ackWire));
+                    m_edhocRound = 3;
                 }
             }
             else
@@ -435,24 +427,14 @@ bool NasSm::ensureEdhocProvisioned()
     if (m_edhocProvisioned)
         return true;
 
-    const char *credsPath = std::getenv("EDHOC_UE_CREDS");
-    const char *pubPath = std::getenv("EDHOC_SRV_PUB");
-    if (!credsPath)
-        credsPath = "/usr/local/etc/edhoc/ue.creds";
-    if (!pubPath)
-        pubPath = "/usr/local/etc/edhoc/server.pub";
+    const char *recPath = std::getenv("EDHOC_UE_REC");
+    if (!recPath)
+        recPath = "/usr/local/etc/edhoc/ue.rec";
+    m_edhocRecPath = recPath;
 
-    m_edhocCredsPath = credsPath;
-    m_edhocPubPath = pubPath;
-
-    if (edhoc4_creds_load(credsPath, &m_edhocCreds) != E4_OK)
+    if (edhoc4_rec_load(recPath, 0, &m_edhocCreds, m_edhocPeerPub, nullptr) != E4_OK)
     {
-        m_logger->err("EAP-EDHOC: failed to load UE credentials from %s", credsPath);
-        return false;
-    }
-    if (edhoc4_pub_load(pubPath, m_edhocPeerPub) != E4_OK)
-    {
-        m_logger->err("EAP-EDHOC: failed to load DN-AAA public key from %s", pubPath);
+        m_logger->err("EAP-EDHOC: failed to load the UE key record from %s", recPath);
         return false;
     }
 
@@ -461,8 +443,32 @@ bool NasSm::ensureEdhocProvisioned()
     return true;
 }
 
+void NasSm::commitEdhocOnSuccess(const std::optional<nas::IEEapMessage> &eap)
+{
+    if (!m_edhocCommitPending || !eap.has_value() || !eap->eap)
+        return;
+    m_edhocCommitPending = false;
+    if (eap->eap->code != eap::ECode::SUCCESS)
+    {
+        edhoc4_ctx_wipe(&m_edhocCtx);
+        return;
+    }
+    // install (Nsk_A, Npk_B), write the inactive slot with one fdatasync, zero the old slot
+    int rc = edhoc4_commit(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
+    if (rc == E4_OK)
+        rc = edhoc4_rec_commit(m_edhocRecPath.c_str(), &m_edhocCreds, m_edhocPeerPub, 0);
+    // reload from disk on the next session
+    m_edhocProvisioned = false;
+    if (rc != E4_OK)
+        m_logger->err("EAP-EDHOC: failed to persist rotated keys to %s", m_edhocRecPath.c_str());
+    else
+        m_logger->info("EAP-EDHOC: EAP-Success, one-time keys rotated and saved");
+}
+
 void NasSm::receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg)
 {
+    commitEdhocOnSuccess(msg.eapMessage);
+
     if (msg.eapMessage.has_value() && msg.eapMessage->eap)
     {
         m_logger->info("PDU Session Authentication Result with EAP type [%d] for PSI[%d]",

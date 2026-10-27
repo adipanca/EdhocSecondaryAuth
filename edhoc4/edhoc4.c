@@ -341,6 +341,185 @@ int edhoc4_pub_save_atomic_raw(const char *path, const uint8_t pk[E4_XWING_PK])
     return save_atomic(path, pk, E4_XWING_PK);
 }
 
+/* ---- two-slot key record ----
+ * block 0 (4096 B): magic "E4R2", version, slot size, payload length
+ * slot i at REC_HDR + i * REC_SLOT: u64 seq, u32 len, u32 0,
+ *     payload = creds || peer pk, tag = SHA-256(seq..payload)
+ * Slots are page-aligned so a torn write stays within one slot. Native
+ * byte order: the file never leaves the host that wrote it. */
+#define REC_HDR      4096
+#define REC_SLOT_HDR 16
+#define REC_SLOT     ((REC_SLOT_HDR + E4_REC_PAYLOAD + 32 + 4095) / 4096 * 4096)
+#define REC_SIZE     (REC_HDR + 2 * REC_SLOT)
+
+typedef struct {
+    uint8_t magic[4];
+    uint32_t version, slot_size, payload_len;
+} rec_header;
+
+static uint8_t *rec_slot_build(uint64_t seq, const edhoc4_creds *self,
+                               const uint8_t peer_pk[E4_XWING_PK], uint8_t *buf)
+{
+    uint32_t len = (uint32_t)E4_REC_PAYLOAD, z = 0;
+    memset(buf, 0, REC_SLOT);
+    memcpy(buf, &seq, 8);
+    memcpy(buf + 8, &len, 4);
+    memcpy(buf + 12, &z, 4);
+    memcpy(buf + REC_SLOT_HDR, self, sizeof(*self));
+    memcpy(buf + REC_SLOT_HDR + sizeof(*self), peer_pk, E4_XWING_PK);
+    crypto_hash_sha256(buf + REC_SLOT_HDR + E4_REC_PAYLOAD, buf, REC_SLOT_HDR + E4_REC_PAYLOAD);
+    return buf;
+}
+
+static int rec_slot_ok(const uint8_t *buf, uint64_t *seq)
+{
+    uint8_t tag[32];
+    uint32_t len;
+    memcpy(seq, buf, 8);
+    memcpy(&len, buf + 8, 4);
+    if (*seq == 0 || len != E4_REC_PAYLOAD) return 0;
+    crypto_hash_sha256(tag, buf, REC_SLOT_HDR + E4_REC_PAYLOAD);
+    return sodium_memcmp(tag, buf + REC_SLOT_HDR + E4_REC_PAYLOAD, 32) == 0;
+}
+
+static int rec_pwrite(int fd, const void *buf, size_t len, off_t off)
+{
+    const uint8_t *p = (const uint8_t *)buf;
+    while (len > 0) {
+        ssize_t n = pwrite(fd, p, len, off);
+        if (n <= 0) return -1;
+        p += n; len -= (size_t)n; off += n;
+    }
+    return 0;
+}
+
+/* open the record, check the header and read both slots into slots[2] */
+static int rec_open(const char *path, int flags, uint8_t (*slots)[REC_SLOT],
+                    edhoc4_rec_info *info)
+{
+    rec_header h;
+    int fd = open(path, flags);
+    if (fd < 0) return -1;
+    if (pread(fd, &h, sizeof(h), 0) != (ssize_t)sizeof(h) || memcmp(h.magic, "E4R2", 4) != 0 ||
+        h.version != 1 || h.slot_size != REC_SLOT || h.payload_len != E4_REC_PAYLOAD) {
+        close(fd);
+        return -1;
+    }
+    info->active = -1;
+    for (int i = 0; i < 2; i++) {
+        info->seq[i] = 0;
+        info->valid[i] = pread(fd, slots[i], REC_SLOT, REC_HDR + (off_t)i * REC_SLOT) == REC_SLOT &&
+                         rec_slot_ok(slots[i], &info->seq[i]);
+        if (info->valid[i] && (info->active < 0 || info->seq[i] > info->seq[info->active]))
+            info->active = i;
+    }
+    return fd;
+}
+
+int edhoc4_rec_create(const char *path, const edhoc4_creds *self,
+                      const uint8_t peer_pk[E4_XWING_PK])
+{
+    static uint8_t zero[REC_SIZE];
+    static uint8_t slot[REC_SLOT];
+    rec_header h = { { 'E', '4', 'R', '2' }, 1, REC_SLOT, (uint32_t)E4_REC_PAYLOAD };
+    if (!path || !self || !peer_pk) return E4_ERR_ARG;
+    int fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0600);
+    if (fd < 0) return E4_ERR_ARG;
+    /* write every block once, so later overwrites need no extent change */
+    int rc = (posix_fallocate(fd, 0, REC_SIZE) == 0 && rec_pwrite(fd, zero, REC_SIZE, 0) == 0 &&
+              rec_pwrite(fd, &h, sizeof(h), 0) == 0 &&
+              rec_pwrite(fd, rec_slot_build(1, self, peer_pk, slot), REC_SLOT, REC_HDR) == 0 &&
+              fsync(fd) == 0) ? E4_OK : E4_ERR_ARG;
+    sodium_memzero(slot, sizeof(slot));
+    close(fd);
+    return rc;
+}
+
+int edhoc4_rec_load(const char *path, int prev, edhoc4_creds *self,
+                    uint8_t peer_pk[E4_XWING_PK], edhoc4_rec_info *info)
+{
+    static __thread uint8_t slots[2][REC_SLOT];
+    edhoc4_rec_info tmp;
+    if (!path || !self || !peer_pk) return E4_ERR_ARG;
+    if (!info) info = &tmp;
+    int fd = rec_open(path, O_RDONLY, slots, info);
+    if (fd < 0) return E4_ERR_ARG;
+    close(fd);
+    int rc = E4_ERR_PARSE;
+    int i = info->active < 0 ? -1 : (prev ? 1 - info->active : info->active);
+    if (i >= 0 && info->valid[i]) {
+        memcpy(self, slots[i] + REC_SLOT_HDR, sizeof(*self));
+        memcpy(peer_pk, slots[i] + REC_SLOT_HDR + sizeof(*self), E4_XWING_PK);
+        rc = E4_OK;
+    }
+    sodium_memzero(slots, sizeof(slots));
+    return rc;
+}
+
+int edhoc4_rec_commit(const char *path, const edhoc4_creds *self,
+                      const uint8_t peer_pk[E4_XWING_PK], int keep_prev)
+{
+    static __thread uint8_t slots[2][REC_SLOT];
+    edhoc4_rec_info info;
+    if (!path || !self || !peer_pk) return E4_ERR_ARG;
+    int fd = rec_open(path, O_RDWR, slots, &info);
+    if (fd < 0) return E4_ERR_ARG;
+    int rc = E4_ERR_STATE;
+    if (info.active >= 0) {
+        int w = 1 - info.active;
+        rc = (rec_pwrite(fd, rec_slot_build(info.seq[info.active] + 1, self, peer_pk, slots[w]),
+                         REC_SLOT, REC_HDR + (off_t)w * REC_SLOT) == 0 &&
+              fdatasync(fd) == 0) ? E4_OK : E4_ERR_ARG;
+        if (rc == E4_OK && !keep_prev) {
+            memset(slots[0], 0, REC_SLOT);
+            rec_pwrite(fd, slots[0], REC_SLOT, REC_HDR + (off_t)info.active * REC_SLOT);
+        }
+    }
+    sodium_memzero(slots, sizeof(slots));
+    close(fd);
+    return rc;
+}
+
+int edhoc4_rec_erase_prev(const char *path)
+{
+    static __thread uint8_t slots[2][REC_SLOT];
+    edhoc4_rec_info info;
+    int fd = rec_open(path, O_RDWR, slots, &info);
+    if (fd < 0) return E4_ERR_ARG;
+    int rc = E4_OK;
+    if (info.active >= 0 && info.valid[1 - info.active]) {
+        memset(slots[0], 0, REC_SLOT);
+        rc = rec_pwrite(fd, slots[0], REC_SLOT, REC_HDR + (off_t)(1 - info.active) * REC_SLOT) == 0
+             ? E4_OK : E4_ERR_ARG;
+    }
+    sodium_memzero(slots, sizeof(slots));
+    close(fd);
+    return rc;
+}
+
+int edhoc4_rec_promote_prev(const char *path)
+{
+    static __thread uint8_t slots[2][REC_SLOT];
+    edhoc4_rec_info info;
+    int fd = rec_open(path, O_RDWR, slots, &info);
+    if (fd < 0) return E4_ERR_ARG;
+    int rc = E4_ERR_STATE;
+    if (info.active >= 0 && info.valid[1 - info.active]) {
+        int a = info.active, p = 1 - a;
+        uint64_t seq = info.seq[a] + 1;
+        /* same payload as prev, new seq and tag, written over the unused
+         * rotated record in the active slot */
+        memcpy(slots[a], slots[p], REC_SLOT);
+        memcpy(slots[a], &seq, 8);
+        crypto_hash_sha256(slots[a] + REC_SLOT_HDR + E4_REC_PAYLOAD, slots[a], REC_SLOT_HDR + E4_REC_PAYLOAD);
+        rc = (rec_pwrite(fd, slots[a], REC_SLOT, REC_HDR + (off_t)a * REC_SLOT) == 0 &&
+              fdatasync(fd) == 0) ? E4_OK : E4_ERR_ARG;
+    }
+    sodium_memzero(slots, sizeof(slots));
+    close(fd);
+    return rc;
+}
+
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK])
 {

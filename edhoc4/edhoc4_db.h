@@ -3,18 +3,24 @@
  *
  * pk_B is per UE and rotated every session, so the responder keeps one
  * record per UE under <root>/<eap_identity>/ (see keygen.c):
- *   server.creds  ue.pub  ue.vk  id_cred  [prev/server.creds prev/ue.pub]
+ *   rec.bin  ue.vk  id_cred
+ * rec.bin is a two-slot record (edhoc4_rec_*): each slot holds
+ * (sk_B/pk_B + ML-DSA key, pk_A); ue.vk and id_cred do not rotate.
  *
  * The record is chosen from the EAP identity (RADIUS User-Name), which
  * arrives before message_1, so message_1 carries no key identifier. An
  * unknown identity falls back to trial decapsulation over all records.
  *
- * Grace-key policy for a lost message_4: on commit the active record moves
- * to prev/. If the next message_1 only decrypts under prev/, the UE did not
- * rotate: prev/ is restored as active and the unused rotated record is
- * erased. Once message_1 decrypts under the active record, prev/ is erased
- * (zeroized + unlinked). Forward secrecy of the last session is therefore
- * delayed by one session.
+ * Storage cost: one fdatasync per handshake, in edhoc4_db_commit (write-
+ * ahead: the rotated record is durable before message_4 is sent).
+ *
+ * Grace-key policy for a lost message_4: the commit writes the inactive
+ * slot, so the slot in use becomes prev. If the next message_1 only
+ * decrypts under prev, the UE did not rotate: prev is copied over the
+ * unused rotated record with a higher seq (flushed; rare path). Once
+ * message_1 decrypts under the active slot, prev is zeroed without a flush;
+ * the same session's commit flushes the file. Forward secrecy of the last
+ * session is therefore delayed by one session.
  *
  * All file operations take flock(<record>/.lock); radiusd is multi-threaded.
  */
@@ -33,7 +39,7 @@ typedef struct {
     uint8_t ue_pub[E4_XWING_PK];       /* pk_A                            */
     uint8_t ue_vk[E4_MLDSA_PK];        /* VK_I                            */
     uint8_t id_cred[E4_ID_CRED];       /* ID_CRED_I                       */
-    int     used_prev;                 /* message_1 matched prev/         */
+    int     used_prev;                 /* message_1 matched the prev slot */
 } edhoc4_db_rec;
 
 /* lookup callback for edhoc4_set_lookup(): checks ID_CRED_I == rec->id_cred */
@@ -49,9 +55,9 @@ int edhoc4_db_handle_msg1(const char *root, const char *identity,
                           const uint8_t *in, size_t in_len,
                           uint8_t *out, size_t out_cap, size_t *out_len);
 
-/* After edhoc4_r_handle_msg3 succeeded and MSK/EMSK were exported: move the
- * active record to prev/, install the rotated keys (edhoc4_commit) and save
- * the new record atomically. Wipes *ctx. */
+/* After edhoc4_r_handle_msg3 succeeded and MSK/EMSK were exported: install
+ * the rotated keys (edhoc4_commit) and write them to the inactive slot with
+ * one fdatasync; the current slot stays as the grace key. Wipes *ctx. */
 int edhoc4_db_commit(edhoc4_ctx *ctx, edhoc4_db_rec *rec);
 
 void edhoc4_db_rec_wipe(edhoc4_db_rec *rec);

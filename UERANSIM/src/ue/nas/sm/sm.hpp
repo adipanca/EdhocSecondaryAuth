@@ -40,8 +40,8 @@ class NasSm
     uint8_t m_edhocPeerPub[E4_XWING_PK]{};
     int m_edhocRound{-1};
     bool m_edhocProvisioned{false};
-    std::string m_edhocCredsPath{};   // EDHOC_UE_CREDS, rewritten after every rotation
-    std::string m_edhocPubPath{};     // EDHOC_SRV_PUB,  rewritten after every rotation
+    std::string m_edhocRecPath{};     // EDHOC_UE_REC, two-slot record rewritten after every rotation
+    bool m_edhocCommitPending{false}; // message_4 verified, commit once EAP-Success arrives
     uint8_t m_edhocMsk[E4_MSK_LEN]{};
     uint8_t m_edhocEmsk[E4_EMSK_LEN]{};
     uint8_t m_edhocIn[E4_MAX_MSG]{};
@@ -111,6 +111,7 @@ class NasSm
     void receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenticationCommand &msg);
     void receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg);
     bool ensureEdhocProvisioned();
+    void commitEdhocOnSuccess(const std::optional<nas::IEEapMessage> &eap);
 
   private: /* Service Access Point */
     void handleNasEvent(const NmUeNasToNas &msg);
