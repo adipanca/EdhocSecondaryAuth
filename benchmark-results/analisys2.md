@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T20:41:12._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T21:26:50._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -76,14 +76,14 @@ Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 (beda RAD
 
 | Method | Profil | N | Mean (ms) | Median (ms) | Trimmed mean (ms) | Stddev (ms) | Outlier >5ms | Median 95% CI (ms) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 10000 | 1.162 | 1.014 | 1.047 | 1.014 | 72 | [1.0115, 1.0180] |
-| 1 | SIG/STAT | 10000 | 1.155 | 1.032 | 1.071 | 0.684 | 48 | [1.0295, 1.0360] |
-| 2 | STAT/SIG | 10000 | 1.192 | 1.029 | 1.063 | 1.216 | 83 | [1.0260, 1.0320] |
-| 3 | STAT/STAT | 10000 | 1.035 | 0.987 | 1.000 | 0.345 | 10 | [0.9850, 0.9900] |
+| 0 | SIG/SIG | 10000 | 1.550 | 1.021 | 1.149 | 2.417 | 350 | [1.0160, 1.0260] |
+| 1 | SIG/STAT | 10000 | 1.615 | 1.039 | 1.187 | 2.489 | 385 | [1.0350, 1.0430] |
+| 2 | STAT/SIG | 10000 | 1.517 | 1.032 | 1.152 | 2.324 | 325 | [1.0270, 1.0370] |
+| 3 | STAT/STAT | 10000 | 1.565 | 1.028 | 1.138 | 2.587 | 335 | [1.0230, 1.0310] |
 
-- Urutan median (N=10000, dua arah digabung): **method 3 (0.987 ms) < method 0 (1.014 ms) < method 2 (1.029 ms) < method 1 (1.032 ms)**.
-- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): method 1 vs 2. Terpisah signifikan: method 0 vs 1, method 0 vs 2, method 0 vs 3, method 1 vs 3, method 2 vs 3.
-- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan dikontrol, selisih median tercepat-terlambat method 0-3 hanya **45 µs**. Urutannya TIDAK mengikuti urutan compute-only section 1b secara konsisten antar rerun. Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "lookup kredensial" **terbukti salah**. Kode `edhoc03.c` punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk hitungan section 1b), terlalu kecil untuk menjelaskan selisih yang teramati.
+- Urutan median (N=10000, dua arah digabung): **method 0 (1.021 ms) < method 3 (1.028 ms) < method 2 (1.032 ms) < method 1 (1.039 ms)**.
+- Pasangan yang CI-nya **overlap** (bedanya tidak signifikan secara statistik): method 0 vs 3, method 1 vs 2, method 2 vs 3. Terpisah signifikan: method 0 vs 1, method 0 vs 2, method 1 vs 3.
+- **Kesimpulan jujur:** setelah bug `-X` diperbaiki dan efek urutan dikontrol, selisih median tercepat-terlambat method 0-3 hanya **18 µs**. Urutannya TIDAK mengikuti urutan compute-only section 1b secara konsisten antar rerun. Sudah dicek ke kode `rlm_eap_edhoc.c`: kredensial dimuat sekali saat startup (bukan per-request, tidak ada I/O per-request), jadi hipotesis "lookup kredensial" **terbukti salah**. Kode `edhoc03.c` punya 1 panggilan HKDF-Extract tambahan untuk static-DH (~1.4µs, tidak masuk hitungan section 1b), terlalu kecil untuk menjelaskan selisih yang teramati.
 
 > **Verifikasi lapis terakhir — `strace -f -c` langsung ke proses `radiusd` hidup** (1500 handshake method 0 vs 1500 handshake method 3, masing-masing di-trace terpisah): profil syscall-nya **identik** — sendmsg/recvfrom/recvmsg/getsockname sama-sama persis 4500 kali (3/handshake, cocok RADIUS round-trip), tidak ada satu pun syscall tambahan yang membedakan method 0 dari method 3 (tidak ada file I/O ekstra, tidak ada alokasi berbeda). Yang mendominasi waktu trace di **kedua** method secara setara: `futex` (85.79% method 0, 85.40% method 3) — itu overhead sinkronisasi thread-pool internal FreeRADIUS (worker thread bangun/tidur lewat mutex/condition-variable tiap request masuk, karena harness mengirim request satu-satu/sekuensial), sama sekali bukan bagian dari logika EDHOC. **Kesimpulan final: method 3 TIDAK seharusnya jauh lebih cepat dari method 0** — biaya kripto EDHOC (ratusan nanodetik/operasi) memang microscopic dibanding overhead scheduling thread-pool FreeRADIUS (puluhan-ratusan µs/request) yang besarnya SAMA untuk semua method karena bukan bagian dari protokol sama sekali. Selisih puluhan µs yang tersisa antar method 0-3 kemungkinan besar cuma variasi acak dalam overhead futex/scheduling itu sendiri, bukan efek desain protokol.
 
@@ -281,6 +281,43 @@ Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP (RT
 | 6 | 10.0 | 100.0 | 319.445 | 615.732 | 7.008 |
 | 6 | 20.0 | 96.7 | 667.534 | 982.990 | 14.842 |
 | 6 | 30.0 | 77.5 | 1206.565 | 1706.477 | 21.392 |
+
+### Validasi model analitis loss
+
+Model: satu RADIUS round-trip berhasil dengan peluang p = (1 - L)^2 (request dan reply sama-sama harus lolos), pertukaran gagal permanen setelah 7 percobaan (1 + 6 retransmisi), sehingga sukses handshake = (1 - (1 - p)^7)^n_RT dan retransmisi per handshake sukses ~ n_RT (1 - p) / p, masing-masing menambah RTO 40 ms. n_RT = jumlah RADIUS round-trip terukur tanpa loss. Interval sukses = Wilson 95%. Retx terukur dihitung di antara handshake yang sukses agar sebanding dengan model; kolom terakhir = rata-rata semua percobaan (seperti tabel di atas).
+
+| Method | n_RT | Loss % | Sukses terukur % | Wilson 95% CI % | Sukses model % | Retx terukur (sukses) | Retx model | Mean terukur (ms) | Model retx x RTO (ms) | Retx (semua) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 12.6 | 13 | 0.3 |
+| 0 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 30.9 | 28 | 0.7 |
+| 0 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.6 | 1.7 | 69.5 | 67 | 1.6 |
+| 0 | 3 | 30 | 96.7 | [91.7, 98.7] | 97.3 | 3.0 | 3.1 | 128.1 | 125 | 2.9 |
+| 1 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 14.7 | 13 | 0.3 |
+| 1 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.9 | 0.7 | 37.6 | 28 | 0.9 |
+| 1 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.6 | 1.7 | 68.8 | 67 | 1.6 |
+| 1 | 3 | 30 | 95.8 | [90.6, 98.2] | 97.3 | 2.7 | 3.1 | 115.5 | 125 | 2.6 |
+| 2 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.2 | 0.3 | 10.4 | 13 | 0.2 |
+| 2 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 33.1 | 28 | 0.7 |
+| 2 | 3 | 20 | 99.2 | [95.4, 99.9] | 99.8 | 1.6 | 1.7 | 69.7 | 67 | 1.6 |
+| 2 | 3 | 30 | 96.7 | [91.7, 98.7] | 97.3 | 3.2 | 3.1 | 135.6 | 125 | 3.1 |
+| 3 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 15.0 | 13 | 0.3 |
+| 3 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 33.0 | 28 | 0.7 |
+| 3 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.6 | 1.7 | 72.2 | 67 | 1.6 |
+| 3 | 3 | 30 | 98.3 | [94.1, 99.5] | 97.3 | 3.1 | 3.1 | 132.0 | 125 | 3.0 |
+| 4 | 14 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 1.6 | 1.5 | 88.5 | 60 | 1.6 |
+| 4 | 14 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 3.2 | 3.3 | 164.8 | 131 | 3.2 |
+| 4 | 14 | 20 | 98.3 | [94.1, 99.5] | 98.9 | 8.2 | 7.9 | 390.3 | 315 | 8.1 |
+| 4 | 14 | 30 | 86.7 | [79.4, 91.6] | 88.1 | 13.1 | 14.6 | 598.2 | 583 | 11.3 |
+| 5 | 6 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.6 | 36.0 | 26 | 0.7 |
+| 5 | 6 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 1.4 | 1.4 | 69.7 | 56 | 1.4 |
+| 5 | 6 | 20 | 100.0 | [96.9, 100.0] | 99.5 | 3.3 | 3.4 | 151.3 | 135 | 3.3 |
+| 5 | 6 | 30 | 96.7 | [91.7, 98.7] | 94.7 | 6.3 | 6.2 | 280.8 | 250 | 6.1 |
+| 6 | 28 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 3.2 | 3.0 | 162.3 | 121 | 3.2 |
+| 6 | 28 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 7.0 | 6.6 | 319.4 | 263 | 7.0 |
+| 6 | 28 | 20 | 96.7 | [91.7, 98.7] | 97.8 | 15.4 | 15.7 | 667.5 | 630 | 14.8 |
+| 6 | 28 | 30 | 77.5 | [69.2, 84.1] | 77.7 | 27.6 | 29.1 | 1206.6 | 1166 | 21.4 |
+
+- Model mengabaikan biaya tanpa-loss (T_loopback) dan jitter, sehingga cocok terutama pada loss tinggi, saat retransmisi mendominasi waktu.
 
 > Bagian 3 (interoperabilitas primitif) identik dengan `analysis.md`.
 

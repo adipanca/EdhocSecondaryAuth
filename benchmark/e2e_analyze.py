@@ -54,6 +54,17 @@ def pct(values, p):
     return s[f] + (s[c] - s[f]) * (k - f)
 
 
+def wilson(k, n, z=1.959964):
+    """Wilson score interval for k successes out of n trials."""
+    if n == 0:
+        return 0.0, 0.0
+    ph = k / n
+    den = 1 + z * z / n
+    mid = (ph + z * z / (2 * n)) / den
+    half = z * ((ph * (1 - ph) / n + z * z / (4 * n * n)) ** 0.5) / den
+    return mid - half, mid + half
+
+
 def load_rows(path):
     with open(path, newline="") as f:
         return list(csv.DictReader(f))
@@ -396,6 +407,47 @@ def main():
             p95_ms = pct(durs, 95) if durs else 0.0
             L.append(f"| {m} | {loss:.1f} | {succ:.1f} | {mean_ms:.3f} | "
                      f"{p95_ms:.3f} | {statistics.mean(retx):.3f} |")
+    L.append("")
+
+    # ---- analytic loss model vs measurement, with Wilson CIs ----
+    RTO_MS, ATTEMPTS = 40.0, 7
+    L.append("### Validasi model analitis loss")
+    L.append("")
+    L.append("Model: satu RADIUS round-trip berhasil dengan peluang p = (1 - L)^2 "
+             "(request dan reply sama-sama harus lolos), pertukaran gagal permanen setelah "
+             f"{ATTEMPTS} percobaan (1 + 6 retransmisi), sehingga sukses handshake = "
+             "(1 - (1 - p)^7)^n_RT dan retransmisi per handshake sukses ~ n_RT (1 - p) / p, "
+             f"masing-masing menambah RTO {RTO_MS:.0f} ms. n_RT = jumlah RADIUS round-trip "
+             "terukur tanpa loss. Interval sukses = Wilson 95%. Retx terukur dihitung di antara "
+             "handshake yang sukses agar sebanding dengan model; kolom terakhir = rata-rata "
+             "semua percobaan (seperti tabel di atas).")
+    L.append("")
+    L.append("| Method | n_RT | Loss % | Sukses terukur % | Wilson 95% CI % | Sukses model % | "
+             "Retx terukur (sukses) | Retx model | Mean terukur (ms) | Model retx x RTO (ms) | Retx (semua) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    for m in sorted(METHOD_NAMES):
+        ok0 = [r for r in by_m.get(m, []) if r["status"] == "PASS"]
+        if not ok0:
+            continue
+        n_rt = int(ok0[0]["radius_round_trips"])
+        for loss in [5.0, 10.0, 20.0, 30.0]:
+            rows = by_ml.get((m, loss))
+            if not rows:
+                continue
+            ok = [r for r in rows if r["status"] == "PASS"]
+            n, k = len(rows), len(ok)
+            lo, hi = wilson(k, n)
+            p = (1 - loss / 100) ** 2
+            succ_model = (1 - (1 - p) ** ATTEMPTS) ** n_rt
+            retx_model = n_rt * (1 - p) / p
+            retx_ok = statistics.mean(int(r["retransmits"]) for r in ok) if ok else 0.0
+            mean_ok = statistics.mean(float(r["duration_ms"]) for r in ok) if ok else 0.0
+            L.append(f"| {m} | {n_rt} | {loss:.0f} | {100*k/n:.1f} | [{100*lo:.1f}, {100*hi:.1f}] | "
+                     f"{100*succ_model:.1f} | {retx_ok:.1f} | {retx_model:.1f} | {mean_ok:.1f} | "
+                     f"{retx_model*RTO_MS:.0f} | {statistics.mean(int(r['retransmits']) for r in rows):.1f} |")
+    L.append("")
+    L.append("- Model mengabaikan biaya tanpa-loss (T_loopback) dan jitter, sehingga cocok "
+             "terutama pada loss tinggi, saat retransmisi mendominasi waktu.")
     L.append("")
 
     # ---- carry 3 (interop) from analysis.md ----
