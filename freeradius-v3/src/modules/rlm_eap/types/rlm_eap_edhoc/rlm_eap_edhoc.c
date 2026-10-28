@@ -106,13 +106,17 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 
 	INFO("rlm_eap_edhoc: method-4 SIGMA XWING per-UE records in %s", inst->db_path);
 
-	/* EAD4 key pairs come from a pool refilled by a background thread
-	 * (started on the first handshake), so the DN-AAA does not generate
-	 * its next one-time key while the UE waits for message_4.
-	 * EDHOC4_POOL_SIZE=0 disables the pool (ablation runs). */
+	/* The EAD4 key pair is generated after message_3 is verified, inside
+	 * the handshake. EDHOC4_ROTATION_POOL=<n> (opt-in) instead keeps n key
+	 * pairs ready with a background refill thread. */
 	{
-		char const *ps = getenv("EDHOC4_POOL_SIZE");
-		edhoc4_pool_start(ps ? atoi(ps) : 4);
+		char const *ps = getenv("EDHOC4_ROTATION_POOL");
+		int n = ps ? atoi(ps) : 0;
+
+		if (n > 0) {
+			edhoc4_pool_start(n);
+			INFO("rlm_eap_edhoc: rotation-key pool enabled (%d keys)", n);
+		}
 	}
 
 	/* Classical methods 0-3 credentials are optional. */
@@ -473,7 +477,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 2;
 		RDEBUG2("rlm_eap_edhoc: sent message_4 (%zu bytes), handshake keys derived"
-			" (EAD4 keys generated inline so far: %lu)", out_len, edhoc4_pool_misses());
+			" (EAD4 keys generated inline: %lu)", out_len, edhoc4_pool_misses());
 		return 1;
 
 	case 2:	/* expect empty ACK -> EAP-Success + MPPE keys */

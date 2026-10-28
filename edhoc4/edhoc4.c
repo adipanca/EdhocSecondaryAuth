@@ -285,10 +285,10 @@ int edhoc4_xwing_selftest_kat(const uint8_t seed[32], const uint8_t eseed[64],
     return rc;
 }
 
-/* ---- rotation-key pool: EAD3/EAD4 key pairs generated off the handshake ----
- * The next one-time key pair does not depend on the session, so it can be
- * generated before the handshake that announces it. Taken keys are wiped
- * from the pool; an empty pool falls back to generating inline. */
+/* ---- optional rotation-key pool (off unless filled or started) ----
+ * The next one-time key pair does not depend on the session, so a deployment
+ * may generate it before the handshake that announces it. Taken keys are
+ * wiped from the pool; an empty pool (the default) generates inline. */
 typedef struct {
     uint8_t pk[E4_XWING_PK];
     uint8_t sk[E4_XWING_SK];

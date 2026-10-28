@@ -463,8 +463,11 @@ void NasSm::commitEdhocOnSuccess(const std::optional<nas::IEEapMessage> &eap)
         m_logger->err("EAP-EDHOC: failed to persist rotated keys to %s", m_edhocRecPath.c_str());
     else
         m_logger->info("EAP-EDHOC: EAP-Success, one-time keys rotated and saved");
-    // generate the key pair the next session announces in EAD3, outside it
-    edhoc4_pool_fill(1);
+    // opt-in: generate the key pair the next session announces in EAD3 now,
+    // outside it (default: generated while building message_3)
+    const char *pool = std::getenv("EDHOC4_ROTATION_POOL");
+    if (pool && std::atoi(pool) > 0)
+        edhoc4_pool_fill(1);
 }
 
 void NasSm::receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg)

@@ -181,13 +181,14 @@ int edhoc4_rec_erase_prev(const char *path);
 /* lost message_4: copy prev over the active slot with a higher seq, flush */
 int edhoc4_rec_promote_prev(const char *path);
 
-/* ---- rotation-key pool ----
- * The EAD3/EAD4 key pair (next session's one-time X-Wing key) does not
- * depend on the session, so it is taken from a process-wide pool filled
- * outside the handshake; an empty pool falls back to inline generation.
+/* ---- rotation-key pool (optional, off by default) ----
+ * By default the EAD3/EAD4 key pair (next session's one-time X-Wing key) is
+ * generated inside the handshake. It does not depend on the session, so a
+ * deployment may precompute it: the handshake takes a key from this
+ * process-wide pool when one is there and generates one inline otherwise.
  * edhoc4_pool_fill(n): top the pool up to n keys now (UE: after its commit).
  * edhoc4_pool_start(n): keep n keys ready with a refill thread, started on
- * the first take (DN-AAA). edhoc4_pool_misses(): inline fallbacks so far. */
+ * the first take (DN-AAA). edhoc4_pool_misses(): keys generated inline. */
 #define E4_POOL_MAX 16
 int edhoc4_pool_fill(int n);
 int edhoc4_pool_start(int n);

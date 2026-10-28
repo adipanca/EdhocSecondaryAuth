@@ -6,8 +6,9 @@
 #   before                 edhoc4 core of git ref $BEFORE (default f65dfbe):
 #                          non-standard SHA-256 combiner, decapsulation
 #                          recomputes pk_X, rotation key generated inline
-#   inline_rotation_keygen current core with --no-pool
-#   precomputed_rotation   current core, next key pair made between handshakes
+#   inline_rotation_keygen current core, rotation key made in the handshake
+#                          (the default and the main figure)
+#   precomputed_rotation   current core with --pool (optional precompute)
 #
 #   benchmark/m4_inproc_compare.sh [rounds] [iters]
 #
@@ -33,7 +34,7 @@ cc -O2 -DNO_POOL_API -I"$TMP" -o "$TMP/m4_before" "$HERE/m4_inproc_bench.c" "$TM
 rm -f "$OUT"
 for r in $(seq 1 "$ROUNDS"); do
   "$TMP/m4_before" --iters "$ITERS" --csv "$OUT" --label before
-  "$HERE/m4_inproc_bench" --iters "$ITERS" --no-pool --csv "$OUT" --label inline_rotation_keygen
-  "$HERE/m4_inproc_bench" --iters "$ITERS" --csv "$OUT" --label precomputed_rotation
+  "$HERE/m4_inproc_bench" --iters "$ITERS" --csv "$OUT" --label inline_rotation_keygen
+  "$HERE/m4_inproc_bench" --iters "$ITERS" --pool --csv "$OUT" --label precomputed_rotation
 done
 echo "wrote $OUT"

@@ -3,12 +3,12 @@
  * (no RADIUS transport, no key storage): wall-clock time of each party's
  * message processing over N handshakes, with key rotation after each one.
  *
- *   m4_inproc_bench [--iters N] [--no-pool] [--csv F --label L]
+ *   m4_inproc_bench [--iters N] [--pool] [--csv F --label L]
  *
- * By default the next one-time key pair (EAD3/EAD4) is generated between
- * handshakes with edhoc4_pool_fill(), as the live UE and DN-AAA do; with
- * --no-pool it is generated inside the handshake. Build with -DNO_POOL_API
- * to link against an edhoc4 core that predates the pool (always inline).
+ * By default the next one-time key pair (EAD3/EAD4) is generated inside the
+ * handshake, as the live UE and DN-AAA do; with --pool it is generated
+ * between handshakes with edhoc4_pool_fill() (optional precompute). Build
+ * with -DNO_POOL_API to link against an edhoc4 core without the pool.
  */
 #define _POSIX_C_SOURCE 199309L
 #include "edhoc4.h"
@@ -45,11 +45,11 @@ static int cmp_d(const void *a, const void *b)
 
 int main(int argc, char **argv)
 {
-    int iters = 2000, pool = 1;
+    int iters = 2000, pool = 0;
     const char *csv = NULL, *label = "m4";
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--iters") && i + 1 < argc) iters = atoi(argv[++i]);
-        else if (!strcmp(argv[i], "--no-pool")) pool = 0;
+        else if (!strcmp(argv[i], "--pool")) pool = 1;
         else if (!strcmp(argv[i], "--csv") && i + 1 < argc) csv = argv[++i];
         else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
