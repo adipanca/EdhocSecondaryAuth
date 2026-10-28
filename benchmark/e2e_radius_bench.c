@@ -22,7 +22,8 @@
  * <ue-dir>/ue.rec. The rotated keys are committed once EAP-Success
  * (Access-Accept) arrives: one write to the inactive slot and one
  * fdatasync, timed separately as ue_commit_ms. duration_ms stops at
- * EAP-Success, as for EAP-TLS. If message_4 or EAP-Success is lost the UE
+ * EAP-Success, as for EAP-TLS. The key pair a run announces in EAD3 is
+ * generated before its clock starts (edhoc4_pool_fill), outside duration_ms. If message_4 or EAP-Success is lost the UE
  * does not commit; the DN-AAA grace key (prev slot) resynchronises the next
  * run.
  * The DN-AAA record is selected by g_identity, which must match
@@ -90,6 +91,7 @@ static const char *g_uedir    = NULL;   /* method 4 UE files, default g_creddir 
 static const char *g_identity = "edhoc-ue";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
+static int         g_pool     = 1;      /* --no-pool: generate the EAD3 key in the handshake */
 static int         g_max_retx = 6;      /* EAP-style retransmit cap (per exchange) */
 static double      g_rto_ms   = 40.0;   /* retransmit back-off, matches lossy_bench RTO */
 
@@ -491,6 +493,9 @@ static int run_handshake(int method, result_t *r)
     e.classical = (method <= 3);
     memset(r, 0, sizeof(*r));
 
+    /* the EAD3 key pair of this run is generated before the clock starts
+     * (a run that failed after message_3 has already used the previous one) */
+    if (!e.classical && g_pool) edhoc4_pool_fill(1);
     if (load_creds(&e) != 0) return -1;
 
     /* UDP socket connected to the RADIUS server, 2s recv timeout */
@@ -640,10 +645,11 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--csv") && i + 1 < argc) csv = argv[++i];
         else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
         else if (!strcmp(argv[i], "-v")) g_verbose = 1;
+        else if (!strcmp(argv[i], "--no-pool")) g_pool = 0;   /* EAD3 key inline */
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
     }
     if (method < 0 || method > 4) {
-        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L]\n", argv[0]);
+        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L] [--no-pool]\n", argv[0]);
         return 2;
     }
 
@@ -703,6 +709,7 @@ int main(int argc, char **argv)
 
     printf("== method %d (%s): %d/%d PASS", method, method_name(method), pass, iters);
     if (pass) printf("  mean=%.3f ms best=%.3f worst=%.3f", sum / pass, best, worst);
+    if (method == 4) printf("  ead3_keys_inline=%lu", edhoc4_pool_misses());
     printf(" ==\n");
 
     if (cf) fclose(cf);

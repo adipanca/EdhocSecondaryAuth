@@ -65,7 +65,10 @@ def section_breakdown(rd):
              "(initiator = UE, responder = DN-AAA). Untuk EAP-TLS (method "
              "5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA "
              "pada sertifikat peer (rantai root CA -> end-entity, tanpa "
-             "intermediate). EDHOC (method 0-4) tidak memakai sertifikat.\n",
+             "intermediate). EDHOC (method 0-4) tidak memakai sertifikat. "
+             "Method 4: Keygen = 1 (X25519 ephemeral di dalam encapsulation "
+             "X-Wing); pasangan kunci rotasi untuk EAD3/EAD4 dibuat di luar "
+             "handshake (pool edhoc4) sehingga tidak dihitung.\n",
              md_table(rows,
                       ["method", "role", "operation", "primitive",
                        "op_count", "compute_ns"],

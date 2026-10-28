@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-27T22:36:46._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-28T16:05:32._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -22,33 +22,33 @@ Method matrix:
 
 ## 1c. Handshake secondary authentication P2P (end-to-end EAP-over-RADIUS)
 
-Jalur live EAP-over-RADIUS (harness UE initiator -> FreeRADIUS `rlm_eap_edhoc` untuk method 0..4, `rlm_eap_tls` untuk method 5 dan 6). 100 iterasi per method, tanpa loss. Method 5 dan 6 diukur berurutan (lihat catatan metodologi di atas), tetapi keduanya live.
+Jalur live EAP-over-RADIUS (harness UE initiator -> FreeRADIUS `rlm_eap_edhoc` untuk method 0..4, `rlm_eap_tls` untuk method 5 dan 6). 200 iterasi per method, tanpa loss (gabungan semua run di `e2e-handshake.csv`, kolom `label`; tiap run didahului 20 handshake pemanasan yang dibuang). Method 5 dan 6 diukur berurutan (lihat catatan metodologi di atas), tetapi keduanya live.
 
 Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analysis.md` bagian 1c (`duration_ms` menggantikan `duration_sec`; nilai adalah durasi pertukaran EAP-EDHOC saja, bukan seluruh registrasi 5G):
 
 | Method | timestamp | iteration | status | duration_ms | pdu_success_count |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 2026-10-27T22:35:44+0900 | 1 | PASS | 1.864 | 1 |
-| 1 | 2026-10-27T22:35:44+0900 | 1 | PASS | 1.626 | 1 |
-| 2 | 2026-10-27T22:35:44+0900 | 1 | PASS | 1.674 | 1 |
-| 3 | 2026-10-27T22:35:44+0900 | 1 | PASS | 1.753 | 1 |
-| 4 | 2026-10-27T22:35:44+0900 | 1 | PASS | 6.459 | 1 |
-| 5 | 2026-10-27T22:35:45+0900 | 1 | PASS | 3.642 | 1 |
-| 6 | 2026-10-27T22:35:52+0900 | 1 | PASS | 9.237 | 1 |
+| 0 | 2026-10-28T15:56:34+0900 | 1 | PASS | 1.907 | 1 |
+| 1 | 2026-10-28T15:56:34+0900 | 1 | PASS | 1.921 | 1 |
+| 2 | 2026-10-28T15:56:34+0900 | 1 | PASS | 1.742 | 1 |
+| 3 | 2026-10-28T15:56:34+0900 | 1 | PASS | 2.006 | 1 |
+| 4 | 2026-10-28T15:56:35+0900 | 1 | PASS | 7.275 | 1 |
+| 5 | 2026-10-28T15:56:36+0900 | 1 | PASS | 3.203 | 1 |
+| 6 | 2026-10-28T15:56:42+0900 | 1 | PASS | 9.849 | 1 |
 
 ### Ringkasan statistik handshake end-to-end per method
 
 | Method | Profil | Iterasi | Sukses % | Mean (ms) | Median (ms) | p95 (ms) | Min (ms) | Max (ms) | RADIUS round-trips | EAP round-trips |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 100 | 100.0 | 1.000 | 0.976 | 1.276 | 0.758 | 1.864 | 3 | 3 |
-| 1 | SIG/STAT | 100 | 100.0 | 1.016 | 0.958 | 1.465 | 0.840 | 2.030 | 3 | 3 |
-| 2 | STAT/SIG | 100 | 100.0 | 0.981 | 0.953 | 1.146 | 0.835 | 1.674 | 3 | 3 |
-| 3 | STAT/STAT | 100 | 100.0 | 1.158 | 1.099 | 1.462 | 0.881 | 1.808 | 3 | 3 |
-| 4 | SIGMA-XWING-PQC | 100 | 100.0 | 5.570 | 5.704 | 6.863 | 3.973 | 7.483 | 14 | 14 |
-| 5 | EAP-TLS-Classic | 100 | 100.0 | 3.147 | 3.132 | 3.467 | 2.816 | 3.930 | 6 | 6 |
-| 6 | EAP-TLS-Hybrid-PQC | 100 | 100.0 | 9.319 | 9.306 | 10.449 | 7.606 | 12.395 | 28 | 28 |
+| 0 | SIG/SIG | 200 | 100.0 | 1.079 | 1.006 | 1.520 | 0.839 | 2.632 | 3 | 3 |
+| 1 | SIG/STAT | 200 | 100.0 | 1.142 | 0.991 | 1.706 | 0.811 | 9.779 | 3 | 3 |
+| 2 | STAT/SIG | 200 | 100.0 | 1.126 | 1.038 | 1.634 | 0.825 | 3.003 | 3 | 3 |
+| 3 | STAT/STAT | 200 | 100.0 | 1.152 | 0.972 | 1.800 | 0.633 | 11.094 | 3 | 3 |
+| 4 | SIGMA-XWING-PQC | 200 | 100.0 | 6.116 | 5.752 | 7.728 | 4.761 | 20.881 | 14 | 14 |
+| 5 | EAP-TLS-Classic | 200 | 100.0 | 3.289 | 2.968 | 5.242 | 2.458 | 16.257 | 6 | 6 |
+| 6 | EAP-TLS-Hybrid-PQC | 200 | 100.0 | 10.321 | 9.742 | 15.708 | 6.478 | 24.575 | 28 | 28 |
 
-- Handshake end-to-end tercepat: **method 2** (STAT/SIG).
+- Handshake end-to-end tercepat: **method 0** (SIG/SIG).
 - Handshake end-to-end terlambat: **method 6** (EAP-TLS-Hybrid-PQC), karena fragmentasi EAP membutuhkan 28 round-trip RADIUS dibanding 3 untuk method klasik.
 
 ### Pembagian beban initiator vs responder (live, wall-clock nyata)
@@ -57,20 +57,20 @@ Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang dihabi
 
 | Method | Profil | Initiator mean (ms) | Responder mean (ms) | Initiator % | Responder % | Total mean (ms) |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | SIG/SIG | 0.136 | 0.864 | 13.6% | 86.4% | 1.000 |
-| 1 | SIG/STAT | 0.120 | 0.896 | 11.8% | 88.2% | 1.016 |
-| 2 | STAT/SIG | 0.136 | 0.846 | 13.8% | 86.2% | 0.981 |
-| 3 | STAT/STAT | 0.126 | 1.032 | 10.8% | 89.2% | 1.158 |
-| 4 | SIGMA-XWING-PQC | 0.649 | 4.921 | 11.6% | 88.4% | 5.570 |
-| 5 | EAP-TLS-Classic | 0.695 | 2.452 | 22.1% | 77.9% | 3.147 |
-| 6 | EAP-TLS-Hybrid-PQC | 0.809 | 8.510 | 8.7% | 91.3% | 9.319 |
+| 0 | SIG/SIG | 0.134 | 0.944 | 12.5% | 87.5% | 1.079 |
+| 1 | SIG/STAT | 0.122 | 1.020 | 10.7% | 89.3% | 1.142 |
+| 2 | STAT/SIG | 0.155 | 0.970 | 13.8% | 86.2% | 1.126 |
+| 3 | STAT/STAT | 0.137 | 1.015 | 11.9% | 88.1% | 1.152 |
+| 4 | SIGMA-XWING-PQC | 0.617 | 5.499 | 10.1% | 89.9% | 6.116 |
+| 5 | EAP-TLS-Classic | 0.616 | 2.674 | 18.7% | 81.3% | 3.289 |
+| 6 | EAP-TLS-Hybrid-PQC | 0.817 | 9.504 | 7.9% | 92.1% | 10.321 |
 
 - Di semua method, beban **responder** (AAA/FreeRADIUS) mendominasi total waktu handshake — wajar, karena responder-lah yang benar-benar memproses paket RADIUS (parsing, dispatch modul, verifikasi kripto) dan initiator cuma menunggu selama itu; porsi initiator yang genuinely CPU-bound (encode paket + panggilan engine lokal) jauh lebih kecil dari total.
 - Proporsi responder tertinggi: **method 6** (EAP-TLS-Hybrid-PQC).
 
 ### Uji stabilitas statistik method 0-3 (N=10000/method, bootstrap CI)
 
-Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 (beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah antar rerun benchmark ini.
+Sweep utama di atas cuma 100-200 iterasi/method — cukup untuk method 4-6 (beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah antar rerun benchmark ini.
 
 > **Bug pengukuran ditemukan dan diperbaiki selama investigasi ini:** percobaan pertama (`radiusd -X`, mode debug penuh) menunjukkan 14-63 outlier ekstrem (~2000ms) per method dari 5000 sampel. Root cause: logging `-X` yang sangat verbose (setiap atribut/cabang policy dicetak per request) membuat `radiusd` sesekali tertinggal memproses di bawah beban tinggi, menyebabkan delay paket UDP nyata — yang lalu diperbesar jadi stall ~2 detik oleh socket timeout harness (`SO_RCVTIMEO=2s`). Dikonfirmasi lewat A/B test: sweep identik dengan `radiusd -f` (foreground tanpa debug, lihat `switch_tls_config.sh`) menghasilkan **nol** outlier semacam itu dari 20000 sampel gabungan (maksimum ~23ms). Seluruh data live di dokumen ini (termasuk sweep utama 100/720-iterasi di atas) sekarang dikumpulkan dengan `radiusd -f`. Efek order kedua yang lebih kecil (median bergeser ±20µs dan sebagian urutan terbalik antar rerun dengan urutan method dibalik) masih ada meski `-X` sudah dimatikan — untuk mengontrolnya, data di bawah menggabungkan **dua run 5000 iterasi/method dengan urutan berlawanan** (0,1,2,3 lalu 3,2,1,0), sehingga tiap method dapat eksposur seimbang terhadap efek posisi "jalan duluan" vs "belakangan" — N=10000/method setelah digabung.
 
@@ -89,16 +89,39 @@ Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 (beda RAD
 
 ### Ablation biaya penyimpanan kunci method 4 (durable vs tmpfs)
 
-Run yang sama dengan direktori kunci (`/usr/local/etc/edhoc`: `edhoc_db/` DN-AAA dan `ue/` UE) di disk VM (A, durable) dan di tmpfs (B), tempat `fsync`/`fdatasync` praktis gratis. Selisih A - B adalah biaya penyimpanan yang terukur. Sumber B: `e2e-handshake-tmpfs.csv`, `e2e-lossy-tmpfs.csv`.
+`benchmark/storage_ablation.sh`: direktori kunci (`/usr/local/etc/edhoc`: `edhoc_db/` DN-AAA dan `ue/` UE) di disk VM (durable) dan di tmpfs, tempat `fdatasync` praktis gratis, dalam ronde bergantian (record di-provision ulang dan radiusd di-restart tiap ronde, 20 handshake pemanasan dibuang). Selisih median durable - tmpfs adalah biaya penyimpanan yang terukur; bootstrap 95% CI (4000 resample, seed 1).
 
-| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | Initiator mean (ms) | Responder mean (ms) | UE commit mean (ms, di luar handshake) |
+| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | Responder mean (ms) | UE commit mean (ms, di luar handshake) |
+| --- | --- | --- | --- | --- | --- | --- |
+| durable | 600 | 6.480 | 5.789 | 10.040 | 5.810 | 0.716 |
+| tmpfs | 600 | 5.866 | 5.107 | 8.930 | 5.217 | 0.079 |
+
+- Biaya penyimpanan (selisih median durable - tmpfs): **0.682 ms**, 95% CI [0.559, 0.774] ms.
+- Penyimpanan: record dua-slot praalokasi (`rec.bin` DN-AAA, `ue.rec` UE). Flush per handshake (`storage-strace.txt`, `strace -c -w`, waktu wall-clock): DN-AAA 1 `fdatasync` (slot non-aktif ditulis sebelum Message4, write-ahead; penghapusan grace key lama ikut flush yang sama); UE 1 `fdatasync` setelah EAP-Success, di luar `duration_ms` (kolom `ue_commit_ms`). Satu `fdatasync` di disk virtual VM ini memakan sekitar 0.7-1 ms wall-clock, jadi biaya penyimpanan hampir seluruhnya berasal dari flush DN-AAA tersebut. (`strace -c` tanpa `-w` melaporkan waktu CPU sistem, bukan latensi, dan tidak boleh dipakai sebagai biaya.)
+
+### Komputasi method 4 in-process: sebelum vs sesudah (X-Wing standar, kunci rotasi precompute)
+
+`benchmark/m4_inproc_compare.sh`: handshake method 4 tanpa transport dan tanpa penyimpanan, waktu pemrosesan pesan per pihak, beberapa ronde diselang-seling. `before` = core edhoc4 sebelum perubahan (combiner SHA-256 non-standar, decapsulation menghitung ulang pk_X, kunci rotasi dibuat di dalam handshake); `inline_rotation_keygen` = core baru (X-Wing sesuai draft-connolly-cfrg-xwing-kem-09) dengan kunci rotasi tetap dibuat di dalam handshake; `precomputed_rotation` = core baru, kunci rotasi dibuat di luar handshake. Nilai = rata-rata dari mean/median tiap ronde.
+
+| Varian | Ronde | N/ronde | Initiator mean (us) | Initiator median (us) | Responder mean (us) | Responder median (us) | Total mean (us) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A durable (disk VM) | 100 | 5.570 | 5.704 | 6.863 | 0.649 | 4.921 | 0.573 |
-| B tmpfs | 100 | 8.465 | 5.614 | 28.923 | 0.830 | 7.635 | 0.091 |
-| **A - B (biaya penyimpanan)** | | **-2.895** | **0.090** | -22.059 | -0.182 | -2.714 | 0.482 |
+| before | 5 | 2000 | 585.1 | 531.9 | 581.5 | 532.2 | 1166.7 |
+| inline_rotation_keygen | 5 | 2000 | 561.4 | 510.3 | 557.2 | 507.5 | 1118.6 |
+| precomputed_rotation | 5 | 2000 | 499.5 | 450.0 | 499.7 | 451.0 | 999.2 |
 
-- Mean/p95 B lebih tinggi dari A karena outlier di run B (bukan biaya penyimpanan negatif); bandingkan median. Selisih median berada di dalam noise run-ke-run VM.
-- Penyimpanan: record dua-slot praalokasi (`rec.bin` DN-AAA, `ue.rec` UE). Flush per handshake (`strace -c -f -e trace=fsync,fdatasync`, 20 handshake): DN-AAA 1 `fdatasync` (slot non-aktif ditulis sebelum Message4, write-ahead; penghapusan grace key lama ikut flush yang sama); UE 1 `fdatasync` setelah EAP-Success, di luar `duration_ms` (kolom `ue_commit_ms`). Jumlah panggilan sama di tmpfs; hanya biayanya yang hilang.
+- Total komputasi turun 167.5 us (14.4%): 48.0 us dari perubahan X-Wing (terutama decapsulation tanpa hitung ulang pk_X), 119.5 us dari kunci rotasi yang dibuat di luar handshake.
+- Angka in-process lebih besar dari model primitif (`handshake-compute.csv`) karena mencakup HKDF, AEAD, hash transcript, dan serialisasi.
+
+### Ablation live: kunci rotasi precompute (pool) vs dibuat di dalam handshake
+
+`benchmark/pool_ablation.sh`: method 4 loss-free, ronde bergantian `pool_on` / `pool_off` (UE dan DN-AAA sama-sama), radiusd di-restart tiap ronde, 20 handshake pemanasan dibuang. Selisih median dengan bootstrap 95% CI (4000 resample, seed 1).
+
+| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) |
+| --- | --- | --- | --- | --- |
+| pool_on | 800 | 7.447 | 6.016 | 14.717 |
+| pool_off | 800 | 7.453 | 6.139 | 13.674 |
+
+- Selisih median (off - on): **0.123 ms**, 95% CI [-0.027, 0.222] ms. Biaya yang dipindah keluar handshake kira-kira dua kali X-Wing KeyGen (UE dan DN-AAA); di VM ini besarnya setara dengan noise run-ke-run.
 
 > Bagian 1a dan 1b berikut adalah pengukuran primitif/komputasi yang **identik** dengan `analysis.md` (independen terhadap transport), disertakan agar kedua dokumen memiliki kolom yang sama persis.
 
@@ -128,7 +151,7 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
-Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, responder = DN-AAA).
+Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, responder = DN-AAA). Untuk EAP-TLS (method 5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA pada sertifikat peer (rantai root CA -> end-entity, tanpa intermediate). EDHOC (method 0-4) tidak memakai sertifikat. Method 4: Keygen = 1 (X25519 ephemeral di dalam encapsulation X-Wing); pasangan kunci rotasi untuk EAD3/EAD4 dibuat di luar handshake (pool edhoc4) sehingga tidak dihitung.
 
 | Method | Role | Operation | Primitive | Count | Compute (ns) |
 | --- | --- | --- | --- | --- | --- |
@@ -180,13 +203,13 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 3 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | responder | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | responder | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 4 | initiator | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
+| 4 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
 | 4 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
 | 4 | initiator | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 4 | initiator | Decaps | ML-KEM-768 | 1 | 41870.0 |
 | 4 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
 | 4 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
-| 4 | responder | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
+| 4 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
 | 4 | responder | ScalarMult | X25519 | 2 | 50327.3 |
 | 4 | responder | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 4 | responder | Decaps | ML-KEM-768 | 1 | 41870.0 |
@@ -197,25 +220,25 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 5 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
-| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 5 | initiator | Verify | Ed25519/ML-DSA-44 | 2 | 58877.6 |
 | 5 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
 | 5 | responder | ScalarMult | X25519 | 1 | 25163.6 |
 | 5 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 5 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
-| 5 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
+| 5 | responder | Verify | Ed25519/ML-DSA-44 | 2 | 58877.6 |
 | 6 | initiator | Keygen | X25519/ML-KEM-768 | 2 | 57975.5 |
 | 6 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
 | 6 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 6 | initiator | Decaps | ML-KEM-768 | 1 | 41870.0 |
 | 6 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
-| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
+| 6 | initiator | Verify | Ed25519/ML-DSA-44 | 2 | 119192.2 |
 | 6 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
 | 6 | responder | ScalarMult | X25519 | 1 | 25163.6 |
 | 6 | responder | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 6 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 6 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
-| 6 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
+| 6 | responder | Verify | Ed25519/ML-DSA-44 | 2 | 119192.2 |
 
 ### Total komputasi handshake per method
 
@@ -225,12 +248,12 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 1 | SIG-Ed25519 / MAC-X25519 | 61.769 | 105.301 | 167.070 |
 | 2 | MAC-X25519 / SIG-Ed25519 | 105.301 | 61.769 | 167.070 |
 | 3 | MAC/MAC static-DH X25519 | 75.862 | 75.862 | 151.725 |
-| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 492.320 | 492.320 | 984.640 |
-| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 91.207 | 91.207 | 182.415 |
-| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 407.846 | 367.311 | 775.156 |
+| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 434.344 | 434.344 | 868.689 |
+| 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 120.646 | 120.646 | 241.292 |
+| 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 467.442 | 426.907 | 894.349 |
 
 - Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 151.725 us).
-- Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 984.640 us).
+- Termahal secara komputasi: **method 6** (EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert), 894.349 us).
 
 > **Peringatan baca:** urutan termurah/termahal di atas HANYA waktu komputasi kripto murni (µs) — TIDAK termasuk round-trip jaringan RADIUS/fragmentasi EAP. Urutan itu BUKAN urutan kecepatan handshake end-to-end nyata. Untuk urutan yang sebenarnya dialami pengguna (termasuk RTT), lihat `analisys2.md` section 1c — di sana method 6 (EAP-TLS Hybrid PQC) adalah yang paling lambat secara live, bukan method 4, justru karena jumlah round-trip fragmentasi EAP-nya yang jauh lebih banyak, sesuatu yang tidak tertangkap oleh tabel compute murni ini.
 
@@ -240,48 +263,48 @@ Handshake EAP-EDHOC/EAP-TLS nyata melalui RADIUS dengan retransmisi gaya EAP (RT
 
 | Method | Loss % | Success % | Mean (ms) | p95 (ms) | Mean retx |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 0.0 | 100.0 | 2.064 | 6.316 | 0.000 |
-| 0 | 1.0 | 100.0 | 5.356 | 41.855 | 0.067 |
-| 0 | 5.0 | 100.0 | 12.713 | 55.341 | 0.258 |
-| 0 | 10.0 | 100.0 | 34.913 | 122.702 | 0.783 |
-| 0 | 20.0 | 99.2 | 70.557 | 209.538 | 1.650 |
-| 0 | 30.0 | 98.3 | 127.186 | 327.815 | 2.900 |
-| 1 | 0.0 | 100.0 | 2.096 | 7.918 | 0.000 |
-| 1 | 1.0 | 100.0 | 5.128 | 43.300 | 0.083 |
-| 1 | 5.0 | 100.0 | 16.290 | 56.331 | 0.308 |
-| 1 | 10.0 | 100.0 | 28.141 | 97.092 | 0.608 |
-| 1 | 20.0 | 100.0 | 83.340 | 266.673 | 1.875 |
-| 1 | 30.0 | 96.7 | 117.627 | 292.633 | 2.583 |
-| 2 | 0.0 | 100.0 | 0.930 | 1.139 | 0.000 |
-| 2 | 1.0 | 100.0 | 4.592 | 43.800 | 0.075 |
-| 2 | 5.0 | 100.0 | 13.859 | 51.091 | 0.292 |
-| 2 | 10.0 | 100.0 | 32.440 | 91.760 | 0.717 |
-| 2 | 20.0 | 100.0 | 74.431 | 178.439 | 1.700 |
-| 2 | 30.0 | 95.8 | 131.816 | 301.342 | 2.892 |
-| 3 | 0.0 | 100.0 | 0.979 | 1.347 | 0.000 |
-| 3 | 1.0 | 100.0 | 3.014 | 1.731 | 0.042 |
-| 3 | 5.0 | 100.0 | 11.655 | 46.238 | 0.242 |
-| 3 | 10.0 | 100.0 | 39.300 | 143.073 | 0.850 |
-| 3 | 20.0 | 100.0 | 84.974 | 207.739 | 1.950 |
-| 3 | 30.0 | 99.2 | 126.992 | 343.712 | 2.842 |
-| 4 | 0.0 | 100.0 | 5.930 | 7.532 | 0.000 |
-| 4 | 1.0 | 100.0 | 22.409 | 91.479 | 0.308 |
-| 4 | 5.0 | 100.0 | 72.580 | 179.805 | 1.417 |
-| 4 | 10.0 | 100.0 | 152.067 | 292.188 | 3.408 |
-| 4 | 20.0 | 99.2 | 307.062 | 583.033 | 7.042 |
-| 4 | 30.0 | 88.3 | 575.309 | 918.962 | 11.500 |
-| 5 | 0.0 | 100.0 | 2.949 | 3.370 | 0.000 |
-| 5 | 1.0 | 100.0 | 8.591 | 48.795 | 0.117 |
-| 5 | 5.0 | 100.0 | 34.487 | 138.507 | 0.650 |
-| 5 | 10.0 | 100.0 | 60.281 | 154.720 | 1.267 |
-| 5 | 20.0 | 99.2 | 152.724 | 356.405 | 3.442 |
-| 5 | 30.0 | 99.2 | 264.651 | 486.733 | 5.775 |
-| 6 | 0.0 | 100.0 | 8.712 | 12.948 | 0.000 |
-| 6 | 1.0 | 100.0 | 34.975 | 108.068 | 0.483 |
-| 6 | 5.0 | 100.0 | 152.428 | 305.216 | 3.267 |
-| 6 | 10.0 | 100.0 | 286.959 | 500.314 | 6.300 |
-| 6 | 20.0 | 97.5 | 678.298 | 1087.493 | 15.208 |
-| 6 | 30.0 | 85.0 | 1326.051 | 2000.269 | 24.058 |
+| 0 | 0.0 | 100.0 | 1.015 | 1.498 | 0.000 |
+| 0 | 1.0 | 100.0 | 4.864 | 42.176 | 0.067 |
+| 0 | 5.0 | 100.0 | 16.674 | 50.274 | 0.358 |
+| 0 | 10.0 | 100.0 | 38.990 | 139.513 | 0.733 |
+| 0 | 20.0 | 100.0 | 74.231 | 179.278 | 1.642 |
+| 0 | 30.0 | 97.5 | 129.589 | 296.877 | 2.875 |
+| 1 | 0.0 | 100.0 | 0.813 | 0.954 | 0.000 |
+| 1 | 1.0 | 100.0 | 3.434 | 3.651 | 0.050 |
+| 1 | 5.0 | 100.0 | 15.778 | 62.662 | 0.325 |
+| 1 | 10.0 | 100.0 | 31.599 | 125.437 | 0.675 |
+| 1 | 20.0 | 99.2 | 80.334 | 239.707 | 1.775 |
+| 1 | 30.0 | 96.7 | 130.486 | 275.510 | 2.867 |
+| 2 | 0.0 | 100.0 | 0.839 | 0.985 | 0.000 |
+| 2 | 1.0 | 100.0 | 2.491 | 2.500 | 0.033 |
+| 2 | 5.0 | 100.0 | 15.193 | 85.892 | 0.317 |
+| 2 | 10.0 | 100.0 | 28.414 | 94.487 | 0.592 |
+| 2 | 20.0 | 100.0 | 77.333 | 221.934 | 1.750 |
+| 2 | 30.0 | 99.2 | 127.019 | 293.094 | 2.867 |
+| 3 | 0.0 | 100.0 | 0.829 | 1.024 | 0.000 |
+| 3 | 1.0 | 100.0 | 1.990 | 1.570 | 0.025 |
+| 3 | 5.0 | 100.0 | 17.498 | 84.007 | 0.358 |
+| 3 | 10.0 | 100.0 | 31.146 | 124.612 | 0.650 |
+| 3 | 20.0 | 100.0 | 74.337 | 245.222 | 1.667 |
+| 3 | 30.0 | 96.7 | 137.762 | 352.358 | 3.008 |
+| 4 | 0.0 | 100.0 | 5.809 | 6.580 | 0.000 |
+| 4 | 1.0 | 100.0 | 17.706 | 70.331 | 0.225 |
+| 4 | 5.0 | 100.0 | 79.269 | 197.532 | 1.492 |
+| 4 | 10.0 | 100.0 | 159.756 | 307.784 | 3.467 |
+| 4 | 20.0 | 100.0 | 364.048 | 620.561 | 8.333 |
+| 4 | 30.0 | 90.0 | 603.295 | 1024.590 | 12.008 |
+| 5 | 0.0 | 100.0 | 2.865 | 3.246 | 0.000 |
+| 5 | 1.0 | 100.0 | 10.487 | 51.737 | 0.142 |
+| 5 | 5.0 | 100.0 | 45.292 | 181.347 | 0.750 |
+| 5 | 10.0 | 100.0 | 65.844 | 182.318 | 1.358 |
+| 5 | 20.0 | 99.2 | 147.298 | 290.407 | 3.092 |
+| 5 | 30.0 | 95.8 | 297.397 | 587.025 | 6.150 |
+| 6 | 0.0 | 100.0 | 8.856 | 9.963 | 0.000 |
+| 6 | 1.0 | 100.0 | 50.204 | 160.983 | 0.633 |
+| 6 | 5.0 | 100.0 | 145.564 | 293.662 | 2.900 |
+| 6 | 10.0 | 100.0 | 288.203 | 483.249 | 6.375 |
+| 6 | 20.0 | 96.7 | 710.268 | 1063.597 | 15.625 |
+| 6 | 30.0 | 78.3 | 1178.693 | 1620.361 | 21.317 |
 
 ### Validasi model analitis loss
 
@@ -289,34 +312,34 @@ Model: satu RADIUS round-trip berhasil dengan peluang p = (1 - L)^2 (request dan
 
 | Method | n_RT | Loss % | Sukses terukur % | Wilson 95% CI % | Sukses model % | Retx terukur (sukses) | Retx model | Mean terukur (ms) | Model retx x RTO (ms) | Retx (semua) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 12.7 | 13 | 0.3 |
-| 0 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.8 | 0.7 | 34.9 | 28 | 0.8 |
-| 0 | 3 | 20 | 99.2 | [95.4, 99.9] | 99.8 | 1.7 | 1.7 | 70.6 | 67 | 1.6 |
-| 0 | 3 | 30 | 98.3 | [94.1, 99.5] | 97.3 | 2.9 | 3.1 | 127.2 | 125 | 2.9 |
-| 1 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 16.3 | 13 | 0.3 |
-| 1 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.6 | 0.7 | 28.1 | 28 | 0.6 |
-| 1 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.9 | 1.7 | 83.3 | 67 | 1.9 |
-| 1 | 3 | 30 | 96.7 | [91.7, 98.7] | 97.3 | 2.7 | 3.1 | 117.6 | 125 | 2.6 |
-| 2 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 13.9 | 13 | 0.3 |
-| 2 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 32.4 | 28 | 0.7 |
-| 2 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.7 | 1.7 | 74.4 | 67 | 1.7 |
-| 2 | 3 | 30 | 95.8 | [90.6, 98.2] | 97.3 | 3.0 | 3.1 | 131.8 | 125 | 2.9 |
-| 3 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.2 | 0.3 | 11.7 | 13 | 0.2 |
-| 3 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.8 | 0.7 | 39.3 | 28 | 0.8 |
-| 3 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.9 | 1.7 | 85.0 | 67 | 1.9 |
-| 3 | 3 | 30 | 99.2 | [95.4, 99.9] | 97.3 | 2.9 | 3.1 | 127.0 | 125 | 2.8 |
-| 4 | 14 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 1.4 | 1.5 | 72.6 | 60 | 1.4 |
-| 4 | 14 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 3.4 | 3.3 | 152.1 | 131 | 3.4 |
-| 4 | 14 | 20 | 99.2 | [95.4, 99.9] | 98.9 | 7.1 | 7.9 | 307.1 | 315 | 7.0 |
-| 4 | 14 | 30 | 88.3 | [81.4, 92.9] | 88.1 | 13.0 | 14.6 | 575.3 | 583 | 11.5 |
-| 5 | 6 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.6 | 34.5 | 26 | 0.7 |
-| 5 | 6 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 1.3 | 1.4 | 60.3 | 56 | 1.3 |
-| 5 | 6 | 20 | 99.2 | [95.4, 99.9] | 99.5 | 3.5 | 3.4 | 152.7 | 135 | 3.4 |
-| 5 | 6 | 30 | 99.2 | [95.4, 99.9] | 94.7 | 5.8 | 6.2 | 264.7 | 250 | 5.8 |
-| 6 | 28 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 3.3 | 3.0 | 152.4 | 121 | 3.3 |
-| 6 | 28 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 6.3 | 6.6 | 287.0 | 263 | 6.3 |
-| 6 | 28 | 20 | 97.5 | [92.9, 99.1] | 97.8 | 15.6 | 15.7 | 678.3 | 630 | 15.2 |
-| 6 | 28 | 30 | 85.0 | [77.5, 90.3] | 77.7 | 28.3 | 29.1 | 1326.1 | 1166 | 24.1 |
+| 0 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.4 | 0.3 | 16.7 | 13 | 0.4 |
+| 0 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 39.0 | 28 | 0.7 |
+| 0 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.6 | 1.7 | 74.2 | 67 | 1.6 |
+| 0 | 3 | 30 | 97.5 | [92.9, 99.1] | 97.3 | 2.9 | 3.1 | 129.6 | 125 | 2.9 |
+| 1 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 15.8 | 13 | 0.3 |
+| 1 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 31.6 | 28 | 0.7 |
+| 1 | 3 | 20 | 99.2 | [95.4, 99.9] | 99.8 | 1.8 | 1.7 | 80.3 | 67 | 1.8 |
+| 1 | 3 | 30 | 96.7 | [91.7, 98.7] | 97.3 | 3.0 | 3.1 | 130.5 | 125 | 2.9 |
+| 2 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.3 | 0.3 | 15.2 | 13 | 0.3 |
+| 2 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.6 | 0.7 | 28.4 | 28 | 0.6 |
+| 2 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.8 | 1.7 | 77.3 | 67 | 1.8 |
+| 2 | 3 | 30 | 99.2 | [95.4, 99.9] | 97.3 | 2.9 | 3.1 | 127.0 | 125 | 2.9 |
+| 3 | 3 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.4 | 0.3 | 17.5 | 13 | 0.4 |
+| 3 | 3 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 0.7 | 0.7 | 31.1 | 28 | 0.7 |
+| 3 | 3 | 20 | 100.0 | [96.9, 100.0] | 99.8 | 1.7 | 1.7 | 74.3 | 67 | 1.7 |
+| 3 | 3 | 30 | 96.7 | [91.7, 98.7] | 97.3 | 3.1 | 3.1 | 137.8 | 125 | 3.0 |
+| 4 | 14 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 1.5 | 1.5 | 79.3 | 60 | 1.5 |
+| 4 | 14 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 3.5 | 3.3 | 159.8 | 131 | 3.5 |
+| 4 | 14 | 20 | 100.0 | [96.9, 100.0] | 98.9 | 8.3 | 7.9 | 364.0 | 315 | 8.3 |
+| 4 | 14 | 30 | 90.0 | [83.3, 94.2] | 88.1 | 13.3 | 14.6 | 603.3 | 583 | 12.0 |
+| 5 | 6 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 0.8 | 0.6 | 45.3 | 26 | 0.8 |
+| 5 | 6 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 1.4 | 1.4 | 65.8 | 56 | 1.4 |
+| 5 | 6 | 20 | 99.2 | [95.4, 99.9] | 99.5 | 3.1 | 3.4 | 147.3 | 135 | 3.1 |
+| 5 | 6 | 30 | 95.8 | [90.6, 98.2] | 94.7 | 6.4 | 6.2 | 297.4 | 250 | 6.2 |
+| 6 | 28 | 5 | 100.0 | [96.9, 100.0] | 100.0 | 2.9 | 3.0 | 145.6 | 121 | 2.9 |
+| 6 | 28 | 10 | 100.0 | [96.9, 100.0] | 100.0 | 6.4 | 6.6 | 288.2 | 263 | 6.4 |
+| 6 | 28 | 20 | 96.7 | [91.7, 98.7] | 97.8 | 16.2 | 15.7 | 710.3 | 630 | 15.6 |
+| 6 | 28 | 30 | 78.3 | [70.1, 84.8] | 77.7 | 27.2 | 29.1 | 1178.7 | 1166 | 21.3 |
 
 - Model mengabaikan biaya tanpa-loss (T_loopback) dan jitter, sehingga cocok terutama pada loss tinggi, saat retransmisi mendominasi waktu.
 

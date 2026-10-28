@@ -24,7 +24,14 @@
  *      XWING op decomposition:
  *        KeyGen = x25519_keygen + mlkem_keygen
  *        Encaps = x25519_keygen + x25519_dh + mlkem_encaps
- *        Decaps = x25519_dh + mlkem_decaps
+ *        Decaps = x25519_dh + mlkem_decaps (pk_X taken from the own pk)
+ *      The KeyGen of the next one-time key pair (EAD3/EAD4) is precomputed
+ *      outside the handshake (edhoc4 rotation-key pool) and not counted.
+ *
+ * Usage: crypto_bench <outdir> [iters]   measure primitives, write all CSVs
+ *        crypto_bench <outdir> --model   reuse <outdir>/crypto-primitives.csv
+ *                                        and rewrite only the method 0-4
+ *                                        breakdown/compute CSVs
  */
 
 #define _POSIX_C_SOURCE 199309L
@@ -340,12 +347,13 @@ static const method_def_t METHODS[] = {
     { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0,0} },
     { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0,0,0}, {1,2,0,0,0,0,0,0,0} },
     /* Method 4 (revised, no ephemeral X-Wing). Role-symmetric:
-     * Initiator: Encaps(pkB) + Decaps(ctA) + KeyGen(NpkA)
+     * Initiator: Encaps(pkB) + Decaps(ctA)
      *            + ML-DSA sign(sigma_I) + ML-DSA verify(sigma_R).
-     * Responder: Decaps(ctB) + Encaps(pkA) + KeyGen(NpkB)
-     *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I). */
+     * Responder: Decaps(ctB) + Encaps(pkA)
+     *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I).
+     * KeyGen(NpkA) / KeyGen(NpkB) is precomputed off the handshake path. */
     { 4, "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
-                                       {2,2,0,0,1,1,1,1,1}, {2,2,0,0,1,1,1,1,1} },
+                                       {1,2,0,0,0,1,1,1,1}, {1,2,0,0,0,1,1,1,1} },
 };
 static const int N_METHODS = (int)(sizeof(METHODS) / sizeof(METHODS[0]));
 
@@ -391,11 +399,43 @@ static void write_breakdown_rows(FILE *f, int method, const char *profile,
     }
 }
 
+/* --model: load the means of an earlier run instead of measuring */
+static int load_primitives(const char *path)
+{
+    static char names[MAX_OPS][64];
+    char line[512];
+    FILE *f = fopen(path, "r");
+    if (!f) { perror(path); return -1; }
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return -1; }   /* header */
+    while (g_nops < MAX_OPS && fgets(line, sizeof(line), f)) {
+        char *name = strtok(line, ",");
+        strtok(NULL, ",");                                      /* library */
+        strtok(NULL, ",");                                      /* iterations */
+        char *mean = strtok(NULL, ",");
+        if (!name || !mean) continue;
+        snprintf(names[g_nops], sizeof(names[0]), "%s", name);
+        g_ops[g_nops].name = names[g_nops];
+        g_ops[g_nops].mean_ns = atof(mean);
+        g_nops++;
+    }
+    fclose(f);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     const char *outdir = (argc > 1) ? argv[1] : ".";
-    int iters = (argc > 2) ? atoi(argv[2]) : 2000;
+    int model_only = (argc > 2) && strcmp(argv[2], "--model") == 0;
+    int iters = (argc > 2 && !model_only) ? atoi(argv[2]) : 2000;
     if (iters < 200) iters = 200;
+    char path[1024];
+
+    if (model_only) {
+        snprintf(path, sizeof(path), "%s/crypto-primitives.csv", outdir);
+        if (load_primitives(path) != 0) return 1;
+        fprintf(stderr, "[crypto_bench] --model: reusing %s\n", path);
+        goto write_model;
+    }
 
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
 
@@ -460,7 +500,6 @@ int main(int argc, char **argv)
     bench_op("Verify_MLDSA44",    "PQClean",   op_mldsa_verify, &dc, iters);
 
     /* ---- write primitives CSV ---- */
-    char path[1024];
     snprintf(path, sizeof(path), "%s/crypto-primitives.csv", outdir);
     FILE *fp = fopen(path, "w");
     if (!fp) { perror("fopen primitives"); return 1; }
@@ -474,6 +513,7 @@ int main(int argc, char **argv)
     fclose(fp);
     fprintf(stderr, "[crypto_bench] wrote %s\n", path);
 
+write_model:
     /* ---- write breakdown CSV ---- */
     snprintf(path, sizeof(path), "%s/crypto-breakdown.csv", outdir);
     FILE *fb = fopen(path, "w");

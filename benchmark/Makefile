@@ -25,7 +25,7 @@ LDLIBS  += -lsodium -lmbedcrypto -lm
 EDHOC4_DIR := $(ROOT_DIR)/edhoc4
 EDHOC4_LIB := $(EDHOC4_DIR)/libedhoc4.a
 
-BIN := crypto_bench interop_vec e2e_radius_bench eap_tls_bench eap_tls_hybrid_bench
+BIN := crypto_bench interop_vec m4_inproc_bench e2e_radius_bench eap_tls_bench eap_tls_hybrid_bench
 
 # Method 6 (EAP-TLS Hybrid PQC) needs OpenSSL >= 3.2 headers/libs for
 # oqs-provider's TLS1.3 provider-based signature-algorithm support (ML-DSA-44
@@ -62,8 +62,11 @@ interop_vec: interop_vec.c $(MLKEM_LIB) $(PQ_COMMON_OBJ)
 # Not part of `all` PQClean bootstrap chain requirements beyond libedhoc4.a;
 # link convention mirrors how the already-built e2e_radius_bench binary in
 # this tree was produced (-lsodium -lcrypto -lm, -I../edhoc4).
+m4_inproc_bench: m4_inproc_bench.c $(EDHOC4_LIB)
+	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ m4_inproc_bench.c $(EDHOC4_LIB) -lsodium -lmbedcrypto -lm -pthread
+
 e2e_radius_bench: e2e_radius_bench.c $(EDHOC4_LIB)
-	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lmbedcrypto -lcrypto -lm
+	$(CC) $(CFLAGS) -I$(EDHOC4_DIR) -o $@ e2e_radius_bench.c $(EDHOC4_LIB) -lsodium -lmbedcrypto -lcrypto -lm -pthread
 
 eap_tls_bench: eap_tls_bench.c
 	$(CC) $(CFLAGS) -o $@ eap_tls_bench.c -lssl -lcrypto -lm

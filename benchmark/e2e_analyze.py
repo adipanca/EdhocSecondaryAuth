@@ -18,6 +18,7 @@ Output  : benchmark-results/analisys2.md
 """
 import csv
 import os
+import random
 import statistics
 from collections import defaultdict
 from datetime import datetime
@@ -184,8 +185,9 @@ def main():
     n_iter = len(by_m[0]) if by_m else 0
     L.append(f"Jalur live EAP-over-RADIUS (harness UE initiator -> FreeRADIUS `rlm_eap_edhoc` "
              f"untuk method 0..4, `rlm_eap_tls` untuk method 5 dan 6). {n_iter} iterasi per "
-             f"method, tanpa loss. Method 5 dan 6 diukur berurutan (lihat catatan metodologi "
-             f"di atas), tetapi keduanya live.")
+             f"method, tanpa loss (gabungan semua run di `e2e-handshake.csv`, kolom `label`; "
+             f"tiap run didahului 20 handshake pemanasan yang dibuang). Method 5 dan 6 diukur "
+             f"berurutan (lihat catatan metodologi di atas), tetapi keduanya live.")
     L.append("")
     L.append("Baris perwakilan (satu handshake sukses per method), kolom identik dengan "
              "`analysis.md` bagian 1c (`duration_ms` menggantikan `duration_sec`; nilai adalah "
@@ -265,7 +267,7 @@ def main():
         stab_rows = load_rows(stab_path)
         L.append("### Uji stabilitas statistik method 0-3 (N=10000/method, bootstrap CI)")
         L.append("")
-        L.append("Sweep utama di atas cuma 100 iterasi/method — cukup untuk method 4-6 "
+        L.append("Sweep utama di atas cuma 100-200 iterasi/method — cukup untuk method 4-6 "
                  "(beda RADIUS round-trip yang besar, jelas dominan), tapi TIDAK cukup "
                  "untuk membedakan method 0-3 (semua sama-sama 3 round-trip, beda compute "
                  "cuma puluhan µs) secara meyakinkan: urutan mereka terbukti berubah-ubah "
@@ -338,41 +340,117 @@ def main():
         L.append("")
 
     # ---- 1c-4. Storage ablation for method 4: durable disk vs tmpfs ----
-    tmpfs_path = os.path.join(RESULTS, "e2e-handshake-tmpfs.csv")
-    if os.path.exists(tmpfs_path):
+    stor_path = os.path.join(RESULTS, "e2e-storage-ablation.csv")
+    if os.path.exists(stor_path):
         L.append("### Ablation biaya penyimpanan kunci method 4 (durable vs tmpfs)")
         L.append("")
-        L.append("Run yang sama dengan direktori kunci (`/usr/local/etc/edhoc`: `edhoc_db/` DN-AAA "
-                 "dan `ue/` UE) di disk VM (A, durable) dan di tmpfs (B), tempat `fsync`/`fdatasync` "
-                 "praktis gratis. Selisih A - B adalah biaya penyimpanan yang terukur. "
-                 "Sumber B: `e2e-handshake-tmpfs.csv`, `e2e-lossy-tmpfs.csv`.")
+        L.append("`benchmark/storage_ablation.sh`: direktori kunci (`/usr/local/etc/edhoc`: `edhoc_db/` "
+                 "DN-AAA dan `ue/` UE) di disk VM (durable) dan di tmpfs, tempat `fdatasync` praktis "
+                 "gratis, dalam ronde bergantian (record di-provision ulang dan radiusd di-restart tiap "
+                 "ronde, 20 handshake pemanasan dibuang). Selisih median durable - tmpfs adalah biaya "
+                 "penyimpanan yang terukur; bootstrap 95% CI (4000 resample, seed 1).")
         L.append("")
-        L.append("| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | Initiator mean (ms) | Responder mean (ms) | UE commit mean (ms, di luar handshake) |")
-        L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
-        abl = {}
-        for name, rows in [("A durable (disk VM)", by_m.get(4, [])),
-                           ("B tmpfs", [r for r in load_rows(tmpfs_path) if int(r["method"]) == 4])]:
-            ok = [r for r in rows if r["status"] == "PASS"]
+        L.append("| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | Responder mean (ms) | UE commit mean (ms, di luar handshake) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        sr = {}
+        for r in load_rows(stor_path):
+            if r["status"] == "PASS":
+                sr.setdefault(r["label"], []).append(r)
+        for lab in ["durable", "tmpfs"]:
+            ok = sr.get(lab, [])
+            if not ok:
+                continue
             d = [float(r["duration_ms"]) for r in ok]
-            abl[name] = (statistics.mean(d), statistics.median(d), pct(d, 95),
-                         statistics.mean(float(r["initiator_ms"]) for r in ok),
-                         statistics.mean(float(r["responder_ms"]) for r in ok),
-                         statistics.mean(float(r.get("ue_commit_ms") or 0) for r in ok))
-            L.append(f"| {name} | {len(ok)} | " + " | ".join(f"{v:.3f}" for v in abl[name]) + " |")
-        a, b = abl.values()
-        L.append(f"| **A - B (biaya penyimpanan)** | | **{a[0]-b[0]:.3f}** | **{a[1]-b[1]:.3f}** | "
-                 f"{a[2]-b[2]:.3f} | {a[3]-b[3]:.3f} | {a[4]-b[4]:.3f} | {a[5]-b[5]:.3f} |")
-        L.append("")
-        if a[0] - b[0] < 0 or a[2] - b[2] < 0:
-            L.append("- Mean/p95 B lebih tinggi dari A karena outlier di run B (bukan biaya "
-                     "penyimpanan negatif); bandingkan median. Selisih median berada di dalam "
-                     "noise run-ke-run VM.")
+            L.append(f"| {lab} | {len(ok)} | {statistics.mean(d):.3f} | {statistics.median(d):.3f} | "
+                     f"{pct(d, 95):.3f} | {statistics.mean(float(r['responder_ms']) for r in ok):.3f} | "
+                     f"{statistics.mean(float(r.get('ue_commit_ms') or 0) for r in ok):.3f} |")
+        if sr.get("durable") and sr.get("tmpfs"):
+            a_ = [float(r["duration_ms"]) for r in sr["durable"]]
+            b_ = [float(r["duration_ms"]) for r in sr["tmpfs"]]
+            rng = random.Random(1)
+            bs = sorted(statistics.median(rng.choices(a_, k=len(a_))) -
+                        statistics.median(rng.choices(b_, k=len(b_))) for _ in range(4000))
+            L.append("")
+            L.append(f"- Biaya penyimpanan (selisih median durable - tmpfs): "
+                     f"**{statistics.median(a_) - statistics.median(b_):.3f} ms**, 95% CI "
+                     f"[{bs[100]:.3f}, {bs[3899]:.3f}] ms.")
         L.append("- Penyimpanan: record dua-slot praalokasi (`rec.bin` DN-AAA, `ue.rec` UE). "
-                 "Flush per handshake (`strace -c -f -e trace=fsync,fdatasync`, 20 handshake): "
+                 "Flush per handshake (`storage-strace.txt`, `strace -c -w`, waktu wall-clock): "
                  "DN-AAA 1 `fdatasync` (slot non-aktif ditulis sebelum Message4, write-ahead; "
                  "penghapusan grace key lama ikut flush yang sama); UE 1 `fdatasync` setelah "
-                 "EAP-Success, di luar `duration_ms` (kolom `ue_commit_ms`). Jumlah panggilan "
-                 "sama di tmpfs; hanya biayanya yang hilang.")
+                 "EAP-Success, di luar `duration_ms` (kolom `ue_commit_ms`). Satu `fdatasync` di "
+                 "disk virtual VM ini memakan sekitar 0.7-1 ms wall-clock, jadi biaya penyimpanan "
+                 "hampir seluruhnya berasal dari flush DN-AAA tersebut. (`strace -c` tanpa `-w` "
+                 "melaporkan waktu CPU sistem, bukan latensi, dan tidak boleh dipakai sebagai biaya.)")
+        L.append("")
+
+    # ---- 1c-5. Method 4: precomputed rotation key / X-Wing per spec ----
+    inproc_path = os.path.join(RESULTS, "m4-inprocess-compute.csv")
+    pool_path = os.path.join(RESULTS, "e2e-pool-ablation.csv")
+    if os.path.exists(inproc_path):
+        L.append("### Komputasi method 4 in-process: sebelum vs sesudah (X-Wing standar, kunci rotasi precompute)")
+        L.append("")
+        L.append("`benchmark/m4_inproc_compare.sh`: handshake method 4 tanpa transport dan tanpa "
+                 "penyimpanan, waktu pemrosesan pesan per pihak, beberapa ronde diselang-seling. "
+                 "`before` = core edhoc4 sebelum perubahan (combiner SHA-256 non-standar, decapsulation "
+                 "menghitung ulang pk_X, kunci rotasi dibuat di dalam handshake); "
+                 "`inline_rotation_keygen` = core baru (X-Wing sesuai draft-connolly-cfrg-xwing-kem-09) "
+                 "dengan kunci rotasi tetap dibuat di dalam handshake; `precomputed_rotation` = core baru, "
+                 "kunci rotasi dibuat di luar handshake. Nilai = rata-rata dari mean/median tiap ronde.")
+        L.append("")
+        L.append("| Varian | Ronde | N/ronde | Initiator mean (us) | Initiator median (us) | Responder mean (us) | Responder median (us) | Total mean (us) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+        groups = {}
+        for r in load_rows(inproc_path):
+            groups.setdefault(r["label"], []).append(r)
+        cols = ["initiator_mean_us", "initiator_median_us", "responder_mean_us",
+                "responder_median_us", "total_mean_us"]
+        tot = {}
+        for lab in ["before", "inline_rotation_keygen", "precomputed_rotation"]:
+            g = groups.get(lab, [])
+            if not g:
+                continue
+            vals = [statistics.mean(float(r[c]) for r in g) for c in cols]
+            tot[lab] = vals[-1]
+            L.append(f"| {lab} | {len(g)} | {g[0]['iters']} | " + " | ".join(f"{v:.1f}" for v in vals) + " |")
+        L.append("")
+        if "before" in tot and "precomputed_rotation" in tot:
+            L.append(f"- Total komputasi turun {tot['before'] - tot['precomputed_rotation']:.1f} us "
+                     f"({100 * (1 - tot['precomputed_rotation'] / tot['before']):.1f}%): "
+                     f"{tot['before'] - tot.get('inline_rotation_keygen', tot['before']):.1f} us dari "
+                     f"perubahan X-Wing (terutama decapsulation tanpa hitung ulang pk_X), "
+                     f"{tot.get('inline_rotation_keygen', 0) - tot['precomputed_rotation']:.1f} us dari kunci "
+                     "rotasi yang dibuat di luar handshake.")
+            L.append("- Angka in-process lebih besar dari model primitif (`handshake-compute.csv`) karena "
+                     "mencakup HKDF, AEAD, hash transcript, dan serialisasi.")
+            L.append("")
+    if os.path.exists(pool_path):
+        L.append("### Ablation live: kunci rotasi precompute (pool) vs dibuat di dalam handshake")
+        L.append("")
+        L.append("`benchmark/pool_ablation.sh`: method 4 loss-free, ronde bergantian `pool_on` / "
+                 "`pool_off` (UE dan DN-AAA sama-sama), radiusd di-restart tiap ronde, 20 handshake "
+                 "pemanasan dibuang. Selisih median dengan bootstrap 95% CI (4000 resample, seed 1).")
+        L.append("")
+        pr = {}
+        for r in load_rows(pool_path):
+            if r["status"] == "PASS":
+                pr.setdefault(r["label"], []).append(float(r["duration_ms"]))
+        L.append("| Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) |")
+        L.append("| --- | --- | --- | --- | --- |")
+        for lab in ["pool_on", "pool_off"]:
+            d = pr.get(lab, [])
+            if d:
+                L.append(f"| {lab} | {len(d)} | {statistics.mean(d):.3f} | {statistics.median(d):.3f} | {pct(d, 95):.3f} |")
+        if pr.get("pool_on") and pr.get("pool_off"):
+            rng = random.Random(1)
+            a_, b_ = pr["pool_off"], pr["pool_on"]
+            bs = sorted(statistics.median(rng.choices(a_, k=len(a_))) -
+                        statistics.median(rng.choices(b_, k=len(b_))) for _ in range(4000))
+            L.append("")
+            L.append(f"- Selisih median (off - on): **{statistics.median(a_) - statistics.median(b_):.3f} ms**, "
+                     f"95% CI [{bs[100]:.3f}, {bs[3899]:.3f}] ms. Biaya yang dipindah keluar handshake "
+                     "kira-kira dua kali X-Wing KeyGen (UE dan DN-AAA); di VM ini besarnya setara "
+                     "dengan noise run-ke-run.")
         L.append("")
 
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
