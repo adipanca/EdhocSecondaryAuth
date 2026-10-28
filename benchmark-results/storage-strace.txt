@@ -1,25 +1,25 @@
-# strace -c -w -f -e trace=fsync,fdatasync (wall-clock time per call), 20 method-4 handshakes, two-slot records, 2026-10-28
+# strace -c -w -f -e trace=fsync,fdatasync (wall-clock time per call), 20 method-4 handshakes, two-slot records, rotation keys inline, 2026-10-28
 ## ue durable
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.013450         672        20           fdatasync
+100.00    0.013887         694        20           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.013450         672        20           total
+100.00    0.013887         694        20           total
 ## dn durable
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.021641        1082        20           fdatasync
+100.00    0.015134         756        20           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.021641        1082        20           total
+100.00    0.015134         756        20           total
 ## ue tmpfs
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.000377          18        20           fdatasync
+100.00    0.002295         114        20           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.000377          18        20           total
+100.00    0.002295         114        20           total
 ## dn tmpfs
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.002042         102        20           fdatasync
+100.00    0.002032         101        20           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.002042         102        20           total
+100.00    0.002032         101        20           total

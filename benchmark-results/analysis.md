@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication
 
-_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-28T16:46:42._
+_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-28T17:05:00._
 
 Method matrix:
 

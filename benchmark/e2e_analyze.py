@@ -20,6 +20,11 @@ import csv
 import os
 import random
 import statistics
+
+try:
+    from scipy.stats import fisher_exact
+except ImportError:  # the loss table is still written, without p-values
+    fisher_exact = None
 from collections import defaultdict
 from datetime import datetime
 
@@ -392,11 +397,12 @@ def main():
         L.append("")
         L.append("`benchmark/m4_inproc_compare.sh`: handshake method 4 tanpa transport dan tanpa "
                  "penyimpanan, waktu pemrosesan pesan per pihak, beberapa ronde diselang-seling. "
-                 "`before` = core edhoc4 sebelum perubahan (combiner SHA-256 non-standar, decapsulation "
-                 "menghitung ulang pk_X, kunci rotasi dibuat di dalam handshake); "
-                 "`inline_rotation_keygen` = core baru (X-Wing sesuai draft-connolly-cfrg-xwing-kem-09) "
-                 "dengan kunci rotasi tetap dibuat di dalam handshake; `precomputed_rotation` = core baru, "
-                 "kunci rotasi dibuat di luar handshake. Nilai = rata-rata dari mean/median tiap ronde.")
+                 "`before` = core edhoc4 sebelum perubahan X-Wing (combiner SHA-256 non-standar, "
+                 "decapsulation menghitung ulang pk_X); `inline_rotation_keygen` = core saat ini "
+                 "(X-Wing sesuai draft-connolly-cfrg-xwing-kem-09), kunci rotasi dibuat di dalam "
+                 "handshake: **default dan angka utama**; `precomputed_rotation` = core saat ini "
+                 "dengan pool opsional (kunci rotasi dibuat di luar handshake, ablation). "
+                 "Nilai = rata-rata dari mean/median tiap ronde.")
         L.append("")
         L.append("| Varian | Ronde | N/ronde | Initiator mean (us) | Initiator median (us) | Responder mean (us) | Responder median (us) | Total mean (us) |")
         L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
@@ -414,13 +420,14 @@ def main():
             tot[lab] = vals[-1]
             L.append(f"| {lab} | {len(g)} | {g[0]['iters']} | " + " | ".join(f"{v:.1f}" for v in vals) + " |")
         L.append("")
-        if "before" in tot and "precomputed_rotation" in tot:
-            L.append(f"- Total komputasi turun {tot['before'] - tot['precomputed_rotation']:.1f} us "
-                     f"({100 * (1 - tot['precomputed_rotation'] / tot['before']):.1f}%): "
-                     f"{tot['before'] - tot.get('inline_rotation_keygen', tot['before']):.1f} us dari "
-                     f"perubahan X-Wing (terutama decapsulation tanpa hitung ulang pk_X), "
-                     f"{tot.get('inline_rotation_keygen', 0) - tot['precomputed_rotation']:.1f} us dari kunci "
-                     "rotasi yang dibuat di luar handshake.")
+        if "before" in tot and "inline_rotation_keygen" in tot:
+            L.append(f"- Default (rotasi inline): {tot['inline_rotation_keygen']:.1f} us, "
+                     f"{tot['before'] - tot['inline_rotation_keygen']:.1f} us lebih rendah dari `before` "
+                     "berkat perubahan X-Wing (terutama decapsulation tanpa hitung ulang pk_X).")
+            if "precomputed_rotation" in tot:
+                L.append(f"- Pool opsional: {tot['precomputed_rotation']:.1f} us, "
+                         f"{tot['inline_rotation_keygen'] - tot['precomputed_rotation']:.1f} us lebih rendah "
+                         "dari default karena kunci rotasi dibuat di luar handshake.")
             L.append("- Angka in-process lebih besar dari model primitif (`handshake-compute.csv`) karena "
                      "mencakup HKDF, AEAD, hash transcript, dan serialisasi.")
             L.append("")
@@ -451,6 +458,33 @@ def main():
                      f"95% CI [{bs[100]:.3f}, {bs[3899]:.3f}] ms. Biaya yang dipindah keluar handshake "
                      "kira-kira dua kali X-Wing KeyGen (UE dan DN-AAA); di VM ini besarnya setara "
                      "dengan noise run-ke-run.")
+        L.append("")
+
+    # ---- 1c-6. Transport cost per RADIUS round-trip, hybrid pair ----
+    comp_path = os.path.join(RESULTS, "handshake-compute.csv")
+    if os.path.exists(comp_path) and os.path.exists(stor_path):
+        comp = {int(r["method"]): float(r["total_compute_us"]) / 1000 for r in load_rows(comp_path)}
+        sd = {}
+        for r in load_rows(stor_path):
+            if r["status"] == "PASS":
+                sd.setdefault(r["label"], []).append(float(r["duration_ms"]))
+        storage = (statistics.median(sd["durable"]) - statistics.median(sd["tmpfs"])
+                   if sd.get("durable") and sd.get("tmpfs") else 0.0)
+        L.append("### Biaya transport per RADIUS round-trip (pasangan hybrid)")
+        L.append("")
+        L.append("(E2E mean - komputasi model - biaya penyimpanan) / n_RT. Penyimpanan = selisih "
+                 "median durable - tmpfs (hanya method 4; EAP-TLS tidak menyimpan kunci).")
+        L.append("")
+        L.append("| Method | E2E mean (ms) | Komputasi (ms) | Penyimpanan (ms) | n_RT | Per round-trip (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- |")
+        for m in (4, 6):
+            ok = [r for r in by_m.get(m, []) if r["status"] == "PASS"]
+            if not ok or m not in comp:
+                continue
+            e2e = statistics.mean(float(r["duration_ms"]) for r in ok)
+            st_ = storage if m == 4 else 0.0
+            n_rt = int(ok[0]["radius_round_trips"])
+            L.append(f"| {m} | {e2e:.3f} | {comp[m]:.3f} | {st_:.3f} | {n_rt} | {(e2e - comp[m] - st_) / n_rt:.3f} |")
         L.append("")
 
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
@@ -532,6 +566,25 @@ def main():
     L.append("")
     L.append("- Model mengabaikan biaya tanpa-loss (T_loopback) dan jitter, sehingga cocok "
              "terutama pada loss tinggi, saat retransmisi mendominasi waktu.")
+    L.append("")
+
+    # ---- hybrid pair: proposal (4) vs EAP-TLS Hybrid PQC (6), success rates ----
+    L.append("### Uji signifikansi sukses: proposal (method 4) vs EAP-TLS Hybrid PQC (method 6)")
+    L.append("")
+    L.append("Per tingkat loss: sukses/percobaan, Wilson 95%, dan uji eksak Fisher dua sisi "
+             "(`scipy.stats.fisher_exact`) pada tabel 2x2 sukses/gagal.")
+    L.append("")
+    L.append("| Loss % | Method 4 sukses | Wilson 95% % | Method 6 sukses | Wilson 95% % | Fisher p (dua sisi) |")
+    L.append("| --- | --- | --- | --- | --- | --- |")
+    for loss in [0.0, 1.0, 5.0, 10.0, 20.0, 30.0]:
+        a = by_ml.get((4, loss)); b = by_ml.get((6, loss))
+        if not a or not b:
+            continue
+        ka = sum(r["status"] == "PASS" for r in a); kb = sum(r["status"] == "PASS" for r in b)
+        wa, wb = wilson(ka, len(a)), wilson(kb, len(b))
+        pv = fisher_exact([[ka, len(a) - ka], [kb, len(b) - kb]])[1] if fisher_exact else float("nan")
+        L.append(f"| {loss:.0f} | {ka}/{len(a)} ({100*ka/len(a):.1f}%) | [{100*wa[0]:.1f}, {100*wa[1]:.1f}] | "
+                 f"{kb}/{len(b)} ({100*kb/len(b):.1f}%) | [{100*wb[0]:.1f}, {100*wb[1]:.1f}] | {pv:.3f} |")
     L.append("")
 
     # ---- carry 3 (interop) from analysis.md ----
