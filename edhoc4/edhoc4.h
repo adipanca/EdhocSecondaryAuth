@@ -3,8 +3,9 @@
  *
  * Implements the "EAP-EDHOC Hybrid PQC (XWING) — SIGMA" handshake from
  * mermaid.md §5:
- *   - key establishment : XWING hybrid KEM = X25519 (libsodium) + ML-KEM-768
- *                         (PQClean), shared-secret combiner over SHA-256.
+ *   - key establishment : X-Wing hybrid KEM = ML-KEM-768 (PQClean) + X25519
+ *                         (libsodium), SHA3-256 combiner and SHAKE256 key
+ *                         expansion as in draft-connolly-cfrg-xwing-kem-09.
  *   - authentication    : ML-DSA-44 signatures on BOTH sides (PQClean) + MAC.
  *   - KDF / AEAD        : HKDF-SHA256 + AES-128-GCM (mbedTLS).
  *
@@ -179,6 +180,24 @@ int edhoc4_rec_commit(const char *path, const edhoc4_creds *self,
 int edhoc4_rec_erase_prev(const char *path);
 /* lost message_4: copy prev over the active slot with a higher seq, flush */
 int edhoc4_rec_promote_prev(const char *path);
+
+/* ---- rotation-key pool ----
+ * The EAD3/EAD4 key pair (next session's one-time X-Wing key) does not
+ * depend on the session, so it is taken from a process-wide pool filled
+ * outside the handshake; an empty pool falls back to inline generation.
+ * edhoc4_pool_fill(n): top the pool up to n keys now (UE: after its commit).
+ * edhoc4_pool_start(n): keep n keys ready with a refill thread, started on
+ * the first take (DN-AAA). edhoc4_pool_misses(): inline fallbacks so far. */
+#define E4_POOL_MAX 16
+int edhoc4_pool_fill(int n);
+int edhoc4_pool_start(int n);
+unsigned long edhoc4_pool_misses(void);
+
+/* X-Wing known-answer test hook (draft-connolly-cfrg-xwing-kem-09, App. C):
+ * GenerateKeyPairDerand(seed), EncapsulateDerand(pk, eseed), Decapsulate */
+int edhoc4_xwing_selftest_kat(const uint8_t seed[32], const uint8_t eseed[64],
+                              uint8_t pk[E4_XWING_PK], uint8_t ct[E4_XWING_CT],
+                              uint8_t ss_enc[E4_XWING_SS], uint8_t ss_dec[E4_XWING_SS]);
 
 /* ---- initiator (UE) ---- */
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,

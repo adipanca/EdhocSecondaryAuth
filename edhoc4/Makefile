@@ -7,6 +7,7 @@
 # Targets:
 #   libedhoc4.a   static core linked by FreeRADIUS (C) and UERANSIM (C++)
 #   edhoc4_selftest   in-process initiator<->responder handshake test
+#   edhoc4_xwing_kat  X-Wing test vectors (draft-connolly-cfrg-xwing-kem-09)
 
 ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 PQCLEAN  := $(ROOT_DIR)/PQClean
@@ -21,11 +22,11 @@ PQ_COMMON_OBJ := $(PQCOMMON)/fips202.o $(PQCOMMON)/randombytes.o
 
 CC      ?= cc
 CFLAGS  ?= -O2 -Wall -Wextra -std=c11 -fPIC
-LDLIBS  += -lsodium -lmbedcrypto -lm
+LDLIBS  += -lsodium -lmbedcrypto -lm -pthread
 
 PQ_OBJS := $(MLKEM_LIB) $(MLDSA_LIB) $(PQ_COMMON_OBJ)
 
-all: libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc03_selftest edhoc03_keygen
+all: libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
 
 $(PQCOMMON)/%.o: $(PQCOMMON)/%.c
 	$(CC) -O3 -fPIC -I$(PQCOMMON) -c -o $@ $<
@@ -66,18 +67,22 @@ edhoc4_keygen: keygen.c libedhoc4.a
 edhoc4_dbtest: dbtest.c libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ dbtest.c libedhoc4.a $(LDLIBS)
 
+edhoc4_xwing_kat: xwing_kat.c xwing_kat_vectors.h libedhoc4.a
+	$(CC) $(CFLAGS) -o $@ xwing_kat.c libedhoc4.a $(LDLIBS)
+
 edhoc03_selftest: selftest03.c libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ selftest03.c libedhoc4.a $(LDLIBS)
 
 edhoc03_keygen: keygen03.c libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ keygen03.c libedhoc4.a $(LDLIBS)
 
-test: edhoc4_selftest edhoc4_dbtest
+test: edhoc4_selftest edhoc4_dbtest edhoc4_xwing_kat
+	./edhoc4_xwing_kat
 	./edhoc4_selftest
 	./edhoc4_dbtest
 
 clean:
-	rm -f edhoc4.o edhoc4_db.o edhoc03.o libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc03_selftest edhoc03_keygen
+	rm -f edhoc4.o edhoc4_db.o edhoc03.o libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
 	rm -rf .arobj
 
 .PHONY: all test clean

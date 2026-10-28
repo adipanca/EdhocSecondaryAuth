@@ -10,12 +10,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sodium.h>
 #include <mbedtls/gcm.h>
 
 /* ---- PQClean (clean reference, namespaced) ---- */
-int PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk);
-int PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
+int PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair_derand(uint8_t *pk, uint8_t *sk,
+        const uint8_t *coins);
+int PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc_derand(uint8_t *ct, uint8_t *ss,
+        const uint8_t *pk, const uint8_t *coins);
 int PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
 
 int PQCLEAN_MLDSA44_CLEAN_crypto_sign_keypair(uint8_t *pk, uint8_t *sk);
@@ -24,7 +27,12 @@ int PQCLEAN_MLDSA44_CLEAN_crypto_sign_signature(uint8_t *sig, size_t *siglen,
 int PQCLEAN_MLDSA44_CLEAN_crypto_sign_verify(const uint8_t *sig, size_t siglen,
         const uint8_t *m, size_t mlen, const uint8_t *pk);
 
-static const char XWING_LABEL[] = "XWING-combiner-v1";
+/* PQClean common/fips202.c (linked into libedhoc4.a) */
+void sha3_256(uint8_t *output, const uint8_t *input, size_t inlen);
+void shake256(uint8_t *output, size_t outlen, const uint8_t *input, size_t inlen);
+
+/* XWingLabel, hex 5c2e2f2f5e5c (draft-connolly-cfrg-xwing-kem-09, Sec. 5.3) */
+static const uint8_t XWING_LABEL[6] = { 0x5c, 0x2e, 0x2f, 0x2f, 0x5e, 0x5c };
 
 /* ======================================================================== */
 /* Crypto helpers                                                            */
@@ -175,66 +183,205 @@ static size_t sig_message(uint8_t *buf, const uint8_t th[32],
     return off;
 }
 
-/* ---- XWING hybrid KEM (X25519 || ML-KEM-768) ---- */
+/* ---- X-Wing hybrid KEM (ML-KEM-768 + X25519) ----
+ * draft-connolly-cfrg-xwing-kem-09: pk = pk_M || pk_X, ct = ct_M || ct_X,
+ * ss = SHA3-256(ss_M || ss_X || ct_X || pk_X || XWingLabel). The 32-byte
+ * seed is expanded with SHAKE256 into (d, z, sk_X); sk holds the expanded
+ * key (sk_M || sk_X), as Sec. 5.5.1 permits for a key that stays local, and
+ * the decapsulator takes pk_X from its own pk instead of recomputing it. */
+
+/* GenerateKeyPairDerand(seed), keeping the expanded decapsulation key */
+static int xwing_keypair_derand(uint8_t pk[E4_XWING_PK], uint8_t sk[E4_XWING_SK],
+                                const uint8_t seed[32])
+{
+    uint8_t expanded[96];
+    shake256(expanded, sizeof(expanded), seed, 32);
+    PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair_derand(pk, sk, expanded);  /* d || z */
+    memcpy(sk + E4_MLKEM_SK, expanded + 64, E4_X25519_SK);
+    int rc = crypto_scalarmult_base(pk + E4_MLKEM_PK, sk + E4_MLKEM_SK) == 0
+             ? E4_OK : E4_ERR_KEM;
+    sodium_memzero(expanded, sizeof(expanded));
+    return rc;
+}
 
 static int xwing_keypair(uint8_t pk[E4_XWING_PK], uint8_t sk[E4_XWING_SK])
 {
-    if (PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk, sk) != 0)
-        return E4_ERR_KEM;
-    uint8_t *sk_x = sk + E4_MLKEM_SK;
-    uint8_t *pk_x = pk + E4_MLKEM_PK;
-    randombytes_buf(sk_x, E4_X25519_SK);
-    crypto_scalarmult_base(pk_x, sk_x);
-    return E4_OK;
+    uint8_t seed[32];
+    randombytes_buf(seed, sizeof(seed));
+    int rc = xwing_keypair_derand(pk, sk, seed);
+    sodium_memzero(seed, sizeof(seed));
+    return rc;
 }
 
 static void xwing_combine(uint8_t ss[32], const uint8_t ss_m[32],
                           const uint8_t ss_x[32], const uint8_t ct_x[32],
                           const uint8_t pk_x[32])
 {
-    const uint8_t *segs[5] = { ss_m, ss_x, ct_x, pk_x, (const uint8_t *)XWING_LABEL };
-    const size_t lens[5] = { 32, 32, 32, 32, sizeof(XWING_LABEL) - 1 };
-    sha256_cat(ss, segs, lens, 5);
+    uint8_t buf[32 * 4 + sizeof(XWING_LABEL)];
+    memcpy(buf, ss_m, 32);
+    memcpy(buf + 32, ss_x, 32);
+    memcpy(buf + 64, ct_x, 32);
+    memcpy(buf + 96, pk_x, 32);
+    memcpy(buf + 128, XWING_LABEL, sizeof(XWING_LABEL));
+    sha3_256(ss, buf, sizeof(buf));
+    sodium_memzero(buf, sizeof(buf));
+}
+
+/* EncapsulateDerand(pk, eseed): eseed = ML-KEM coins (32) || ek_X (32) */
+static int xwing_encaps_derand(uint8_t ct[E4_XWING_CT], uint8_t ss[E4_XWING_SS],
+                               const uint8_t pk[E4_XWING_PK], const uint8_t eseed[64])
+{
+    const uint8_t *pk_x = pk + E4_MLKEM_PK;
+    uint8_t *ct_x = ct + E4_MLKEM_CT;
+    uint8_t ss_m[32], ss_x[32];
+    int rc = E4_ERR_KEM;
+    if (crypto_scalarmult_base(ct_x, eseed + 32) != 0) goto out;      /* ct_X = g^e */
+    if (crypto_scalarmult(ss_x, eseed + 32, pk_x) != 0) goto out;
+    PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc_derand(ct, ss_m, pk, eseed);
+    xwing_combine(ss, ss_m, ss_x, ct_x, pk_x);
+    rc = E4_OK;
+out:
+    sodium_memzero(ss_x, sizeof(ss_x));
+    sodium_memzero(ss_m, sizeof(ss_m));
+    return rc;
 }
 
 static int xwing_encaps(uint8_t ct[E4_XWING_CT], uint8_t ss[E4_XWING_SS],
                         const uint8_t pk[E4_XWING_PK])
 {
-    uint8_t ss_m[32];
-    if (PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct, ss_m, pk) != 0)
-        return E4_ERR_KEM;
-    const uint8_t *pk_x = pk + E4_MLKEM_PK;
-    uint8_t *ct_x = ct + E4_MLKEM_CT;
-    uint8_t e_sk[E4_X25519_SK], ss_x[32];
-    randombytes_buf(e_sk, sizeof(e_sk));
-    crypto_scalarmult_base(ct_x, e_sk);          /* ct_x = g^e            */
-    if (crypto_scalarmult(ss_x, e_sk, pk_x) != 0) {
-        sodium_memzero(e_sk, sizeof(e_sk));
-        return E4_ERR_KEM;
-    }
-    xwing_combine(ss, ss_m, ss_x, ct_x, pk_x);
-    sodium_memzero(e_sk, sizeof(e_sk));
+    uint8_t eseed[64];
+    randombytes_buf(eseed, sizeof(eseed));
+    int rc = xwing_encaps_derand(ct, ss, pk, eseed);
+    sodium_memzero(eseed, sizeof(eseed));
+    return rc;
+}
+
+/* sk is the expanded key, pk the party's own X-Wing public key */
+static int xwing_decaps(uint8_t ss[E4_XWING_SS], const uint8_t ct[E4_XWING_CT],
+                        const uint8_t sk[E4_XWING_SK], const uint8_t pk[E4_XWING_PK])
+{
+    uint8_t ss_m[32], ss_x[32];
+    const uint8_t *ct_x = ct + E4_MLKEM_CT;
+    int rc = E4_ERR_KEM;
+    if (PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss_m, ct, sk) != 0) goto out;
+    if (crypto_scalarmult(ss_x, sk + E4_MLKEM_SK, ct_x) != 0) goto out;
+    xwing_combine(ss, ss_m, ss_x, ct_x, pk + E4_MLKEM_PK);
+    rc = E4_OK;
+out:
     sodium_memzero(ss_x, sizeof(ss_x));
     sodium_memzero(ss_m, sizeof(ss_m));
+    return rc;
+}
+
+int edhoc4_xwing_selftest_kat(const uint8_t seed[32], const uint8_t eseed[64],
+                              uint8_t pk[E4_XWING_PK], uint8_t ct[E4_XWING_CT],
+                              uint8_t ss_enc[E4_XWING_SS], uint8_t ss_dec[E4_XWING_SS])
+{
+    uint8_t sk[E4_XWING_SK];
+    int rc = xwing_keypair_derand(pk, sk, seed);
+    if (rc == E4_OK) rc = xwing_encaps_derand(ct, ss_enc, pk, eseed);
+    if (rc == E4_OK) rc = xwing_decaps(ss_dec, ct, sk, pk);
+    sodium_memzero(sk, sizeof(sk));
+    return rc;
+}
+
+/* ---- rotation-key pool: EAD3/EAD4 key pairs generated off the handshake ----
+ * The next one-time key pair does not depend on the session, so it can be
+ * generated before the handshake that announces it. Taken keys are wiped
+ * from the pool; an empty pool falls back to generating inline. */
+typedef struct {
+    uint8_t pk[E4_XWING_PK];
+    uint8_t sk[E4_XWING_SK];
+} pool_key;
+
+static pool_key        pool_keys[E4_POOL_MAX];
+static int             pool_n, pool_target, pool_thread_on;
+static unsigned long   pool_miss;
+static pthread_mutex_t pool_mu = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  pool_cv = PTHREAD_COND_INITIALIZER;
+
+static int pool_clamp(int n)
+{
+    return n < 0 ? 0 : (n > E4_POOL_MAX ? E4_POOL_MAX : n);
+}
+
+/* generate one key outside the lock, then store it if there is room */
+static int pool_add_one(void)
+{
+    pool_key k;
+    if (xwing_keypair(k.pk, k.sk) != E4_OK) return E4_ERR_KEM;
+    pthread_mutex_lock(&pool_mu);
+    if (pool_n < E4_POOL_MAX) pool_keys[pool_n++] = k;
+    pthread_mutex_unlock(&pool_mu);
+    sodium_memzero(&k, sizeof(k));
     return E4_OK;
 }
 
-static int xwing_decaps(uint8_t ss[E4_XWING_SS], const uint8_t ct[E4_XWING_CT],
-                        const uint8_t sk[E4_XWING_SK])
+int edhoc4_pool_fill(int n)
 {
-    uint8_t ss_m[32];
-    if (PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss_m, ct, sk) != 0)
-        return E4_ERR_KEM;
-    const uint8_t *sk_x = sk + E4_MLKEM_SK;
-    const uint8_t *ct_x = ct + E4_MLKEM_CT;
-    uint8_t ss_x[32], pk_x[32];
-    crypto_scalarmult_base(pk_x, sk_x);          /* own static x25519 pub */
-    if (crypto_scalarmult(ss_x, sk_x, ct_x) != 0)
-        return E4_ERR_KEM;
-    xwing_combine(ss, ss_m, ss_x, ct_x, pk_x);
-    sodium_memzero(ss_x, sizeof(ss_x));
-    sodium_memzero(ss_m, sizeof(ss_m));
+    n = pool_clamp(n);
+    for (;;) {
+        pthread_mutex_lock(&pool_mu);
+        int have = pool_n;
+        pthread_mutex_unlock(&pool_mu);
+        if (have >= n) return E4_OK;
+        if (pool_add_one() != E4_OK) return E4_ERR_KEM;
+    }
+}
+
+static void *pool_main(void *arg)
+{
+    (void)arg;
+    for (;;) {
+        pthread_mutex_lock(&pool_mu);
+        while (pool_n >= pool_target) pthread_cond_wait(&pool_cv, &pool_mu);
+        pthread_mutex_unlock(&pool_mu);
+        pool_add_one();
+    }
+    return NULL;
+}
+
+int edhoc4_pool_start(int n)
+{
+    pthread_mutex_lock(&pool_mu);
+    pool_target = pool_clamp(n);
+    pthread_cond_signal(&pool_cv);
+    pthread_mutex_unlock(&pool_mu);
     return E4_OK;
+}
+
+unsigned long edhoc4_pool_misses(void)
+{
+    pthread_mutex_lock(&pool_mu);
+    unsigned long m = pool_miss;
+    pthread_mutex_unlock(&pool_mu);
+    return m;
+}
+
+/* The refill thread starts on the first take, i.e. in the process that
+ * serves handshakes (after any daemon fork). */
+static int next_keypair(uint8_t pk[E4_XWING_PK], uint8_t sk[E4_XWING_SK])
+{
+    pthread_mutex_lock(&pool_mu);
+    if (pool_target > 0 && !pool_thread_on) {
+        pthread_t t;
+        if (pthread_create(&t, NULL, pool_main, NULL) == 0) {
+            pthread_detach(t);
+            pool_thread_on = 1;
+        }
+    }
+    if (pool_n > 0) {
+        pool_key *k = &pool_keys[--pool_n];
+        memcpy(pk, k->pk, E4_XWING_PK);
+        memcpy(sk, k->sk, E4_XWING_SK);
+        sodium_memzero(k, sizeof(*k));
+        pthread_cond_signal(&pool_cv);
+        pthread_mutex_unlock(&pool_mu);
+        return E4_OK;
+    }
+    pool_miss++;
+    pthread_mutex_unlock(&pool_mu);
+    return xwing_keypair(pk, sk);
 }
 
 /* ======================================================================== */
@@ -610,7 +757,7 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     size_t ct1_len = in_len - E4_XWING_CT;
 
     /* ss_b = Decaps(ctB, own static sk_B) */
-    if (xwing_decaps(ctx->ss_b, ct_b, ctx->self.kem_sk) != E4_OK) return E4_ERR_KEM;
+    if (xwing_decaps(ctx->ss_b, ct_b, ctx->self.kem_sk, ctx->self.kem_pk) != E4_OK) return E4_ERR_KEM;
 
     /* TH1 = H(ctB); PRK1e; decrypt PT1 */
     sha256(ctx->th1, ct_b, E4_XWING_CT);
@@ -701,7 +848,7 @@ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     size_t ct2_len = in_len - E4_XWING_CT;
 
     /* ssA = Decaps(ctA, own one-time static sk_A)  (moved up) */
-    if (xwing_decaps(ctx->ss_a, ctx->ct_a, ctx->self.kem_sk) != E4_OK) return E4_ERR_KEM;
+    if (xwing_decaps(ctx->ss_a, ctx->ct_a, ctx->self.kem_sk, ctx->self.kem_pk) != E4_OK) return E4_ERR_KEM;
 
     /* TH2 = H(H(msg1) || ctA || C_R) */
     ctx->c_r[0] = 0x20;               /* responder connection id (fixed)      */
@@ -749,7 +896,7 @@ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     memcpy(ctx->prk4e3m, ctx->prk3e2m, E4_PRK_LEN);
 
     /* EAD3 = NpkA (fresh one-time static XWING keypair for the next session) */
-    if (xwing_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
+    if (next_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
 
     /* MAC3 + sigma_I (EAD3 bound in MAC) */
     uint8_t mac3[E4_MAC_LEN];
@@ -839,7 +986,7 @@ int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     derive_prk_out_and_msk(ctx);
 
     /* EAD4 = NpkB (fresh one-time static XWING keypair for the next session) */
-    if (xwing_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
+    if (next_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
 
     uint8_t ct4[E4_XWING_PK + E4_AEAD_TAG]; size_t ct4_len = 0;
     if (aead_seal(ctx->prk4e3m, ctx->th4, ctx->new_pk, E4_XWING_PK, ct4, &ct4_len) != E4_OK)
