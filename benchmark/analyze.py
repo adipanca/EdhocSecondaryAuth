@@ -66,9 +66,9 @@ def section_breakdown(rd):
              "5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA "
              "pada sertifikat peer (rantai root CA -> end-entity, tanpa "
              "intermediate). EDHOC (method 0-4) tidak memakai sertifikat. "
-             "Method 4: Keygen = 1 (X25519 ephemeral di dalam encapsulation "
-             "X-Wing); pasangan kunci rotasi untuk EAD3/EAD4 dibuat di luar "
-             "handshake (pool edhoc4) sehingga tidak dihitung.\n",
+             "Method 4: Keygen = 3 per pihak (X25519 ephemeral di dalam "
+             "encapsulation X-Wing + pasangan kunci rotasi X25519/ML-KEM-768 "
+             "untuk EAD3/EAD4), semuanya dihitung di dalam handshake.\n",
              md_table(rows,
                       ["method", "role", "operation", "primitive",
                        "op_count", "compute_ns"],
@@ -103,7 +103,77 @@ def section_breakdown(rd):
                 "murni ini.")
         except (ValueError, KeyError):
             pass
+    extra = op_tables(rd)
+    if extra:
+        parts.append(extra)
     return "\n".join(parts) + "\n"
+
+
+# Operations per handshake, (initiator, responder), as in the paper's
+# tab:opcount. sig/ver are Ed25519 at the classical level and ML-DSA-44 at
+# the hybrid level; EAP-TLS verify = CertificateVerify + peer certificate.
+# Each X25519 key pair is ephemeral; static-DH authentication costs one DH
+# on each side (edhoc03.c). Method 4: one X25519 key pair is the ephemeral
+# share inside Encaps, the other plus the ML-KEM key pair is the rotation key.
+OPS = {
+    0: dict(xk=(1, 1), dh=(1, 1), sdh=(0, 0), kk=(0, 0), enc=(0, 0), dec=(0, 0), sig=(1, 1), ver=(1, 1), cert=(0, 0), rot=(0, 0), pq=False),
+    1: dict(xk=(1, 1), dh=(1, 1), sdh=(1, 1), kk=(0, 0), enc=(0, 0), dec=(0, 0), sig=(1, 0), ver=(0, 1), cert=(0, 0), rot=(0, 0), pq=False),
+    2: dict(xk=(1, 1), dh=(1, 1), sdh=(1, 1), kk=(0, 0), enc=(0, 0), dec=(0, 0), sig=(0, 1), ver=(1, 0), cert=(0, 0), rot=(0, 0), pq=False),
+    3: dict(xk=(1, 1), dh=(1, 1), sdh=(2, 2), kk=(0, 0), enc=(0, 0), dec=(0, 0), sig=(0, 0), ver=(0, 0), cert=(0, 0), rot=(0, 0), pq=False),
+    4: dict(xk=(1, 1), dh=(2, 2), sdh=(0, 0), kk=(0, 0), enc=(1, 1), dec=(1, 1), sig=(1, 1), ver=(1, 1), cert=(0, 0), rot=(1, 1), pq=True),
+    5: dict(xk=(1, 1), dh=(1, 1), sdh=(0, 0), kk=(0, 0), enc=(0, 0), dec=(0, 0), sig=(1, 1), ver=(1, 1), cert=(1, 1), rot=(0, 0), pq=False),
+    6: dict(xk=(1, 1), dh=(1, 1), sdh=(0, 0), kk=(1, 0), enc=(0, 1), dec=(1, 0), sig=(1, 1), ver=(1, 1), cert=(1, 1), rot=(0, 0), pq=True),
+}
+
+
+def op_tables(rd):
+    prim = {r["operation"]: float(r["mean_ns"]) / 1e6
+            for r in read_csv(os.path.join(rd, "crypto-primitives.csv"))}
+    try:
+        xk, dh, kk = prim["Keygen_X25519"], prim["ScalarMult_X25519"], prim["Keygen_MLKEM768"]
+        enc, dec = prim["Encaps_MLKEM768"], prim["Decaps_MLKEM768"]
+    except KeyError:
+        return None
+    out = ["\n### Operasi kriptografi per method (Initiator/Responder)\n",
+           "| Method | X25519 KeyGen | X25519 DH | ML-KEM KeyGen | Encaps | Decaps | Sign | Verify |",
+           "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    groups = {}
+    for m, o in OPS.items():
+        sg = prim["Signature_MLDSA44" if o["pq"] else "Signature_Ed25519"]
+        vf = prim["Verify_MLDSA44" if o["pq"] else "Verify_Ed25519"]
+        f = lambda k: "/".join(str(v) for v in o[k]) if any(o[k]) else "-"
+        pair = lambda *ks: "/".join(str(sum(o[k][i] for k in ks)) for i in range(2)) \
+            if any(sum(o[k][i] for k in ks) for i in range(2)) else "-"
+        out.append(f"| {m} | {pair('xk', 'rot')} | {pair('dh', 'sdh')} | {pair('kk', 'rot')} | "
+                   f"{f('enc')} | {f('dec')} | {f('sig')} | {pair('ver', 'cert')} |")
+        t = lambda k: sum(o[k])
+        groups[m] = (t("xk") * xk + t("dh") * dh + t("kk") * kk + t("enc") * enc + t("dec") * dec,
+                     t("sig") * sg + t("ver") * vf + t("sdh") * dh,
+                     t("cert") * vf,
+                     t("rot") * (xk + kk))
+    out += ["\n### Komputasi per fungsi (kedua pihak, ms)\n",
+            "Key exchange: share X25519 ephemeral, DH ephemeral, operasi KEM. "
+            "Authentication: tanda tangan transcript dan verifikasinya, atau static DH. "
+            "Certificate check: tanda tangan CA pada sertifikat peer. "
+            "Key rotation: pasangan kunci X-Wing one-time berikutnya.\n",
+            "| Method | Key exchange | Authentication | Certificate check | Key rotation | Total |",
+            "| --- | --- | --- | --- | --- | --- |"]
+    for m, g in groups.items():
+        out.append(f"| {m} | " + " | ".join(f"{v:.3f}" if v else "-" for v in g)
+                   + f" | {sum(g):.3f} |")
+    # same precompute rule for both hybrid protocols
+    p4, p6 = sum(groups[4]), sum(groups[6])
+    out += ["\n### Kebijakan precompute yang sama untuk kedua protokol\n",
+            "| Aturan (sama untuk kedua sisi) | Proposal (ms) | EAP-TLS Hybrid (ms) |",
+            "| --- | --- | --- |",
+            f"| Semua keygen di dalam handshake | {p4:.3f} | {p6:.3f} |",
+            f"| Hanya \"kunci berikutnya\" di muka (kunci rotasi proposal <-> key share client TLS) "
+            f"| {p4 - 2 * (xk + kk):.3f} | {p6 - (xk + kk):.3f} |",
+            f"| Semua keygen yang tidak bergantung sesi di muka (termasuk share X25519 ephemeral) "
+            f"| {p4 - 2 * (xk + kk) - 2 * xk:.3f} | {p6 - (xk + kk) - xk:.3f} |",
+            "\nDengan aturan yang sama, komputasi kedua protokol hampir sama; "
+            "perbedaannya ada di transport."]
+    return "\n".join(out)
 
 
 def section_lossy(rd):

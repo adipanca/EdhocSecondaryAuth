@@ -25,13 +25,15 @@
  *        KeyGen = x25519_keygen + mlkem_keygen
  *        Encaps = x25519_keygen + x25519_dh + mlkem_encaps
  *        Decaps = x25519_dh + mlkem_decaps (pk_X taken from the own pk)
- *      The KeyGen of the next one-time key pair (EAD3/EAD4) is precomputed
- *      outside the handshake (edhoc4 rotation-key pool) and not counted.
+ *      The KeyGen of the next one-time key pair (EAD3/EAD4) is counted
+ *      inside the handshake.
  *
  * Usage: crypto_bench <outdir> [iters]   measure primitives, write all CSVs
  *        crypto_bench <outdir> --model   reuse <outdir>/crypto-primitives.csv
  *                                        and rewrite only the method 0-4
- *                                        breakdown/compute CSVs
+ *                                        breakdown/compute CSVs (methods 5/6
+ *                                        are appended by compute_tls_hybrid.py
+ *                                        and rsa_bench.py)
  */
 
 #define _POSIX_C_SOURCE 199309L
@@ -342,18 +344,22 @@ typedef struct {
 } method_def_t;
 
 static const method_def_t METHODS[] = {
+    /* A static-DH authentication costs one DH on EACH side (edhoc03.c):
+     * G_RX = R's static x I's ephemeral at R, I's ephemeral x R's static at
+     * I; G_IY likewise. Hence one extra DH per side per STAT party. */
     { 0, "SIG/SIG Ed25519",            {1,1,1,1,0,0,0,0,0}, {1,1,1,1,0,0,0,0,0} },
-    { 1, "SIG-Ed25519 / MAC-X25519",   {1,1,1,0,0,0,0,0,0}, {1,2,0,1,0,0,0,0,0} },
-    { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0,0} },
-    { 3, "MAC/MAC static-DH X25519",   {1,2,0,0,0,0,0,0,0}, {1,2,0,0,0,0,0,0,0} },
+    { 1, "SIG-Ed25519 / MAC-X25519",   {1,2,1,0,0,0,0,0,0}, {1,2,0,1,0,0,0,0,0} },
+    { 2, "MAC-X25519 / SIG-Ed25519",   {1,2,0,1,0,0,0,0,0}, {1,2,1,0,0,0,0,0,0} },
+    { 3, "MAC/MAC static-DH X25519",   {1,3,0,0,0,0,0,0,0}, {1,3,0,0,0,0,0,0,0} },
     /* Method 4 (revised, no ephemeral X-Wing). Role-symmetric:
-     * Initiator: Encaps(pkB) + Decaps(ctA)
+     * Initiator: Encaps(pkB) + Decaps(ctA) + KeyGen(NpkA)
      *            + ML-DSA sign(sigma_I) + ML-DSA verify(sigma_R).
-     * Responder: Decaps(ctB) + Encaps(pkA)
+     * Responder: Decaps(ctB) + Encaps(pkA) + KeyGen(NpkB)
      *            + ML-DSA sign(sigma_R) + ML-DSA verify(sigma_I).
-     * KeyGen(NpkA) / KeyGen(NpkB) is precomputed off the handshake path. */
+     * The rotation KeyGen is counted inside the handshake (the default);
+     * precomputing it is an optional deployment optimisation. */
     { 4, "SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768)",
-                                       {1,2,0,0,0,1,1,1,1}, {1,2,0,0,0,1,1,1,1} },
+                                       {2,2,0,0,1,1,1,1,1}, {2,2,0,0,1,1,1,1,1} },
 };
 static const int N_METHODS = (int)(sizeof(METHODS) / sizeof(METHODS[0]));
 

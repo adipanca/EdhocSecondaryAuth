@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication
 
-_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-28T15:25:44._
+_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-28T16:46:42._
 
 Method matrix:
 
@@ -52,7 +52,7 @@ Latensi per operasi primitif (pengukuran nyata, libsodium + mbedTLS + PQClean).
 
 ## 1b. Breakdown komputasi per method (Keygen, Scalar mult, Encaps, Decaps, Signature, Verify)
 
-Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, responder = DN-AAA). Untuk EAP-TLS (method 5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA pada sertifikat peer (rantai root CA -> end-entity, tanpa intermediate). EDHOC (method 0-4) tidak memakai sertifikat. Method 4: Keygen = 1 (X25519 ephemeral di dalam encapsulation X-Wing); pasangan kunci rotasi untuk EAD3/EAD4 dibuat di luar handshake (pool edhoc4) sehingga tidak dihitung.
+Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, responder = DN-AAA). Untuk EAP-TLS (method 5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA pada sertifikat peer (rantai root CA -> end-entity, tanpa intermediate). EDHOC (method 0-4) tidak memakai sertifikat. Method 4: Keygen = 3 per pihak (X25519 ephemeral di dalam encapsulation X-Wing + pasangan kunci rotasi X25519/ML-KEM-768 untuk EAD3/EAD4), semuanya dihitung di dalam handshake.
 
 | Method | Role | Operation | Primitive | Count | Compute (ns) |
 | --- | --- | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 0 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
 | 0 | responder | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
 | 1 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
-| 1 | initiator | ScalarMult | X25519 | 1 | 25163.6 |
+| 1 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
 | 1 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 1 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 1 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
@@ -87,30 +87,30 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | 2 | initiator | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 2 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 29438.8 |
 | 2 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
-| 2 | responder | ScalarMult | X25519 | 1 | 25163.6 |
+| 2 | responder | ScalarMult | X25519 | 2 | 50327.3 |
 | 2 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 2 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 2 | responder | Signature | Ed25519/ML-DSA-44 | 1 | 11069.9 |
 | 2 | responder | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
-| 3 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
+| 3 | initiator | ScalarMult | X25519 | 3 | 75490.8 |
 | 3 | initiator | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | initiator | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | initiator | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | initiator | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
-| 3 | responder | ScalarMult | X25519 | 2 | 50327.3 |
+| 3 | responder | ScalarMult | X25519 | 3 | 75490.8 |
 | 3 | responder | Encaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | responder | Decaps | ML-KEM-768 | 0 | 0.0 |
 | 3 | responder | Signature | Ed25519/ML-DSA-44 | 0 | 0.0 |
 | 3 | responder | Verify | Ed25519/ML-DSA-44 | 0 | 0.0 |
-| 4 | initiator | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 4 | initiator | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
 | 4 | initiator | ScalarMult | X25519 | 2 | 50327.3 |
 | 4 | initiator | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 4 | initiator | Decaps | ML-KEM-768 | 1 | 41870.0 |
 | 4 | initiator | Signature | Ed25519/ML-DSA-44 | 1 | 223240.5 |
 | 4 | initiator | Verify | Ed25519/ML-DSA-44 | 1 | 59596.1 |
-| 4 | responder | Keygen | X25519/ML-KEM-768 | 1 | 25535.0 |
+| 4 | responder | Keygen | X25519/ML-KEM-768 | 3 | 83510.4 |
 | 4 | responder | ScalarMult | X25519 | 2 | 50327.3 |
 | 4 | responder | Encaps | ML-KEM-768 | 1 | 33775.5 |
 | 4 | responder | Decaps | ML-KEM-768 | 1 | 41870.0 |
@@ -146,17 +146,53 @@ Kontribusi waktu komputasi tiap operasi dalam satu handshake (initiator = UE, re
 | Method | Profil | Initiator (us) | Responder (us) | Total (us) |
 | --- | --- | --- | --- | --- |
 | 0 | SIG/SIG Ed25519 | 91.207 | 91.207 | 182.415 |
-| 1 | SIG-Ed25519 / MAC-X25519 | 61.769 | 105.301 | 167.070 |
-| 2 | MAC-X25519 / SIG-Ed25519 | 105.301 | 61.769 | 167.070 |
-| 3 | MAC/MAC static-DH X25519 | 75.862 | 75.862 | 151.725 |
-| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 434.344 | 434.344 | 868.689 |
+| 1 | SIG-Ed25519 / MAC-X25519 | 86.932 | 105.301 | 192.233 |
+| 2 | MAC-X25519 / SIG-Ed25519 | 105.301 | 86.932 | 192.233 |
+| 3 | MAC/MAC static-DH X25519 | 101.026 | 101.026 | 202.052 |
+| 4 | SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768) | 492.320 | 492.320 | 984.640 |
 | 5 | EAP-TLS Classic (X25519 ECDHE + Ed25519, mutual) | 120.646 | 120.646 | 241.292 |
 | 6 | EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert) | 467.442 | 426.907 | 894.349 |
 
-- Termurah secara komputasi: **method 3** (MAC/MAC static-DH X25519, 151.725 us).
-- Termahal secara komputasi: **method 6** (EAP-TLS Hybrid PQC (X25519MLKEM768 hybrid KEM, ML-DSA-44 cert), 894.349 us).
+- Termurah secara komputasi: **method 0** (SIG/SIG Ed25519, 182.415 us).
+- Termahal secara komputasi: **method 4** (SIGMA XWING+ML-DSA-44 (X25519+ML-KEM-768), 984.640 us).
 
 > **Peringatan baca:** urutan termurah/termahal di atas HANYA waktu komputasi kripto murni (µs) — TIDAK termasuk round-trip jaringan RADIUS/fragmentasi EAP. Urutan itu BUKAN urutan kecepatan handshake end-to-end nyata. Untuk urutan yang sebenarnya dialami pengguna (termasuk RTT), lihat `analisys2.md` section 1c — di sana method 6 (EAP-TLS Hybrid PQC) adalah yang paling lambat secara live, bukan method 4, justru karena jumlah round-trip fragmentasi EAP-nya yang jauh lebih banyak, sesuatu yang tidak tertangkap oleh tabel compute murni ini.
+
+### Operasi kriptografi per method (Initiator/Responder)
+
+| Method | X25519 KeyGen | X25519 DH | ML-KEM KeyGen | Encaps | Decaps | Sign | Verify |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 1/1 | 1/1 | - | - | - | 1/1 | 1/1 |
+| 1 | 1/1 | 2/2 | - | - | - | 1/0 | 0/1 |
+| 2 | 1/1 | 2/2 | - | - | - | 0/1 | 1/0 |
+| 3 | 1/1 | 3/3 | - | - | - | - | - |
+| 4 | 2/2 | 2/2 | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
+| 5 | 1/1 | 1/1 | - | - | - | 1/1 | 2/2 |
+| 6 | 1/1 | 1/1 | 1/0 | 0/1 | 1/0 | 1/1 | 2/2 |
+
+### Komputasi per fungsi (kedua pihak, ms)
+
+Key exchange: share X25519 ephemeral, DH ephemeral, operasi KEM. Authentication: tanda tangan transcript dan verifikasinya, atau static DH. Certificate check: tanda tangan CA pada sertifikat peer. Key rotation: pasangan kunci X-Wing one-time berikutnya.
+
+| Method | Key exchange | Authentication | Certificate check | Key rotation | Total |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0.101 | 0.081 | - | - | 0.182 |
+| 1 | 0.101 | 0.091 | - | - | 0.192 |
+| 2 | 0.101 | 0.091 | - | - | 0.192 |
+| 3 | 0.101 | 0.101 | - | - | 0.202 |
+| 4 | 0.303 | 0.566 | - | 0.116 | 0.985 |
+| 5 | 0.101 | 0.081 | 0.059 | - | 0.241 |
+| 6 | 0.209 | 0.566 | 0.119 | - | 0.894 |
+
+### Kebijakan precompute yang sama untuk kedua protokol
+
+| Aturan (sama untuk kedua sisi) | Proposal (ms) | EAP-TLS Hybrid (ms) |
+| --- | --- | --- |
+| Semua keygen di dalam handshake | 0.985 | 0.894 |
+| Hanya "kunci berikutnya" di muka (kunci rotasi proposal <-> key share client TLS) | 0.869 | 0.836 |
+| Semua keygen yang tidak bergantung sesi di muka (termasuk share X25519 ephemeral) | 0.818 | 0.811 |
+
+Dengan aturan yang sama, komputasi kedua protokol hampir sama; perbedaannya ada di transport.
 
 ## 2. Performa pada jaringan lossy (simulasi 2-round-trip, semua method)
 
