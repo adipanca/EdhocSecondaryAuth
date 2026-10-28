@@ -29,15 +29,21 @@ Model (mutual TLS 1.3, 1-RTT):
   - Client authentication: mutual TLS, CertificateVerify signature scheme =
     ML-DSA-44 on both sides (same PQC signature as method 4, for an
     apples-to-apples comparison).
+  - Certificate validation: each side also verifies the CA's ML-DSA-44
+    signature on the peer's end-entity certificate (SSL_VERIFY_PEER on the
+    client, ca_file in FreeRADIUS). The chain is root CA (trusted, not
+    verified) -> end-entity, so one extra verify per side. Method 4 has no
+    certificates (VK_I / VK_R are provisioned), hence no such verify.
 
 Per-side operation counts (see task spec / final report for the exact
 mapping):
   initiator (UE)  : Keygen(X25519)x1 + Keygen(ML-KEM-768)x1, ScalarMult x1,
                      Decaps(ML-KEM-768)x1, Encaps x0,
-                     Signature(ML-DSA-44)x1, Verify(ML-DSA-44)x1.
+                     Signature(ML-DSA-44)x1, Verify(ML-DSA-44)x2.
   responder (AAA) : Keygen(X25519)x1 (no ML-KEM keypair — it encapsulates to
                      the client's), ScalarMult x1, Encaps(ML-KEM-768)x1,
-                     Decaps x0, Signature(ML-DSA-44)x1, Verify(ML-DSA-44)x1.
+                     Decaps x0, Signature(ML-DSA-44)x1, Verify(ML-DSA-44)x2.
+  Verify x2 = CertificateVerify + peer certificate signature.
 
 Outputs (append method=6 rows to, creating the files if missing):
   benchmark-results/crypto-breakdown.csv
@@ -99,10 +105,11 @@ def build_breakdown_rows(means):
     vd = means["Verify_MLDSA44"]
 
     # (x25519_keygen, x25519_dh, mlkem_keygen, mlkem_encaps, mlkem_decaps, mldsa_sign, mldsa_verify)
+    # mldsa_verify = 2: CertificateVerify + peer certificate signature
     initiator = dict(x25519_keygen=1, x25519_dh=1, mlkem_keygen=1, mlkem_encaps=0,
-                      mlkem_decaps=1, mldsa_sign=1, mldsa_verify=1)
+                      mlkem_decaps=1, mldsa_sign=1, mldsa_verify=2)
     responder = dict(x25519_keygen=1, x25519_dh=1, mlkem_keygen=0, mlkem_encaps=1,
-                      mlkem_decaps=0, mldsa_sign=1, mldsa_verify=1)
+                      mlkem_decaps=0, mldsa_sign=1, mldsa_verify=2)
 
     def role_rows(role, o):
         keygen_cnt = o["x25519_keygen"] + o["mlkem_keygen"]

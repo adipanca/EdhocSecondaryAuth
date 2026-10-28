@@ -12,14 +12,20 @@ the axis this benchmark suite is trying to isolate. See the live
 e2e-handshake.csv / analisys2.md section 1c for the real Ed25519 handshake
 numbers; this script only derives the matching 1a/1b compute-breakdown view.
 
-Per-side operation model (mirrors method 0's SIG/SIG shape exactly — one
-keygen, one scalar-mult, one sign, one verify per side, all Ed25519/X25519):
+Per-side operation model (method 0's SIG/SIG shape plus certificate
+validation — one keygen, one scalar-mult, one sign, two verifies per side,
+all Ed25519/X25519):
   initiator (UE)  : Keygen(X25519)x1, ScalarMult(X25519)x1,
                      Signature(Ed25519)x1 [CertificateVerify],
-                     Verify(Ed25519)x1   [verifies server's signature]
+                     Verify(Ed25519)x2   [server's CertificateVerify +
+                                          CA signature on server cert]
   responder (AAA) : Keygen(X25519)x1, ScalarMult(X25519)x1,
                      Signature(Ed25519)x1 [ServerKeyExchange/CertVerify signature],
-                     Verify(Ed25519)x1   [verifies client's CertificateVerify]
+                     Verify(Ed25519)x2   [client's CertificateVerify +
+                                          CA signature on client cert]
+The certificate chain is root CA (trusted, not verified) -> end-entity, so
+certificate validation adds exactly one verify per side. EDHOC methods 0..3
+use raw public keys and do not verify a certificate.
 
 No new primitive measurement is needed for this model: Keygen_X25519,
 ScalarMult_X25519, Signature_Ed25519 and Verify_Ed25519 are already real,
@@ -177,9 +183,10 @@ def main():
             (METHOD, PROFILE, role, "Encaps", "ML-KEM-768", 0, 0.0),
             (METHOD, PROFILE, role, "Decaps", "ML-KEM-768", 0, 0.0),
             (METHOD, PROFILE, role, "Signature", "Ed25519/ML-DSA-44", 1, ed_sign),
-            (METHOD, PROFILE, role, "Verify", "Ed25519/ML-DSA-44", 1, ed_verify),
+            # CertificateVerify + peer certificate signature
+            (METHOD, PROFILE, role, "Verify", "Ed25519/ML-DSA-44", 2, 2 * ed_verify),
         ]
-        total_ns = kx + sx + ed_sign + ed_verify
+        total_ns = kx + sx + ed_sign + 2 * ed_verify
         return rows_out, total_ns
 
     ini_rows, ini_ns = role_rows("initiator")

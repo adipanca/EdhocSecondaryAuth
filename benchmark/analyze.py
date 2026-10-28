@@ -62,7 +62,10 @@ def section_breakdown(rd):
     parts = ["## 1b. Breakdown komputasi per method (Keygen, Scalar mult, "
              "Encaps, Decaps, Signature, Verify)\n",
              "Kontribusi waktu komputasi tiap operasi dalam satu handshake "
-             "(initiator = UE, responder = DN-AAA).\n",
+             "(initiator = UE, responder = DN-AAA). Untuk EAP-TLS (method "
+             "5/6), Verify = 2 per pihak: CertificateVerify + tanda tangan CA "
+             "pada sertifikat peer (rantai root CA -> end-entity, tanpa "
+             "intermediate). EDHOC (method 0-4) tidak memakai sertifikat.\n",
              md_table(rows,
                       ["method", "role", "operation", "primitive",
                        "op_count", "compute_ns"],
