@@ -1,11 +1,10 @@
 /*
  * selftest.c — In-process EAP-EDHOC method 4 v3 handshake test
  * (no ephemeral X-Wing; forward secrecy from one-time rotated static keys;
- * next keys in EAD_1 / EAD_2, next pseudonym in EAD_2).
+ * next keys in EAD_1 / EAD_2).
  *
  * Runs FIVE consecutive sessions per UE between two UEs and the DN-AAA:
- *   - the P_next the UE receives equals the one the DN-AAA sent, and no
- *     pseudonym repeats across all sessions;
+ *   - the next responder key the UE receives equals the one the DN-AAA made;
  *   - each session: message_1..4, MSK/EMSK must match on both sides;
  *   - after each session both sides call edhoc4_commit(): the next session
  *     must use the rotated keys, and the old secret keys must be erased;
@@ -52,10 +51,6 @@ static ue_record *select_record(const char *eap_identity)
     return NULL;
 }
 
-#define MAX_SEEN 64
-static uint8_t seen[MAX_SEEN][E4_PSEUDO_LEN];
-static int n_seen;
-
 static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
                        int verbose)
 {
@@ -85,12 +80,9 @@ static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
 
     int ok = memcmp(I.msk, R.msk, E4_MSK_LEN) == 0 &&
              memcmp(I.emsk, R.emsk, E4_EMSK_LEN) == 0 && I.done && R.done &&
-             memcmp(I.pnext, R.pnext, E4_PSEUDO_LEN) == 0;
-    /* every pseudonym is fresh */
-    for (int k = 0; k < n_seen; k++)
-        if (memcmp(seen[k], R.pnext, E4_PSEUDO_LEN) == 0) ok = 0;
-    if (n_seen < MAX_SEEN) memcpy(seen[n_seen++], R.pnext, E4_PSEUDO_LEN);
-    printf("  UE %02x run %d: MSK/EMSK/P_next %s\n", ue->id_cred[2], n, ok ? "MATCH" : "MISMATCH");
+             memcmp(I.peer_new_pk, R.new_pk, E4_XWING_PK) == 0 &&
+             memcmp(R.peer_new_pk, I.new_pk, E4_XWING_PK) == 0;
+    printf("  UE %02x run %d: MSK/EMSK/next keys %s\n", ue->id_cred[2], n, ok ? "MATCH" : "MISMATCH");
     if (!ok) return E4_ERR_MAC;
 
     /* rotate: UE installs NskA/NpkA and NpkB; DN-AAA installs NskB/NpkB and
@@ -164,6 +156,6 @@ int main(void)
     sodium_memzero(&ue0_before, sizeof(ue0_before));
     if (rc == E4_OK) { printf("\nRESULT: FAIL\n"); return 1; }
 
-    printf("\nRESULT: PASS — 2 UEs x 5 runs, identical MSK/EMSK and P_next, %d distinct pseudonyms, per-UE keys rotated every run\n", n_seen);
+    printf("\nRESULT: PASS — 2 UEs x 5 runs, identical MSK/EMSK and next keys, per-UE keys rotated every run\n");
     return 0;
 }

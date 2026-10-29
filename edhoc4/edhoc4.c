@@ -492,11 +492,12 @@ int edhoc4_pub_save_atomic_raw(const char *path, const uint8_t pk[E4_XWING_PK])
 /* ---- two-slot key record ----
  * block 0 (4096 B): magic "E4R2", version, slot size, payload length
  * slot i at REC_HDR + i * REC_SLOT: u64 seq, u32 len, u32 0,
- *     payload = creds || peer pk || pseudonym, tag = SHA-256(seq..payload)
+ *     payload = creds || peer pk, tag = SHA-256(seq..payload)
  * Slots are page-aligned so a torn write stays within one slot. Native
  * byte order: the file never leaves the host that wrote it.
- * Version 2 adds the pseudonym to the payload. */
-#define REC_VERSION  2
+ * Version 3: protocol v3 (rotation keys in EAD_1/EAD_2, no grace key);
+ * version-2 records (with a pseudonym) are refused. */
+#define REC_VERSION  3
 #define REC_HDR      4096
 #define REC_SLOT_HDR 16
 #define REC_SLOT     ((REC_SLOT_HDR + E4_REC_PAYLOAD + 32 + 4095) / 4096 * 4096)
@@ -508,18 +509,15 @@ typedef struct {
 } rec_header;
 
 static uint8_t *rec_slot_build(uint64_t seq, const edhoc4_creds *self,
-                               const uint8_t peer_pk[E4_XWING_PK],
-                               const uint8_t pseudo[E4_PSEUDO_LEN], uint8_t *buf)
+                               const uint8_t peer_pk[E4_XWING_PK], uint8_t *buf)
 {
     uint32_t len = (uint32_t)E4_REC_PAYLOAD, z = 0;
-    uint8_t *pl = buf + REC_SLOT_HDR;
     memset(buf, 0, REC_SLOT);
     memcpy(buf, &seq, 8);
     memcpy(buf + 8, &len, 4);
     memcpy(buf + 12, &z, 4);
-    memcpy(pl, self, sizeof(*self));
-    memcpy(pl + sizeof(*self), peer_pk, E4_XWING_PK);
-    memcpy(pl + sizeof(*self) + E4_XWING_PK, pseudo, E4_PSEUDO_LEN);
+    memcpy(buf + REC_SLOT_HDR, self, sizeof(*self));
+    memcpy(buf + REC_SLOT_HDR + sizeof(*self), peer_pk, E4_XWING_PK);
     crypto_hash_sha256(buf + REC_SLOT_HDR + E4_REC_PAYLOAD, buf, REC_SLOT_HDR + E4_REC_PAYLOAD);
     return buf;
 }
@@ -570,63 +568,57 @@ static int rec_open(const char *path, int flags, uint8_t (*slots)[REC_SLOT],
 }
 
 int edhoc4_rec_create(const char *path, const edhoc4_creds *self,
-                      const uint8_t peer_pk[E4_XWING_PK],
-                      const uint8_t pseudo[E4_PSEUDO_LEN])
+                      const uint8_t peer_pk[E4_XWING_PK])
 {
     static uint8_t zero[REC_SIZE];
     static uint8_t slot[REC_SLOT];
     rec_header h = { { 'E', '4', 'R', '2' }, REC_VERSION, REC_SLOT, (uint32_t)E4_REC_PAYLOAD };
-    if (!path || !self || !peer_pk || !pseudo) return E4_ERR_ARG;
+    if (!path || !self || !peer_pk) return E4_ERR_ARG;
     int fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0600);
     if (fd < 0) return E4_ERR_ARG;
     /* write every block once, so later overwrites need no extent change */
     int rc = (posix_fallocate(fd, 0, REC_SIZE) == 0 && rec_pwrite(fd, zero, REC_SIZE, 0) == 0 &&
               rec_pwrite(fd, &h, sizeof(h), 0) == 0 &&
-              rec_pwrite(fd, rec_slot_build(1, self, peer_pk, pseudo, slot), REC_SLOT, REC_HDR) == 0 &&
+              rec_pwrite(fd, rec_slot_build(1, self, peer_pk, slot), REC_SLOT, REC_HDR) == 0 &&
               fsync(fd) == 0) ? E4_OK : E4_ERR_ARG;
     sodium_memzero(slot, sizeof(slot));
     close(fd);
     return rc;
 }
 
-int edhoc4_rec_load(const char *path, int older, edhoc4_creds *self,
-                    uint8_t peer_pk[E4_XWING_PK], uint8_t pseudo[E4_PSEUDO_LEN],
-                    edhoc4_rec_info *info)
+int edhoc4_rec_load(const char *path, int slot, edhoc4_creds *self,
+                    uint8_t peer_pk[E4_XWING_PK], edhoc4_rec_info *info)
 {
     static __thread uint8_t slots[2][REC_SLOT];
     edhoc4_rec_info tmp;
-    if (!path || !self) return E4_ERR_ARG;
+    if (!path || !self || slot > 1) return E4_ERR_ARG;
     if (!info) info = &tmp;
     int fd = rec_open(path, O_RDONLY, slots, info);
     if (fd < 0) return E4_ERR_ARG;
     close(fd);
     int rc = E4_ERR_PARSE;
-    int i = info->active < 0 ? -1 : (older ? 1 - info->active : info->active);
+    int i = slot < 0 ? info->active : slot;
     if (i >= 0 && info->valid[i]) {
-        const uint8_t *pl = slots[i] + REC_SLOT_HDR;
-        memcpy(self, pl, sizeof(*self));
-        if (peer_pk) memcpy(peer_pk, pl + sizeof(*self), E4_XWING_PK);
-        if (pseudo) memcpy(pseudo, pl + sizeof(*self) + E4_XWING_PK, E4_PSEUDO_LEN);
+        memcpy(self, slots[i] + REC_SLOT_HDR, sizeof(*self));
+        if (peer_pk) memcpy(peer_pk, slots[i] + REC_SLOT_HDR + sizeof(*self), E4_XWING_PK);
         rc = E4_OK;
     }
     sodium_memzero(slots, sizeof(slots));
     return rc;
 }
 
-int edhoc4_rec_write_next(const char *path, const edhoc4_creds *self,
-                          const uint8_t peer_pk[E4_XWING_PK],
-                          const uint8_t pseudo[E4_PSEUDO_LEN])
+int edhoc4_rec_write(const char *path, int slot, const edhoc4_creds *self,
+                     const uint8_t peer_pk[E4_XWING_PK])
 {
     static __thread uint8_t slots[2][REC_SLOT];
     edhoc4_rec_info info;
-    if (!path || !self || !peer_pk || !pseudo) return E4_ERR_ARG;
+    if (!path || !self || !peer_pk || slot < 0 || slot > 1) return E4_ERR_ARG;
     int fd = rec_open(path, O_RDWR, slots, &info);
     if (fd < 0) return E4_ERR_ARG;
     int rc = E4_ERR_STATE;
     if (info.active >= 0) {
-        int w = 1 - info.active;
-        rc = (rec_pwrite(fd, rec_slot_build(info.seq[info.active] + 1, self, peer_pk, pseudo, slots[w]),
-                         REC_SLOT, REC_HDR + (off_t)w * REC_SLOT) == 0 &&
+        rc = (rec_pwrite(fd, rec_slot_build(info.seq[info.active] + 1, self, peer_pk, slots[slot]),
+                         REC_SLOT, REC_HDR + (off_t)slot * REC_SLOT) == 0 &&
               fdatasync(fd) == 0) ? E4_OK : E4_ERR_ARG;
     }
     sodium_memzero(slots, sizeof(slots));
@@ -634,52 +626,25 @@ int edhoc4_rec_write_next(const char *path, const edhoc4_creds *self,
     return rc;
 }
 
-int edhoc4_rec_drop(const char *path, int which, int flush)
+int edhoc4_rec_zero(const char *path, int slot, int flush)
 {
     static __thread uint8_t slots[2][REC_SLOT];
     edhoc4_rec_info info;
-    if (!path) return E4_ERR_ARG;
+    if (!path || slot < 0 || slot > 1) return E4_ERR_ARG;
     int fd = rec_open(path, O_RDWR, slots, &info);
     if (fd < 0) return E4_ERR_ARG;
     int rc = E4_OK;
-    if (info.active >= 0 && info.valid[1 - info.active]) {
-        int d = which ? 1 - info.active : info.active;
-        memset(slots[0], 0, REC_SLOT);
-        rc = (rec_pwrite(fd, slots[0], REC_SLOT, REC_HDR + (off_t)d * REC_SLOT) == 0 &&
-              (!flush || fdatasync(fd) == 0)) ? E4_OK : E4_ERR_ARG;
+    if (info.valid[slot]) {
+        if (!info.valid[1 - slot]) rc = E4_ERR_STATE;      /* never the only key */
+        else {
+            memset(slots[0], 0, REC_SLOT);
+            rc = (rec_pwrite(fd, slots[0], REC_SLOT, REC_HDR + (off_t)slot * REC_SLOT) == 0 &&
+                  (!flush || fdatasync(fd) == 0)) ? E4_OK : E4_ERR_ARG;
+        }
     }
     sodium_memzero(slots, sizeof(slots));
     close(fd);
     return rc;
-}
-
-int edhoc4_pseudo_to_nai(const uint8_t pseudo[E4_PSEUDO_LEN], const char *realm,
-                         char *out, size_t cap)
-{
-    static const char hex[] = "0123456789abcdef";
-    char p[2 + 2 * E4_PSEUDO_LEN];
-    if (!pseudo || !out) return E4_ERR_ARG;
-    p[0] = 'p';
-    for (int i = 0; i < E4_PSEUDO_LEN; i++) {
-        p[1 + 2 * i] = hex[pseudo[i] >> 4];
-        p[2 + 2 * i] = hex[pseudo[i] & 15];
-    }
-    p[1 + 2 * E4_PSEUDO_LEN] = 0;
-    int n = (realm && *realm) ? snprintf(out, cap, "%s@%s", p, realm) : snprintf(out, cap, "%s", p);
-    return (n > 0 && (size_t)n < cap) ? E4_OK : E4_ERR_BUF;
-}
-
-int edhoc4_nai_to_pseudo(const char *nai, uint8_t pseudo[E4_PSEUDO_LEN])
-{
-    if (!nai || !pseudo || nai[0] != 'p') return E4_ERR_PARSE;
-    for (int i = 0; i < 2 * E4_PSEUDO_LEN; i++) {
-        char ch = nai[1 + i];
-        int v = (ch >= '0' && ch <= '9') ? ch - '0' : (ch >= 'a' && ch <= 'f') ? ch - 'a' + 10 : -1;
-        if (v < 0) return E4_ERR_PARSE;
-        if (i & 1) pseudo[i / 2] |= (uint8_t)v; else pseudo[i / 2] = (uint8_t)(v << 4);
-    }
-    char end = nai[1 + 2 * E4_PSEUDO_LEN];
-    return (end == 0 || end == '@') ? E4_OK : E4_ERR_PARSE;
 }
 
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
@@ -706,9 +671,10 @@ void edhoc4_init_responder(edhoc4_ctx *ctx, const edhoc4_creds *self,
 /* Protocol v3: NO ephemeral X-Wing key pair; the next one-time keys travel */
 /* early.                                                                    */
 /*   - message_1 = ct_B || AEAD(K1, PT1), EAD_1 = Npk_A;                     */
-/*   - message_2 = ct_A || AEAD(K2, PT2), EAD_2 = (Npk_B, P_next), covered   */
-/*     by MAC_2 and sigma_R;                                                 */
-/*   - message_3 = AEAD(K3, PT3) without EAD; message_4 = AEAD(K4, empty).   */
+/*   - message_2 = ct_A || AEAD(K2, PT2), EAD_2 = Npk_B, covered by MAC_2    */
+/*     and sigma_R;                                                          */
+/*   - message_3 = AEAD(K3, MAC_3 || VK_I || sigma_I), no EAD (ID_CRED_I     */
+/*     was sent in PT1); message_4 = AEAD(K4, empty).                        */
 /*   - PRK_2e = Extract(TH_2, ss_A); PRK_3e2m = Extract(PRK_2e, ss_B);       */
 /*     PRK_4e3m = PRK_3e2m.                                                  */
 /*   - Forward secrecy comes from per-session rotation of pk_A / pk_B and    */
@@ -722,13 +688,10 @@ static size_t ead1_build(uint8_t *out, const uint8_t npk[E4_XWING_PK])
     return E4_EAD1_LEN;
 }
 
-static size_t ead2_build(uint8_t *out, const uint8_t npk[E4_XWING_PK],
-                         const uint8_t pnext[E4_PSEUDO_LEN])
+static size_t ead2_build(uint8_t *out, const uint8_t npk[E4_XWING_PK])
 {
     out[0] = E4_EAD_NEXT_PK;
     memcpy(out + 1, npk, E4_XWING_PK);
-    out[1 + E4_XWING_PK] = E4_EAD_PSEUDONYM;
-    memcpy(out + 2 + E4_XWING_PK, pnext, E4_PSEUDO_LEN);
     return E4_EAD2_LEN;
 }
 
@@ -782,7 +745,7 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
 /* ======================================================================== */
 /* Message 1 handling + Message 2  (responder)                               */
 /*   msg2 = ctA[1120] || AEAD(K2, PT2)                                       */
-/*   PT2 = C_R[1] || ID_CRED_R[3] || VK_R[1312] || EAD_2[1234] || MAC2[8]    */
+/*   PT2 = C_R[1] || ID_CRED_R[3] || VK_R[1312] || EAD_2[1217] || MAC2[8]    */
 /*         || sigma_R[2420]                                                  */
 /* ======================================================================== */
 
@@ -820,11 +783,10 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                     ctx->lookup_arg) != 0)
         return E4_ERR_PEER;
 
-    /* next one-time key pair and next pseudonym, announced in EAD_2 */
+    /* next one-time key pair, announced in EAD_2 */
     if (next_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
-    randombytes_buf(ctx->pnext, E4_PSEUDO_LEN);
     uint8_t ead2[E4_EAD2_LEN];
-    ead2_build(ead2, ctx->new_pk, ctx->pnext);
+    ead2_build(ead2, ctx->new_pk);
 
     /* H(message_1) */
     uint8_t h_msg1[32];
@@ -885,10 +847,10 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
 /* ======================================================================== */
 /* Message 2 handling + Message 3  (initiator)                               */
 /*   msg3 = AEAD(K3, PT3)                                                     */
-/*   PT3 = ID_CRED_I || MAC3 || VK_I || sigma_I   (no EAD_3)                 */
+/*   PT3 = MAC3 || VK_I || sigma_I   (no EAD_3; ID_CRED_I is in PT1)         */
 /* ======================================================================== */
 
-#define E4_PT3_LEN (E4_ID_CRED + E4_MAC_LEN + E4_MLDSA_PK + E4_MLDSA_SIG)
+#define E4_PT3_LEN (E4_MAC_LEN + E4_MLDSA_PK + E4_MLDSA_SIG)
 
 int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len)
@@ -925,8 +887,7 @@ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     const uint8_t *ead2 = pt2 + o; o += E4_EAD2_LEN;
     const uint8_t *mac2 = pt2 + o; o += E4_MAC_LEN;
     const uint8_t *sig_r = pt2 + o; o += E4_MLDSA_SIG;
-    if (ead2[0] != E4_EAD_NEXT_PK || ead2[1 + E4_XWING_PK] != E4_EAD_PSEUDONYM)
-        return E4_ERR_PARSE;
+    if (ead2[0] != E4_EAD_NEXT_PK) return E4_ERR_PARSE;
 
     /* PRK3e2m = Extract(PRK2e, ss_b) */
     hkdf_extract(ctx->prk2e, 32, ctx->ss_b, E4_XWING_SS, ctx->prk3e2m);
@@ -942,9 +903,8 @@ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     if (PQCLEAN_MLDSA44_CLEAN_crypto_sign_verify(sig_r, E4_MLDSA_SIG,
             sigmsg, sigmsg_len, ctx->peer_sig_vk) != 0) return E4_ERR_SIG;
 
-    /* EAD_2 is authenticated: next responder key and next pseudonym */
+    /* EAD_2 is authenticated: next responder key */
     memcpy(ctx->peer_new_pk, ead2 + 1, E4_XWING_PK);
-    memcpy(ctx->pnext, ead2 + 2 + E4_XWING_PK, E4_PSEUDO_LEN);
 
     /* TH3 = H(TH2 || PT2) */
     const uint8_t *s3[2] = { ctx->th2, pt2 };
@@ -963,10 +923,9 @@ int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     if (PQCLEAN_MLDSA44_CLEAN_crypto_sign_signature(sig_i, &sig_i_len,
             sigmsg3, sigmsg3_len, ctx->self.sig_sk) != 0) return E4_ERR_SIG;
 
-    /* PT3 = ID_CRED_I || MAC3 || VK_I || sigma_I */
+    /* PT3 = MAC3 || VK_I || sigma_I */
     uint8_t pt3[E4_PT3_LEN];
     size_t p = 0;
-    memcpy(pt3 + p, ctx->self.id_cred, E4_ID_CRED); p += E4_ID_CRED;
     memcpy(pt3 + p, mac3, E4_MAC_LEN); p += E4_MAC_LEN;
     memcpy(pt3 + p, ctx->self.sig_vk, E4_MLDSA_PK); p += E4_MLDSA_PK;
     memcpy(pt3 + p, sig_i, E4_MLDSA_SIG); p += E4_MLDSA_SIG;
@@ -1009,10 +968,8 @@ int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
         return E4_ERR_AEAD;
     if (pt3_len != E4_PT3_LEN) return E4_ERR_PARSE;
 
+    /* MAC_3 and sigma_I are checked against ID_CRED_I from PT1 */
     size_t o = 0;
-    uint8_t id_i[E4_ID_CRED];
-    memcpy(id_i, pt3 + o, E4_ID_CRED); o += E4_ID_CRED;
-    if (sodium_memcmp(id_i, ctx->peer_id_cred, E4_ID_CRED) != 0) return E4_ERR_PEER;
     const uint8_t *mac3 = pt3 + o; o += E4_MAC_LEN;
     uint8_t vk_i[E4_MLDSA_PK];
     memcpy(vk_i, pt3 + o, E4_MLDSA_PK); o += E4_MLDSA_PK;
@@ -1115,7 +1072,6 @@ const char *edhoc4_strerror(int rc)
     case E4_ERR_SIG:   return "signature verify failed";
     case E4_ERR_STATE: return "wrong role/state";
     case E4_ERR_PEER:  return "unknown or mismatching peer";
-    case E4_ERR_PSEUDO: return "unknown pseudonym";
     default:           return "unknown error";
     }
 }
