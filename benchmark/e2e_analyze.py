@@ -518,6 +518,71 @@ def main():
                  "berikutnya memulihkan state lewat NEXT atau fallback.")
         L.append("")
 
+    # ---- 1c-7b. Forced message_3 / message_4 loss (method 4, protocol v3) ----
+    frc_path = os.path.join(RESULTS, "e2e-recovery-forced.csv")
+    if os.path.exists(frc_path):
+        fr = load_rows(frc_path)
+        def cnt(rows, f):
+            return sum(1 for r in rows if f(r))
+        L.append("### Uji pemulihan dengan loss paksa (Message3 / Message4 di-drop)")
+        L.append("")
+        L.append("`benchmark/recovery_forced.sh`: provisioning sekali di awal, lalu tiap kasus "
+                 "berulang kali: satu sesi dengan loss deterministik (`e2e_radius_bench "
+                 "--drop-msg3-once` / `--drop-msg4-once`, semua salinan pesan itu hilang; status "
+                 "DROP) diikuti satu sesi normal (sesi pemulihan), tanpa loss lain dan tanpa "
+                 "re-provisioning. Di akhir 10 sesi normal untuk cek desync. `EAP-Failure` = "
+                 "Access-Reject pada percobaan pertama sesi pemulihan.")
+        L.append("")
+        L.append("| Kasus | N | Sesi drop | Pemulihan PASS | used_next | EAP-Failure | fallback | "
+                 "Mean pemulihan (ms) | Median pemulihan (ms) | RADIUS RT (median) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+        fails = 0
+        for lab, name in (("drop_msg3", "Message3 di-drop (tidak sampai ke DN-AAA)"),
+                          ("drop_msg4", "Message4 di-drop (DN-AAA sudah commit)"),
+                          ("drop_msg3_rd0", "Message3 di-drop, `reject_delay = 0`")):
+            drops = [r for r in fr if r["label"] == lab and r["iteration"] == "1"]
+            recs = [r for r in fr if r["label"] == lab and r["iteration"] == "2"]
+            if not recs:
+                continue
+            ok = [r for r in recs if r["status"] == "PASS"]
+            fails += len(recs) - len(ok)
+            d = [float(r["duration_ms"]) for r in ok] or [0.0]
+            L.append(f"| {name} | {len(recs)} | {cnt(drops, lambda r: r['status'] == 'DROP')} | "
+                     f"{len(ok)} | {cnt(recs, lambda r: r['used_next'] == '1')} | "
+                     f"{cnt(recs, lambda r: int(r['access_reject']) > 0)} | "
+                     f"{cnt(recs, lambda r: r['fallback'] == '1')} | "
+                     f"{statistics.mean(d):.3f} | {statistics.median(d):.3f} | "
+                     f"{statistics.median(int(r['radius_round_trips']) for r in recs):.0f} |")
+        after = [r for r in fr if r["label"] == "after"]
+        if after:
+            d = [float(r["duration_ms"]) for r in after if r["status"] == "PASS"] or [0.0]
+            L.append(f"| Setelahnya, sesi normal | {len(after)} | 0 | "
+                     f"{cnt(after, lambda r: r['status'] == 'PASS')} | "
+                     f"{cnt(after, lambda r: r['used_next'] == '1')} | "
+                     f"{cnt(after, lambda r: int(r['access_reject']) > 0)} | "
+                     f"{cnt(after, lambda r: r['fallback'] == '1')} | "
+                     f"{statistics.mean(d):.3f} | {statistics.median(d):.3f} | "
+                     f"{statistics.median(int(r['radius_round_trips']) for r in after):.0f} |")
+        L.append("")
+        desync = fails + cnt(after, lambda r: r["status"] != "PASS")
+        L.append(f"- Desync: **{desync}** (sesi pemulihan atau sesi sesudahnya yang gagal); "
+                 "re-provisioning: **0** (record hanya di-provision sekali sebelum kasus pertama).")
+        L.append("- Message3 di-drop: sesi pemulihan mulai di NEXT, DN-AAA (belum commit) menolak "
+                 "Message1 dengan EAP-Failure, UE mengulang dengan CUR dan menyimpan NEXT baru; "
+                 "waktunya mencakup kedua percobaan. Message4 di-drop: DN-AAA sudah commit, jadi "
+                 "sesi di NEXT langsung sukses tanpa fallback.")
+        rd = {lab: [float(r["duration_ms"]) for r in fr if r["label"] == lab
+                    and r["iteration"] == "2" and r["status"] == "PASS"]
+              for lab in ("drop_msg3", "drop_msg3_rd0")}
+        if rd["drop_msg3"] and rd["drop_msg3_rd0"]:
+            L.append(f"- Waktu pemulihan Message3 di-drop didominasi `reject_delay = 1` FreeRADIUS "
+                     f"(default; setiap Access-Reject ditahan 1 s, kebijakan server, bukan protokol): "
+                     f"median {statistics.median(rd['drop_msg3']):.3f} ms. Dengan `reject_delay = 0` "
+                     f"(radiusd.conf diubah sementara lalu dikembalikan): median "
+                     f"{statistics.median(rd['drop_msg3_rd0']):.3f} ms, yaitu percobaan di NEXT "
+                     "sampai EAP-Failure ditambah satu sesi penuh di CUR.")
+        L.append("")
+
     # ---- 1c-8. VM load during the series (vmstat every 5 s) ----
     vm_path = os.path.join(RESULTS, "series-vmstat.txt")
     if os.path.exists(vm_path):

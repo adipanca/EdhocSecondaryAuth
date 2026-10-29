@@ -32,6 +32,12 @@
  * and is logged with fallback=1. A timeout never triggers a fallback.
  * The EAP identity (g_identity) selects <db>/<identity>/ on the responder.
  *
+ * --drop-msg3-once / --drop-msg4-once (method 4, recovery test): the first
+ * handshake of the process loses every copy of message_3 (it never reaches
+ * the DN-AAA) or of message_4 (the DN-AAA has committed); the run stops
+ * there without waiting for the retransmission timeouts and is logged with
+ * status DROP. The next iteration is the recovery session.
+ *
  * This is a benchmark / interoperability harness, not production code.
  */
 #define _POSIX_C_SOURCE 200809L
@@ -96,6 +102,7 @@ static const char *g_identity = "edhoc-ue";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
 static int         g_pool     = 0;      /* --pool: EAD_1 key made before the clock starts */
+static int         g_drop_once = 0;     /* 3 / 4: lose message_3 / message_4 in the first run */
 static edhoc4_ue_state g_ue;            /* method 4: slot of the current run */
 static int         g_max_retx = 6;      /* EAP-style retransmit cap (per exchange) */
 static double      g_rto_ms   = 40.0;   /* retransmit back-off, matches lossy_bench RTO */
@@ -453,6 +460,7 @@ typedef struct {
     int    fallback;      /* method 4: NEXT rejected, retried with CUR */
     int    used_next;     /* method 4: the run started on NEXT */
     int    rejected_early;/* Access-Reject (EAP-Failure) before message_2 was verified */
+    int    dropped;       /* --drop-msg3-once / --drop-msg4-once fired in this run */
     int    radius_rt;     /* Access-Requests sent           */
     int    eap_rt;        /* EAP-Responses sent             */
     int    access_req, access_chal, access_accept, access_reject;
@@ -552,10 +560,21 @@ static int run_once(int method, result_t *r)
         const uint8_t *in = reap + 5;
         size_t in_len = reap_len - 5;
 
+        /* forced loss: this inbound is message_4 (message_3 fully sent) */
+        if (g_drop_once == 4 && e.step == 2 && e.out_pos >= e.out_len) {
+            g_drop_once = 0; r->dropped = 1; e.failed = 1; break;
+        }
+
         /* drive EDHOC + fragmentation */
         uint8_t wire[E4_EDHOC_FRAG_WIRE_MAX];
+        int prev_step = e.step;
         long wlen = eng_react(&e, in, in_len, wire);
         if (wlen < 0) { close(sock); e.failed = 1; break; }
+
+        /* forced loss: message_3 (NEXT already durable) never leaves */
+        if (g_drop_once == 3 && prev_step == 1 && e.step == 2) {
+            g_drop_once = 0; r->dropped = 1; e.failed = 1; break;
+        }
 
         /* wrap into EAP-Response(EDHOC) */
         eap_len = 0;
@@ -671,12 +690,16 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
         else if (!strcmp(argv[i], "-v")) g_verbose = 1;
         else if (!strcmp(argv[i], "--pool")) g_pool = 1;      /* opt-in precompute */
+        else if (!strcmp(argv[i], "--drop-msg3-once")) g_drop_once = 3;
+        else if (!strcmp(argv[i], "--drop-msg4-once")) g_drop_once = 4;
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
     }
     if (method < 0 || method > 4) {
-        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L] [--pool]\n", argv[0]);
+        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L] [--pool]\n"
+                        "          [--drop-msg3-once | --drop-msg4-once]   (method 4)\n", argv[0]);
         return 2;
     }
+    if (g_drop_once && method != 4) { fprintf(stderr, "--drop-msg*-once needs --method 4\n"); return 2; }
 
     if (!g_uedir) g_uedir = g_creddir;
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
@@ -695,7 +718,7 @@ int main(int argc, char **argv)
                         "initiator_ms,responder_ms,ue_commit_ms,fallback,used_next\n");
     }
 
-    int pass = 0, n_fallback = 0;
+    int pass = 0, n_fallback = 0, n_drop = 0;
     double sum = 0, best = 1e18, worst = 0;
     for (int it = 1; it <= iters; it++) {
         result_t r;
@@ -705,8 +728,9 @@ int main(int argc, char **argv)
         char ts[64];
         strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S%z", localtime(&now));
 
-        const char *st = (rc == 0) ? "PASS" : "FAIL";
+        const char *st = (rc == 0) ? "PASS" : r.dropped ? "DROP" : "FAIL";
         n_fallback += r.fallback;
+        n_drop += r.dropped;
         if (rc == 0) {
             pass++; sum += r.duration_ms;
             if (r.duration_ms < best) best = r.duration_ms;
@@ -736,8 +760,9 @@ int main(int argc, char **argv)
     printf("== method %d (%s): %d/%d PASS", method, method_name(method), pass, iters);
     if (pass) printf("  mean=%.3f ms best=%.3f worst=%.3f", sum / pass, best, worst);
     if (method == 4) printf("  ead1_keys_inline=%lu fallbacks=%d", edhoc4_pool_misses(), n_fallback);
+    if (n_drop) printf("  forced_drops=%d", n_drop);
     printf(" ==\n");
 
     if (cf) fclose(cf);
-    return (pass == iters) ? 0 : 1;
+    return (pass == iters - n_drop) ? 0 : 1;
 }

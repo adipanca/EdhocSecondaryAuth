@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:15:42._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:19:18._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -144,6 +144,21 @@ Sweep utama di atas cuma 100-200 iterasi/method — cukup untuk method 4-6 (beda
 
 - Desync: **0** (run tanpa loss yang gagal setelah seri lossy); re-provisioning: **0** (seri tidak pernah menulis ulang kunci).
 - Run yang gagal pada loss 20% adalah run yang kehabisan retransmisi; sesi berikutnya memulihkan state lewat NEXT atau fallback.
+
+### Uji pemulihan dengan loss paksa (Message3 / Message4 di-drop)
+
+`benchmark/recovery_forced.sh`: provisioning sekali di awal, lalu tiap kasus berulang kali: satu sesi dengan loss deterministik (`e2e_radius_bench --drop-msg3-once` / `--drop-msg4-once`, semua salinan pesan itu hilang; status DROP) diikuti satu sesi normal (sesi pemulihan), tanpa loss lain dan tanpa re-provisioning. Di akhir 10 sesi normal untuk cek desync. `EAP-Failure` = Access-Reject pada percobaan pertama sesi pemulihan.
+
+| Kasus | N | Sesi drop | Pemulihan PASS | used_next | EAP-Failure | fallback | Mean pemulihan (ms) | Median pemulihan (ms) | RADIUS RT (median) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Message3 di-drop (tidak sampai ke DN-AAA) | 20 | 20 | 20 | 20 | 20 | 20 | 1011.496 | 1010.368 | 19 |
+| Message4 di-drop (DN-AAA sudah commit) | 20 | 20 | 20 | 20 | 0 | 0 | 8.238 | 7.010 | 15 |
+| Message3 di-drop, `reject_delay = 0` | 20 | 20 | 20 | 20 | 20 | 20 | 9.697 | 8.636 | 19 |
+| Setelahnya, sesi normal | 10 | 0 | 10 | 0 | 0 | 0 | 7.200 | 6.469 | 15 |
+
+- Desync: **0** (sesi pemulihan atau sesi sesudahnya yang gagal); re-provisioning: **0** (record hanya di-provision sekali sebelum kasus pertama).
+- Message3 di-drop: sesi pemulihan mulai di NEXT, DN-AAA (belum commit) menolak Message1 dengan EAP-Failure, UE mengulang dengan CUR dan menyimpan NEXT baru; waktunya mencakup kedua percobaan. Message4 di-drop: DN-AAA sudah commit, jadi sesi di NEXT langsung sukses tanpa fallback.
+- Waktu pemulihan Message3 di-drop didominasi `reject_delay = 1` FreeRADIUS (default; setiap Access-Reject ditahan 1 s, kebijakan server, bukan protokol): median 1010.368 ms. Dengan `reject_delay = 0` (radiusd.conf diubah sementara lalu dikembalikan): median 8.636 ms, yaitu percobaan di NEXT sampai EAP-Failure ditambah satu sesi penuh di CUR.
 
 ### Load VM selama seri (vmstat, sampel 5 s)
 
