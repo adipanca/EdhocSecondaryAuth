@@ -334,7 +334,7 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             if (m_edhocRound == 1)
             {
                 rc = edhoc4_i_handle_msg2(&m_edhocCtx, msgData, msgLen, buf, sizeof(buf), &outLen);
-                // write-ahead: NEXT = (Nsk_A, Npk_B, P_next) is durable before message_3
+                // write-ahead: NEXT = (Nsk_A, Npk_A, Npk_B) is durable before message_3
                 if (rc == E4_OK)
                     rc = edhoc4_ue_store_next(m_edhocRecPath.c_str(), &m_edhocUe, &m_edhocCtx);
                 if (rc == E4_OK)

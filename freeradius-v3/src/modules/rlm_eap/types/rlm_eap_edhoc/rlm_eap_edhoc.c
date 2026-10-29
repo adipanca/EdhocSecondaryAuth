@@ -465,7 +465,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			eap_ds->request->code = PW_EAP_FAILURE;
 			return 0;
 		}
-		/* export MSK/EMSK, then commit: (P_next, Nsk_B, Npk_B, Npk_A) to the
+		/* export MSK/EMSK, then commit: (Nsk_B, Npk_B, Npk_A) to the
 		 * other slot with one fdatasync, before message_4 */
 		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
 		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
