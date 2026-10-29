@@ -1,25 +1,13 @@
-# strace -c -w -f -e trace=fsync,fdatasync (wall-clock time per call), 20 method-4 handshakes, two-slot records, rotation keys inline, 2026-10-28
+# strace -c -w -f -e trace=fsync,fdatasync (wall-clock time per call), 20 method-4 handshakes, protocol v3, 2026-10-29
 ## ue durable
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.013887         694        20           fdatasync
+100.00    0.029611         740        40           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.013887         694        20           total
+100.00    0.029611         740        40           total
 ## dn durable
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.015134         756        20           fdatasync
+100.00    0.027365         684        40           fdatasync
 ------ ----------- ----------- --------- --------- ----------------
-100.00    0.015134         756        20           total
-## ue tmpfs
-% time     seconds  usecs/call     calls    errors syscall
------- ----------- ----------- --------- --------- ----------------
-100.00    0.002295         114        20           fdatasync
------- ----------- ----------- --------- --------- ----------------
-100.00    0.002295         114        20           total
-## dn tmpfs
-% time     seconds  usecs/call     calls    errors syscall
------- ----------- ----------- --------- --------- ----------------
-100.00    0.002032         101        20           fdatasync
------- ----------- ----------- --------- --------- ----------------
-100.00    0.002032         101        20           total
+100.00    0.027365         684        40           total

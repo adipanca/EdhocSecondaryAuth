@@ -379,14 +379,13 @@ def main():
             L.append(f"- Biaya penyimpanan (selisih median durable - tmpfs): "
                      f"**{statistics.median(a_) - statistics.median(b_):.3f} ms**, 95% CI "
                      f"[{bs[100]:.3f}, {bs[3899]:.3f}] ms.")
-        L.append("- Penyimpanan: record dua-slot praalokasi (`rec.bin` DN-AAA, `ue.rec` UE). "
-                 "Flush per handshake (`storage-strace.txt`, `strace -c -w`, waktu wall-clock): "
-                 "DN-AAA 1 `fdatasync` (slot non-aktif ditulis sebelum Message4, write-ahead; "
-                 "penghapusan grace key lama ikut flush yang sama); UE 1 `fdatasync` setelah "
-                 "EAP-Success, di luar `duration_ms` (kolom `ue_commit_ms`). Satu `fdatasync` di "
-                 "disk virtual VM ini memakan sekitar 0.7-1 ms wall-clock, jadi biaya penyimpanan "
-                 "hampir seluruhnya berasal dari flush DN-AAA tersebut. (`strace -c` tanpa `-w` "
-                 "melaporkan waktu CPU sistem, bukan latensi, dan tidak boleh dipakai sebagai biaya.)")
+        L.append("- Penyimpanan (protokol v3): record dua-slot praalokasi (`rec.bin` DN-AAA, "
+                 "`ue.rec` UE). Di jalur kritis ada dua `fdatasync`: UE menulis slot NEXT sebelum "
+                 "Message3 dan DN-AAA menulis record baru sebelum Message4 (write-ahead). Di luar "
+                 "jalur kritis ada dua lagi: DN-AAA menolkan slot dengan sk_B lama setelah Message4 "
+                 "(worker thread) dan UE menolkan sk_A lama saat promosi setelah Message4 (kolom "
+                 "`ue_commit_ms`). Waktu per panggilan: `storage-strace.txt` (`strace -c -w`, "
+                 "wall-clock, termasuk overhead tracing).")
         L.append("")
 
     # ---- 1c-5. Method 4: precomputed rotation key / X-Wing per spec ----
@@ -485,6 +484,38 @@ def main():
             st_ = storage if m == 4 else 0.0
             n_rt = int(ok[0]["radius_round_trips"])
             L.append(f"| {m} | {e2e:.3f} | {comp[m]:.3f} | {st_:.3f} | {n_rt} | {(e2e - comp[m] - st_) / n_rt:.3f} |")
+        L.append("")
+
+    # ---- 1c-7. Recovery test (method 4, protocol v3) ----
+    rec_path = os.path.join(RESULTS, "e2e-recovery.csv")
+    if os.path.exists(rec_path):
+        rr = load_rows(rec_path)
+        lossy_ = [r for r in rr if r["label"] == "recovery-loss20"]
+        after = [r for r in rr if r["label"] == "recovery-after"]
+        def cnt(rows, f):
+            return sum(1 for r in rows if f(r))
+        L.append("### Uji pemulihan method 4 (protokol v3, tanpa grace key)")
+        L.append("")
+        L.append("150 handshake pada loss 20% lalu 30 handshake tanpa loss, tanpa re-provisioning. "
+                 "`used_next` = run dimulai di slot NEXT (sesi sebelumnya berhenti setelah UE menulis "
+                 "NEXT); tanpa fallback berarti DN-AAA sudah commit (Message4 / EAP-Success hilang) "
+                 "dan sesi ini memulihkannya; dengan fallback berarti Message3 tidak sampai, NEXT "
+                 "ditolak, dan UE mengulang dengan CUR.")
+        L.append("")
+        L.append("| Seri | N | PASS | used_next | pulih tanpa fallback (Message4 hilang) | fallback (Message3 hilang) | gagal |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        for name, rows in (("loss 20%", lossy_), ("setelahnya, loss 0%", after)):
+            L.append(f"| {name} | {len(rows)} | {cnt(rows, lambda r: r['status'] == 'PASS')} | "
+                     f"{cnt(rows, lambda r: r.get('used_next') == '1')} | "
+                     f"{cnt(rows, lambda r: r.get('used_next') == '1' and r.get('fallback') == '0' and r['status'] == 'PASS')} | "
+                     f"{cnt(rows, lambda r: r.get('fallback') == '1')} | "
+                     f"{cnt(rows, lambda r: r['status'] != 'PASS')} |")
+        L.append("")
+        desync = cnt(after, lambda r: r["status"] != "PASS")
+        L.append(f"- Desync: **{desync}** (run tanpa loss yang gagal setelah seri lossy); "
+                 "re-provisioning: **0** (seri tidak pernah menulis ulang kunci).")
+        L.append("- Run yang gagal pada loss 20% adalah run yang kehabisan retransmisi; sesi "
+                 "berikutnya memulihkan state lewat NEXT atau fallback.")
         L.append("")
 
     # ---- carry 1a and 1b from analysis.md (method-independent) ----

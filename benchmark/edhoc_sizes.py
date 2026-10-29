@@ -51,6 +51,7 @@ SUITES_F = 2
 
 # XWING hybrid element sizes (X-Wing = X25519 || ML-KEM-768)
 XWING_PK = X25519_PK + MLKEM768_EK   # 1216: hybrid public key
+PSEUDONYM = 16                       # one-time pseudonym P_next (EAD_2)
 XWING_CT = X25519_PK + MLKEM768_CT   # 1120: hybrid ciphertext
 
 
@@ -98,30 +99,33 @@ _TLS_HYBRID_SIZES = {"message_1": 1589, "message_2": 12600, "message_3": 10983, 
 
 
 def _message_sizes_sigma_xwing() -> dict:
-    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), revised: no ephemeral X-Wing.
+    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), protocol v3: no ephemeral
+    X-Wing; the next one-time keys travel in EAD_1 / EAD_2.
 
     message_1 = (ctB, AEAD.enc(K1, Plaintext1))
-        Plaintext1 = (METHOD, SUITES_I, ID_CRED_I, C_I, EAD_1)
+        Plaintext1 = (METHOD, SUITES_I, ID_CRED_I, C_I, EAD_1 = NpkA)
     message_2 = (ctA, AEAD.enc(K2, Plaintext2))
-        Plaintext2 = (C_R, ID_CRED_R, VK_R, EAD_2, MAC2, sigma_R)
+        Plaintext2 = (C_R, ID_CRED_R, VK_R, EAD_2 = (NpkB, P_next), MAC2, sigma_R)
     message_3 = AEAD.enc(K3, Plaintext3)
-        Plaintext3 = (EAD3=NpkA, MAC3, VK_I, sigma_I)
-    message_4 = AEAD.enc(K4, EAD4)   (carried in EAP-Success)
-        EAD4 = NpkB
+        Plaintext3 = (MAC3, VK_I, sigma_I)          (no EAD_3)
+    message_4 = AEAD.enc(K4, empty)                 (tag only, mandatory)
+    An EAD item is a one-byte label plus its value.
     """
+    ead1 = 1 + _bstr(XWING_PK)
+    ead2 = 1 + _bstr(XWING_PK) + 1 + _bstr(PSEUDONYM)
+
     ct_b = _bstr(XWING_CT)
-    plaintext1 = METHOD_F + SUITES_F + ID_CRED + CONN_ID
+    plaintext1 = METHOD_F + SUITES_F + ID_CRED + CONN_ID + ead1
     m1 = ct_b + _bstr(plaintext1 + AEAD_TAG)
 
     ct_a = _bstr(XWING_CT)
-    plaintext2 = CONN_ID + ID_CRED + MLDSA44_PK + MAC_LEN + MLDSA44_SIG
+    plaintext2 = CONN_ID + ID_CRED + MLDSA44_PK + ead2 + MAC_LEN + MLDSA44_SIG
     m2 = ct_a + _bstr(plaintext2 + AEAD_TAG)
 
-    plaintext3 = XWING_PK + MAC_LEN + MLDSA44_PK + MLDSA44_SIG
+    plaintext3 = MAC_LEN + MLDSA44_PK + MLDSA44_SIG
     m3 = _bstr(plaintext3 + AEAD_TAG)
 
-    plaintext4 = XWING_PK
-    m4 = _bstr(plaintext4 + AEAD_TAG)
+    m4 = _bstr(AEAD_TAG)
 
     return {"message_1": m1, "message_2": m2, "message_3": m3, "message_4": m4}
 
