@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication
 
-_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-29T10:53:22._
+_Dibuat otomatis oleh benchmark/analyze.py pada 2026-10-29T11:39:00._
 
 Method matrix:
 
@@ -283,7 +283,7 @@ Ukuran pesan method 0-4 dihitung dari elemen kripto nyata (model, `edhoc_sizes.p
 | 3 | message_2 | 46 | 1 | 1 | 1 | no |
 | 3 | message_3 | 20 | 1 | 1 | 1 | no |
 | 4 | message_1 | 2361 | 10 | 3 | 2 | yes |
-| 4 | message_2 | 6116 | 25 | 6 | 5 | yes |
+| 4 | message_2 | 6098 | 25 | 6 | 5 | yes |
 | 4 | message_3 | 3751 | 15 | 4 | 3 | yes |
 | 4 | message_4 | 9 | 1 | 1 | 1 | no |
 | 5 | message_1 | 289 | 2 | 1 | 1 | no |

@@ -518,6 +518,28 @@ def main():
                  "berikutnya memulihkan state lewat NEXT atau fallback.")
         L.append("")
 
+    # ---- 1c-8. VM load during the series (vmstat every 5 s) ----
+    vm_path = os.path.join(RESULTS, "series-vmstat.txt")
+    if os.path.exists(vm_path):
+        smp = []
+        with open(vm_path) as f:
+            hdr = None
+            for line in f:
+                t = line.split()
+                if "us" in t and "id" in t:
+                    hdr = t
+                elif hdr and t and t[0].isdigit():
+                    smp.append({k: float(v) for k, v in zip(hdr, t[:len(hdr)]) if k in ("r", "us", "sy", "id", "wa")})
+        if smp:
+            L.append("### Load VM selama seri (vmstat, sampel 5 s)")
+            L.append("")
+            L.append("| Sampel | r (run queue) mean | us % | sy % | id % mean | id % min | wa % |")
+            L.append("| --- | --- | --- | --- | --- | --- | --- |")
+            m = lambda k: statistics.mean(x[k] for x in smp)
+            L.append(f"| {len(smp)} | {m('r'):.1f} | {m('us'):.1f} | {m('sy'):.1f} | {m('id'):.1f} | "
+                     f"{min(x['id'] for x in smp):.0f} | {m('wa'):.1f} |")
+            L.append("")
+
     # ---- carry 1a and 1b from analysis.md (method-independent) ----
     sec1a = carry_section(analysis_text, "## 1a. Breakdown komputasi primitif kriptografi",
                           ["## "])

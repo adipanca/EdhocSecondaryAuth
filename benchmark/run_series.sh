@@ -14,7 +14,7 @@
 #
 # Writes into benchmark-results/: e2e-handshake.csv, e2e-lossy.csv,
 # storage-strace.txt, e2e-storage-ablation.csv, e2e-recovery.csv and
-# m4-inprocess-compute.csv.
+# m4-inprocess-compute.csv, and series-vmstat.txt (VM load, every 5 s).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -35,7 +35,12 @@ tls6()  { (cd "$HERE" && as_user env OPENSSL_CONF="$PQ/openssl-hybrid.cnf" \
 classic() { "$HERE/switch_tls_config.sh" classic | tail -1; }
 hybrid()  { "$HERE/switch_tls_config.sh" hybrid | tail -1; }
 setup()   { "$HERE/setup_no_eph.sh" | tail -1; }
-stamp()   { echo "== $(date +%T) $*"; }
+stamp()   { echo "== $(date +%T) $* (load $(cut -d' ' -f1-3 /proc/loadavg))"; }
+
+# VM load during the whole series: vmstat every 5 s (columns: us sy id wa)
+VM="$OUT/series-vmstat.txt"
+vmstat -t -n 5 > "$VM" & VMSTAT=$!
+trap 'kill $VMSTAT 2>/dev/null' EXIT
 
 stamp "1. in-process"
 as_user "$HERE/m4_inproc_compare.sh" 5 2000 | tail -1
@@ -93,4 +98,5 @@ setup; sleep 3
 edhoc --method 4 --iters 150 --loss 20 --csv "$RC" --label recovery-loss20
 edhoc --method 4 --iters 30 --loss 0 --csv "$RC" --label recovery-after
 chown "$OWNER" "$OUT"/*.csv
+kill $VMSTAT 2>/dev/null; chown "$OWNER" "$VM"
 stamp "SERIES DONE"
