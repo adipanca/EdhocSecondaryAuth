@@ -13,13 +13,15 @@
 #   3. restarts radiusd with the classic TLS config (methods 0-5); switch to
 #      hybrid with switch_tls_config.sh for method 6
 #
-# Identity "edhoc-ue" is always provisioned (e2e_radius_bench default). Add
-# the UERANSIM SUPI (e.g. imsi-001010000000001) for the live 5G stack, and
-# point EDHOC_UE_REC at /usr/local/etc/edhoc/ue/<SUPI>/ue.rec.
+# Record id "edhoc-ue" is always provisioned (e2e_radius_bench default
+# --ue-dir .../ue/edhoc-ue). Add an id per UERANSIM UE for the live 5G stack
+# and point EDHOC_UE_REC at /usr/local/etc/edhoc/ue/<id>/ue.rec.
 #
-# Key records are two-slot files (rec.bin on the DN-AAA, ue.rec on the UE),
-# one fdatasync per commit. Records from the earlier layout can be converted
-# in place with: edhoc4/edhoc4_keygen --migrate /usr/local/etc/edhoc
+# Protocol v3: the EAP identity is the one-time pseudonym stored in the
+# record (P_0 from edhoc4_keygen, then P_next of every session); the DN-AAA
+# finds the record through its pseudonym index. Records are two-slot files
+# (rec.bin on the DN-AAA, ue.rec on the UE); records of the earlier layout
+# are not converted, re-run this script.
 #
 set -euo pipefail
 

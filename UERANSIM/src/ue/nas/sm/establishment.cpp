@@ -142,7 +142,7 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
     freeProcedureTransactionId(msg.pti);
 
     // EAP-Success of the secondary authentication may arrive here
-    commitEdhocOnSuccess(msg.eapMessage);
+    edhocOnResult(msg.eapMessage);
 
     auto &pduSession = m_pduSessions[msg.pduSessionId];
     if (pduSession->psState != EPsState::ACTIVE_PENDING)
@@ -183,6 +183,7 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
 void NasSm::receiveEstablishmentReject(const nas::PduSessionEstablishmentReject &msg)
 {
     m_logger->err("PDU Session Establishment Reject received [%s]", nas::utils::EnumToString(msg.smCause.value));
+    edhocOnResult(msg.eapMessage);
 
     if (!checkPtiAndPsi(msg))
         return;

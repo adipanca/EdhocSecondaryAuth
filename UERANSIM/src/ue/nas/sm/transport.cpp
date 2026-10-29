@@ -287,10 +287,10 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 return;
             }
 
-            // a new session: a commit still pending from a session without
-            // EAP-Success is dropped (the old key stays in force)
-            m_edhocCommitPending = false;
-            edhoc4_init_initiator(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
+            // a new session on the slot loaded with the EAP identity; message_1
+            // generates (Nsk_A, Npk_A) and announces Npk_A in EAD_1
+            m_edhocPromotePending = false;
+            edhoc4_init_initiator(&m_edhocCtx, &m_edhocUe.self, m_edhocUe.peer_pk);
             rc = edhoc4_i_make_msg1(&m_edhocCtx, buf, sizeof(buf), &outLen);
             if (rc == E4_OK)
             {
@@ -334,6 +334,9 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             if (m_edhocRound == 1)
             {
                 rc = edhoc4_i_handle_msg2(&m_edhocCtx, msgData, msgLen, buf, sizeof(buf), &outLen);
+                // write-ahead: NEXT = (Nsk_A, Npk_B, P_next) is durable before message_3
+                if (rc == E4_OK)
+                    rc = edhoc4_ue_store_next(m_edhocRecPath.c_str(), &m_edhocCtx);
                 if (rc == E4_OK)
                 {
                     m_edhocRound = 2;
@@ -355,16 +358,14 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 rc = edhoc4_i_handle_msg4(&m_edhocCtx, msgData, msgLen);
                 if (rc == E4_OK)
                 {
-                    // export MSK/EMSK first: edhoc4_commit wipes the session context
                     std::memcpy(m_edhocMsk, m_edhocCtx.msk, E4_MSK_LEN);
                     std::memcpy(m_edhocEmsk, m_edhocCtx.emsk, E4_EMSK_LEN);
                     m_logger->info("EAP-EDHOC: handshake complete, MSK/EMSK derived");
 
-                    // one-time keys: committed only after EAP-Success (commitEdhocOnSuccess).
-                    // The UE needs them from the next session on; if EAP-Success never
-                    // arrives, the old key stays in force and the DN-AAA grace key
-                    // accepts it.
-                    m_edhocCommitPending = true;
+                    // message_4 verified: NEXT is promoted (old sk_A erased) once the
+                    // closing ACK is sent, off the critical path
+                    m_edhocPromotePending = true;
+                    edhoc4_ctx_wipe(&m_edhocCtx);
                     uint8_t ackWire[1] = {0x00};
                     outData = OctetString::FromArray(ackWire, sizeof(ackWire));
                     m_edhocRound = 3;
@@ -395,13 +396,18 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     }
     else if (msg.eapMessage.eap->eapType == eap::EEapType::IDENTITY)
     {
-        // The DN-AAA selects the per-UE EDHOC record (<db>/<identity>/) from
-        // this identity, so it must match the provisioned record name.
-        std::string identity = "imsi-000000000000000";
-        if (m_base && m_base->config && m_base->config->supi.has_value())
-            identity = m_base->config->supi.value().value;
-        if (const char *eapId = std::getenv("EDHOC_EAP_IDENTITY"))
-            identity = eapId;
+        // The EAP identity is the one-time pseudonym NAI of the slot in use
+        // (NEXT if present, else CUR): no permanent identifier in the clear
+        // (draft-ietf-emu-eap-edhoc 3.1.5). The DN-AAA finds the record by it.
+        std::string identity = "anonymous";
+        if (ensureEdhocProvisioned())
+        {
+            char nai[128];
+            const char *realm = std::getenv("EDHOC_REALM");
+            edhoc4_pseudo_to_nai(m_edhocUe.pseudo, realm ? realm : "dn.example", nai, sizeof(nai));
+            identity = nai;
+            m_edhocRound = -1;
+        }
 
         resp.eapMessage.eap = std::make_unique<eap::EapIdentity>(
             eap::ECode::RESPONSE,
@@ -420,6 +426,19 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     }
 
     sendSmMessage(msg.pduSessionId, resp);
+
+    if (m_edhocPromotePending)
+    {
+        m_edhocPromotePending = false;
+        if (edhoc4_ue_promote(m_edhocRecPath.c_str()) != E4_OK)
+            m_logger->err("EAP-EDHOC: failed to promote NEXT in %s", m_edhocRecPath.c_str());
+        else
+            m_logger->info("EAP-EDHOC: NEXT promoted, old one-time key erased");
+        m_edhocProvisioned = false;   // reload the slot for the next session
+        const char *pool = std::getenv("EDHOC4_ROTATION_POOL");
+        if (pool && std::atoi(pool) > 0)
+            edhoc4_pool_fill(1);      // opt-in: next EAD_1 key pair, outside the session
+    }
 }
 
 bool NasSm::ensureEdhocProvisioned()
@@ -432,47 +451,39 @@ bool NasSm::ensureEdhocProvisioned()
         recPath = "/usr/local/etc/edhoc/ue.rec";
     m_edhocRecPath = recPath;
 
-    if (edhoc4_rec_load(recPath, 0, &m_edhocCreds, m_edhocPeerPub, nullptr) != E4_OK)
+    if (edhoc4_ue_load(recPath, &m_edhocUe) != E4_OK)
     {
         m_logger->err("EAP-EDHOC: failed to load the UE key record from %s", recPath);
         return false;
     }
 
     m_edhocProvisioned = true;
-    m_logger->info("EAP-EDHOC: loaded method-4 SIGMA XWING credentials");
+    m_logger->info("EAP-EDHOC: loaded method-4 key record (%s slot)", m_edhocUe.using_next ? "NEXT" : "CUR");
     return true;
 }
 
-void NasSm::commitEdhocOnSuccess(const std::optional<nas::IEEapMessage> &eap)
+// EAP-Success / EAP-Failure at the end of a session. A failure before
+// message_2 while on NEXT means the DN-AAA never committed it (message_3 of
+// the last session was lost): drop NEXT, so the next attempt runs on CUR.
+void NasSm::edhocOnResult(const std::optional<nas::IEEapMessage> &eap)
 {
-    if (!m_edhocCommitPending || !eap.has_value() || !eap->eap)
+    if (!eap.has_value() || !eap->eap || eap->eap->code != eap::ECode::FAILURE)
         return;
-    m_edhocCommitPending = false;
-    if (eap->eap->code != eap::ECode::SUCCESS)
+    if (m_edhocRound == 1 && m_edhocProvisioned && m_edhocUe.using_next)
     {
-        edhoc4_ctx_wipe(&m_edhocCtx);
-        return;
+        if (edhoc4_ue_fallback(m_edhocRecPath.c_str(), &m_edhocUe) == E4_OK)
+            m_logger->warn("EAP-EDHOC: pseudonym of NEXT rejected, fallback=1 (next attempt uses CUR)");
+        else
+            m_logger->err("EAP-EDHOC: fallback to CUR failed in %s", m_edhocRecPath.c_str());
+        m_edhocProvisioned = false;
     }
-    // install (Nsk_A, Npk_B), write the inactive slot with one fdatasync, zero the old slot
-    int rc = edhoc4_commit(&m_edhocCtx, &m_edhocCreds, m_edhocPeerPub);
-    if (rc == E4_OK)
-        rc = edhoc4_rec_commit(m_edhocRecPath.c_str(), &m_edhocCreds, m_edhocPeerPub, 0);
-    // reload from disk on the next session
-    m_edhocProvisioned = false;
-    if (rc != E4_OK)
-        m_logger->err("EAP-EDHOC: failed to persist rotated keys to %s", m_edhocRecPath.c_str());
-    else
-        m_logger->info("EAP-EDHOC: EAP-Success, one-time keys rotated and saved");
-    // opt-in: generate the key pair the next session announces in EAD3 now,
-    // outside it (default: generated while building message_3)
-    const char *pool = std::getenv("EDHOC4_ROTATION_POOL");
-    if (pool && std::atoi(pool) > 0)
-        edhoc4_pool_fill(1);
+    m_edhocRound = -1;
+    edhoc4_ctx_wipe(&m_edhocCtx);
 }
 
 void NasSm::receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg)
 {
-    commitEdhocOnSuccess(msg.eapMessage);
+    edhocOnResult(msg.eapMessage);
 
     if (msg.eapMessage.has_value() && msg.eapMessage->eap)
     {
