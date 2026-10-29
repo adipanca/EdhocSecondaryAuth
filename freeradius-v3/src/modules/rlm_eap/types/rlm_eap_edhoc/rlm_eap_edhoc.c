@@ -17,13 +17,13 @@
  *   server -> peer : EAP-Success  (+ MS-MPPE keys derived from MSK)
  *
  * Method 4 keys are per UE and rotated every session (no ephemeral X-Wing,
- * protocol v3): the EAP identity is a one-time pseudonym NAI that selects
- * the record <db>/<uid>/ through the pseudonym index; an unknown pseudonym
- * is rejected before any KEM operation. The next keys and the next
- * pseudonym travel in EAD_1 / EAD_2; the rotated record is committed after
+ * final v3 protocol): the EAP identity selects the record <db>/<identity>/
+ * before message_1 is processed; an unknown identity is rejected. The next
+ * keys travel in EAD_1 / EAD_2; the rotated record is committed after
  * message_3 (one fdatasync, before message_4) and the slot with the old
  * sk_B is erased by a worker thread after message_4 is queued. There is no
- * grace key (see edhoc4_db.h).
+ * grace key: a message_1 under a key the record no longer holds fails and
+ * gets an EAP-Failure (see edhoc4_db.h).
  */
 RCSID("$Id$")
 
@@ -108,8 +108,7 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 		return -1;
 	}
 
-	INFO("rlm_eap_edhoc: method-4 per-UE records in %s (%d indexed by pseudonym)",
-	     inst->db_path, edhoc4_db_reindex(inst->db_path));
+	INFO("rlm_eap_edhoc: method-4 per-UE records in %s", inst->db_path);
 
 	/* The EAD_2 key pair is generated while message_1 is processed,
 	 * inside the handshake. EDHOC4_ROTATION_POOL=<n> (opt-in) instead
@@ -327,15 +326,14 @@ static void memset_s_wipe(void *p, size_t n)
 }
 
 /* EMSK for the key-bootstrapping step (bootstrap/aaa_keyexport.py --emsk-file) */
-/* keyed by the internal record id: the EAP identity is a one-time pseudonym */
-static void edhoc_export_emsk(rlm_eap_edhoc_t *inst, char const *uid, uint8_t const *emsk)
+static void edhoc_export_emsk(rlm_eap_edhoc_t *inst, char const *identity, uint8_t const *emsk)
 {
 	char path[1200];
 	FILE *f;
 	int fd;
 
-	if (!inst->emsk_dir || !uid || !*uid || strchr(uid, '/')) return;
-	snprintf(path, sizeof(path), "%s/%s.emsk.hex", inst->emsk_dir, uid);
+	if (!inst->emsk_dir || !identity || !*identity || strchr(identity, '/')) return;
+	snprintf(path, sizeof(path), "%s/%s.emsk.hex", inst->emsk_dir, identity);
 	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (fd < 0) return;
 	f = fdopen(fd, "w");
@@ -426,18 +424,13 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			if (!identity && request->username) identity = request->username->vp_strvalue;
 			rc = edhoc4_db_handle_msg1(inst4->db_path, identity, &sess->ctx, &sess->rec,
 						   msg, msg_len, out, sizeof(out), &out_len);
-			if (rc == E4_ERR_PSEUDO) {
-				REDEBUG("rlm_eap_edhoc: unknown pseudonym '%s'", identity ? identity : "");
-				eap_ds->request->code = PW_EAP_FAILURE;
-				return 0;
-			}
 			if (rc != E4_OK) {
 				REDEBUG("rlm_eap_edhoc: message_1 processing failed for '%s': %s",
 					identity ? identity : "", edhoc4_strerror(rc));
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
-			RDEBUG2("rlm_eap_edhoc: record %s", sess->rec.uid);
+			RDEBUG2("rlm_eap_edhoc: record %s", sess->rec.dir);
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
@@ -476,7 +469,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		 * other slot with one fdatasync, before message_4 */
 		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
 		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
-		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, sess->rec.uid, sess->emsk);
+		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, handler->identity, sess->emsk);
 		rc = edhoc4_db_commit(&sess->ctx, &sess->rec);
 		if (rc != E4_OK) {
 			edhoc4_db_rec_wipe(&sess->rec);

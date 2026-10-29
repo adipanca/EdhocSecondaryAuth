@@ -336,7 +336,7 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 rc = edhoc4_i_handle_msg2(&m_edhocCtx, msgData, msgLen, buf, sizeof(buf), &outLen);
                 // write-ahead: NEXT = (Nsk_A, Npk_B, P_next) is durable before message_3
                 if (rc == E4_OK)
-                    rc = edhoc4_ue_store_next(m_edhocRecPath.c_str(), &m_edhocCtx);
+                    rc = edhoc4_ue_store_next(m_edhocRecPath.c_str(), &m_edhocUe, &m_edhocCtx);
                 if (rc == E4_OK)
                 {
                     m_edhocRound = 2;
@@ -396,18 +396,14 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     }
     else if (msg.eapMessage.eap->eapType == eap::EEapType::IDENTITY)
     {
-        // The EAP identity is the one-time pseudonym NAI of the slot in use
-        // (NEXT if present, else CUR): no permanent identifier in the clear
-        // (draft-ietf-emu-eap-edhoc 3.1.5). The DN-AAA finds the record by it.
-        std::string identity = "anonymous";
-        if (ensureEdhocProvisioned())
-        {
-            char nai[128];
-            const char *realm = std::getenv("EDHOC_REALM");
-            edhoc4_pseudo_to_nai(m_edhocUe.pseudo, realm ? realm : "dn.example", nai, sizeof(nai));
-            identity = nai;
-            m_edhocRound = -1;
-        }
+        // The DN-AAA selects the per-UE EDHOC record (<db>/<identity>/) from
+        // this identity, so it must match the provisioned record name.
+        std::string identity = "imsi-000000000000000";
+        if (m_base && m_base->config && m_base->config->supi.has_value())
+            identity = m_base->config->supi.value().value;
+        if (const char *eapId = std::getenv("EDHOC_EAP_IDENTITY"))
+            identity = eapId;
+        m_edhocRound = -1;
 
         resp.eapMessage.eap = std::make_unique<eap::EapIdentity>(
             eap::ECode::RESPONSE,
@@ -430,11 +426,12 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     if (m_edhocPromotePending)
     {
         m_edhocPromotePending = false;
-        if (edhoc4_ue_promote(m_edhocRecPath.c_str()) != E4_OK)
+        if (edhoc4_ue_promote(m_edhocRecPath.c_str(), &m_edhocUe) != E4_OK)
             m_logger->err("EAP-EDHOC: failed to promote NEXT in %s", m_edhocRecPath.c_str());
         else
             m_logger->info("EAP-EDHOC: NEXT promoted, old one-time key erased");
         m_edhocProvisioned = false;   // reload the slot for the next session
+        m_edhocFallbackDone = false;
         const char *pool = std::getenv("EDHOC4_ROTATION_POOL");
         if (pool && std::atoi(pool) > 0)
             edhoc4_pool_fill(1);      // opt-in: next EAD_1 key pair, outside the session
@@ -462,20 +459,35 @@ bool NasSm::ensureEdhocProvisioned()
     return true;
 }
 
-// EAP-Success / EAP-Failure at the end of a session. A failure before
-// message_2 while on NEXT means the DN-AAA never committed it (message_3 of
-// the last session was lost): drop NEXT, so the next attempt runs on CUR.
+// EAP-Success / EAP-Failure at the end of a session. An explicit EAP-Failure
+// after message_1 and before message_2 was verified, while on NEXT, means the
+// DN-AAA may never have committed NEXT: the next attempt runs on CUR, and NEXT
+// is KEPT (a Failure is unauthenticated, it may only delay, never erase a
+// key). If CUR is rejected too, both slots stay and the following session
+// starts on NEXT again. A timeout does not get here and changes nothing.
 void NasSm::edhocOnResult(const std::optional<nas::IEEapMessage> &eap)
 {
     if (!eap.has_value() || !eap->eap || eap->eap->code != eap::ECode::FAILURE)
         return;
-    if (m_edhocRound == 1 && m_edhocProvisioned && m_edhocUe.using_next)
+    if (m_edhocRound == 1 && m_edhocProvisioned && m_edhocUe.using_next && !m_edhocFallbackDone)
     {
         if (edhoc4_ue_fallback(m_edhocRecPath.c_str(), &m_edhocUe) == E4_OK)
-            m_logger->warn("EAP-EDHOC: pseudonym of NEXT rejected, fallback=1 (next attempt uses CUR)");
+        {
+            m_edhocFallbackDone = true;   // keep the CUR state for the retry
+            m_logger->warn("EAP-EDHOC: EAP-Failure on NEXT, fallback=1 (next attempt on CUR, NEXT kept)");
+        }
         else
+        {
             m_logger->err("EAP-EDHOC: fallback to CUR failed in %s", m_edhocRecPath.c_str());
-        m_edhocProvisioned = false;
+            m_edhocProvisioned = false;
+        }
+    }
+    else
+    {
+        if (m_edhocRound == 1 && m_edhocFallbackDone)
+            m_logger->err("EAP-EDHOC: NEXT and CUR both rejected; both kept, retrying next session");
+        m_edhocFallbackDone = false;
+        m_edhocProvisioned = false;   // reload: NEXT first again
     }
     m_edhocRound = -1;
     edhoc4_ctx_wipe(&m_edhocCtx);

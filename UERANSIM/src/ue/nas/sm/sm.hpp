@@ -17,7 +17,7 @@
 
 #include <string>
 #include <edhoc4.h>    // shared EAP-EDHOC method-4 core
-#include <edhoc4_db.h> // UE key record: CUR/NEXT slots, one-time pseudonym
+#include <edhoc4_db.h> // UE key record: CUR/NEXT slots
 
 namespace nr::ue
 {
@@ -42,6 +42,7 @@ class NasSm
     bool m_edhocProvisioned{false};
     std::string m_edhocRecPath{};     // EDHOC_UE_REC, two-slot record (CUR / NEXT)
     bool m_edhocPromotePending{false}; // message_4 verified: promote NEXT once the reply is sent
+    bool m_edhocFallbackDone{false};   // this attempt runs on CUR after an EAP-Failure on NEXT
     uint8_t m_edhocMsk[E4_MSK_LEN]{};
     uint8_t m_edhocEmsk[E4_EMSK_LEN]{};
     uint8_t m_edhocIn[E4_MAX_MSG]{};

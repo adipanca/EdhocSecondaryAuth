@@ -18,20 +18,19 @@
  * EAP round-trips, per-message byte sizes and EAP fragment counts, plus
  * optional network-loss emulation (drop + retransmit) for the lossy table.
  *
- * Method 4 (protocol v3) uses one-time X-Wing keys and a one-time pseudonym
- * kept in the two-slot record <ue-dir>/ue.rec (CUR, and NEXT between
- * message_3 and the promotion). The EAP identity of a method-4 run is the
- * pseudonym NAI p<32 hex>@<realm> of the slot in use (NEXT if present).
- * The key pair announced in EAD_1 is generated while building message_1
- * (with --pool: before the clock starts). After message_2 the UE writes
- * NEXT = (Nsk_A, Npk_B, P_next) with one fdatasync before message_3 leaves,
- * inside duration_ms; after message_4 it promotes NEXT by zeroing the old
- * slot + fdatasync, timed separately as ue_commit_ms. duration_ms stops at
- * EAP-Success, as for EAP-TLS. If the DN-AAA rejects the NEXT pseudonym
- * before message_2 (message_3 of the last run was lost), the UE drops NEXT
- * and retries once with CUR; the run then counts both attempts and is
- * logged with fallback=1.
- * Methods 0-3 present g_identity as the EAP identity.
+ * Method 4 (final v3 protocol) uses one-time X-Wing keys kept in the
+ * two-slot record <ue-dir>/ue.rec (CUR, and NEXT between message_3 and the
+ * promotion); a run starts on NEXT if present. The key pair announced in
+ * EAD_1 is generated while building message_1 (with --pool: before the
+ * clock starts). After message_2 the UE writes NEXT = (Nsk_A, Npk_A, Npk_B)
+ * with one fdatasync before message_3 leaves, inside duration_ms; after
+ * message_4 it promotes NEXT by zeroing the slot it ran on + fdatasync,
+ * timed separately as ue_commit_ms. duration_ms stops at EAP-Success, as
+ * for EAP-TLS. If an explicit Access-Reject (EAP-Failure) arrives after
+ * message_1 and before message_2 on NEXT (the DN-AAA never committed it),
+ * the UE retries once on CUR, keeping NEXT; the run counts both attempts
+ * and is logged with fallback=1. A timeout never triggers a fallback.
+ * The EAP identity (g_identity) selects <db>/<identity>/ on the responder.
  *
  * This is a benchmark / interoperability harness, not production code.
  */
@@ -97,10 +96,7 @@ static const char *g_identity = "edhoc-ue";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
 static int         g_pool     = 0;      /* --pool: EAD_1 key made before the clock starts */
-static const char *g_realm    = "dn.example";      /* method 4 pseudonym realm */
-static const char *g_eap_id   = NULL;   /* identity of the current run */
 static edhoc4_ue_state g_ue;            /* method 4: slot of the current run */
-static char        g_nai[128];
 static int         g_max_retx = 6;      /* EAP-style retransmit cap (per exchange) */
 static double      g_rto_ms   = 40.0;   /* retransmit back-off, matches lossy_bench RTO */
 
@@ -281,7 +277,7 @@ static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
             /* write-ahead: NEXT is durable before message_3 leaves */
             char p[512];
             snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
-            if (edhoc4_ue_store_next(p, &e->c4) != E4_OK) return -1;
+            if (edhoc4_ue_store_next(p, &g_ue, &e->c4) != E4_OK) return -1;
         }
         e->out_len = olen;
         e->step = 2;
@@ -333,7 +329,7 @@ static size_t build_access_request(uint8_t id, const uint8_t auth[16],
     uint8_t zero16[16] = {0};
 
     put_attr(attrs, &alen, RAD_ATTR_USER_NAME,
-             (const uint8_t *)g_eap_id, strlen(g_eap_id));
+             (const uint8_t *)g_identity, strlen(g_identity));
     put_attr(attrs, &alen, RAD_ATTR_NAS_IP_ADDRESS, nas_ip, 4);
     put_attr(attrs, &alen, RAD_ATTR_NAS_PORT, nas_port, 4);
     if (state && state_len)
@@ -456,7 +452,7 @@ typedef struct {
                             * outside duration_ms */
     int    fallback;      /* method 4: NEXT rejected, retried with CUR */
     int    used_next;     /* method 4: the run started on NEXT */
-    int    rejected_early;/* Access-Reject before message_2 */
+    int    rejected_early;/* Access-Reject (EAP-Failure) before message_2 was verified */
     int    radius_rt;     /* Access-Requests sent           */
     int    eap_rt;        /* EAP-Responses sent             */
     int    access_req, access_chal, access_accept, access_reject;
@@ -524,8 +520,8 @@ static int run_once(int method, result_t *r)
     eap[eap_len++] = 1;                       /* EAP id */
     eap[eap_len++] = 0; eap[eap_len++] = 0;   /* length placeholder */
     eap[eap_len++] = EAP_TYPE_IDENTITY;
-    memcpy(eap + eap_len, g_eap_id, strlen(g_eap_id));
-    eap_len += strlen(g_eap_id);
+    memcpy(eap + eap_len, g_identity, strlen(g_identity));
+    eap_len += strlen(g_identity);
     eap[2] = (uint8_t)(eap_len >> 8); eap[3] = (uint8_t)(eap_len & 0xff);
 
     rand_bytes(auth, 16);
@@ -598,7 +594,7 @@ static int run_once(int method, result_t *r)
             char p[512];
             double tc = now_ms();
             snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
-            if (edhoc4_ue_promote(p) != E4_OK) r->ok = 0;
+            if (edhoc4_ue_promote(p, &g_ue) != E4_OK) r->ok = 0;
             r->ue_commit_ms = now_ms() - tc;
         } else if (r->ok) r->ok = 0;            /* Accept without message_4 */
         edhoc4_ctx_wipe(&e.c4);
@@ -607,24 +603,21 @@ static int run_once(int method, result_t *r)
     return r->ok ? 0 : -1;
 }
 
-/* one handshake; method 4 loads its slot and falls back once to CUR when
- * the DN-AAA rejects the NEXT pseudonym before message_2 */
+/* one handshake; method 4 loads its slot (NEXT if present) and falls back
+ * once to CUR, keeping NEXT, on an explicit EAP-Failure before message_2 */
 static int run_handshake(int method, result_t *r)
 {
     char p[512];
-    if (method <= 3) { g_eap_id = g_identity; return run_once(method, r); }
+    if (method <= 3) return run_once(method, r);
 
     snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
     if (g_pool) edhoc4_pool_fill(1);   /* --pool: EAD_1 key before the clock */
     if (edhoc4_ue_load(p, &g_ue) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
-    edhoc4_pseudo_to_nai(g_ue.pseudo, g_realm, g_nai, sizeof(g_nai));
-    g_eap_id = g_nai;
     int used_next = g_ue.using_next;
     int rc = run_once(method, r);
     if (rc != 0 && r->rejected_early && g_ue.using_next &&
         edhoc4_ue_fallback(p, &g_ue) == E4_OK) {
         result_t r2;
-        edhoc4_pseudo_to_nai(g_ue.pseudo, g_realm, g_nai, sizeof(g_nai));
         rc = run_once(method, &r2);
         /* the run costs both attempts */
         r2.duration_ms += r->duration_ms;
@@ -671,7 +664,6 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--creds-dir") && i + 1 < argc) g_creddir = argv[++i];
         else if (!strcmp(argv[i], "--ue-dir") && i + 1 < argc) g_uedir = argv[++i];
         else if (!strcmp(argv[i], "--identity") && i + 1 < argc) g_identity = argv[++i];
-        else if (!strcmp(argv[i], "--realm") && i + 1 < argc) g_realm = argv[++i];
         else if (!strcmp(argv[i], "--loss") && i + 1 < argc) g_loss = atof(argv[++i]) / 100.0;
         else if (!strcmp(argv[i], "--max-retx") && i + 1 < argc) g_max_retx = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--rto-ms") && i + 1 < argc) g_rto_ms = atof(argv[++i]);
