@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:19:18._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:24:22._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -98,6 +98,28 @@ Sweep utama di atas cuma 100-200 iterasi/method — cukup untuk method 4-6 (beda
 
 - Biaya penyimpanan (selisih median durable - tmpfs): **1.161 ms**, 95% CI [1.063, 1.285] ms.
 - Penyimpanan (protokol v3): record dua-slot praalokasi (`rec.bin` DN-AAA, `ue.rec` UE). Di jalur kritis ada dua `fdatasync`: UE menulis slot NEXT sebelum Message3 dan DN-AAA menulis record baru sebelum Message4 (write-ahead). Di luar jalur kritis ada dua lagi: DN-AAA menolkan slot dengan sk_B lama setelah Message4 (worker thread) dan UE menolkan sk_A lama saat promosi setelah Message4 (kolom `ue_commit_ms`). Waktu per panggilan: `storage-strace.txt` (`strace -c -w`, wall-clock, termasuk overhead tracing).
+
+### Biaya per flush di jalur kritis (UE dan DN-AAA dipisah)
+
+`benchmark/storage_ablation.sh R 100 flush`: empat konfigurasi dalam satu sesi VM, urutan dirotasi tiap ronde, record di-provision ulang dan radiusd di-restart tiap run, 20 handshake pemanasan dibuang. `ue_tmpfs` = direktori UE (`ue/`) di tmpfs, DN-AAA (`edhoc_db/`) di disk, sehingga yang tersisa hanya flush commit DN-AAA sebelum Message4; `dn_tmpfs` = kebalikannya, yang tersisa hanya flush NEXT UE sebelum Message3. Median dengan bootstrap 95% CI (4000 resample, seed 1). Seri ini terpisah dari tabel durable/tmpfs di atas (yang dipakai untuk angka 1.161 ms dan tabel transport).
+
+| Konfigurasi | UE | DN-AAA | N (PASS/total) | Mean (ms) | Median (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| durable | disk | disk | 600/600 | 7.229 | 6.592 | [6.502, 6.658] |
+| ue_tmpfs | tmpfs | disk | 600/600 | 6.447 | 6.017 | [5.942, 6.083] |
+| dn_tmpfs | disk | tmpfs | 600/600 | 6.598 | 6.081 | [6.025, 6.159] |
+| tmpfs | tmpfs | tmpfs | 600/600 | 5.610 | 5.231 | [5.189, 5.304] |
+
+| Biaya | Selisih median | Nilai (ms) | 95% CI (ms) |
+| --- | --- | --- | --- |
+| Flush UE (NEXT sebelum Message3) | durable - ue_tmpfs | 0.575 | [0.473, 0.677] |
+| Flush UE, tanpa flush DN-AAA | dn_tmpfs - tmpfs | 0.850 | [0.749, 0.936] |
+| Flush DN-AAA (commit sebelum Message4) | durable - dn_tmpfs | 0.511 | [0.394, 0.603] |
+| Flush DN-AAA, tanpa flush UE | ue_tmpfs - tmpfs | 0.786 | [0.682, 0.856] |
+| Kedua flush | durable - tmpfs | 1.361 | [1.250, 1.438] |
+
+- Tiap flush diukur dua kali (dengan dan tanpa flush pihak lain). Satu flush saja: UE 0.850 ms, DN-AAA 0.786 ms (jumlah 1.636 ms); kedua flush bersama: 1.361 ms. Biayanya tidak aditif: flush kedua menambah lebih sedikit dari flush pertama (UE dan DN-AAA di disk VM yang sama).
+- Selisih durable - tmpfs pada seri ini (1.361 ms) berbeda dari seri dua-konfigurasi di atas karena diukur di sesi VM lain; perbandingan per flush hanya memakai seri ini.
 
 ### Komputasi method 4 in-process: sebelum vs sesudah (X-Wing standar, kunci rotasi precompute)
 

@@ -388,6 +388,74 @@ def main():
                  "wall-clock, termasuk overhead tracing).")
         L.append("")
 
+    # ---- 1c-4b. Per-flush split: UE / DN-AAA on tmpfs separately ----
+    flush_path = os.path.join(RESULTS, "e2e-storage-flush.csv")
+    if os.path.exists(flush_path):
+        fl = {}
+        for r in load_rows(flush_path):
+            if r["status"] == "PASS":
+                fl.setdefault(r["label"], []).append(float(r["duration_ms"]))
+        ntot = {}
+        for r in load_rows(flush_path):
+            ntot[r["label"]] = ntot.get(r["label"], 0) + 1
+        rng = random.Random(1)
+        def boot_med(a):
+            bs = sorted(statistics.median(rng.choices(a, k=len(a))) for _ in range(4000))
+            return bs[100], bs[3899]
+        def boot_diff(a, b):
+            bs = sorted(statistics.median(rng.choices(a, k=len(a))) -
+                        statistics.median(rng.choices(b, k=len(b))) for _ in range(4000))
+            return statistics.median(a) - statistics.median(b), bs[100], bs[3899]
+        L.append("### Biaya per flush di jalur kritis (UE dan DN-AAA dipisah)")
+        L.append("")
+        L.append("`benchmark/storage_ablation.sh R 100 flush`: empat konfigurasi dalam satu sesi VM, "
+                 "urutan dirotasi tiap ronde, record di-provision ulang dan radiusd di-restart tiap "
+                 "run, 20 handshake pemanasan dibuang. `ue_tmpfs` = direktori UE (`ue/`) di tmpfs, "
+                 "DN-AAA (`edhoc_db/`) di disk, sehingga yang tersisa hanya flush commit DN-AAA "
+                 "sebelum Message4; `dn_tmpfs` = kebalikannya, yang tersisa hanya flush NEXT UE "
+                 "sebelum Message3. Median dengan bootstrap 95% CI (4000 resample, seed 1). Seri "
+                 "ini terpisah dari tabel durable/tmpfs di atas (yang dipakai untuk angka 1.161 ms "
+                 "dan tabel transport).")
+        L.append("")
+        L.append("| Konfigurasi | UE | DN-AAA | N (PASS/total) | Mean (ms) | Median (ms) | 95% CI median (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        where = {"durable": ("disk", "disk"), "tmpfs": ("tmpfs", "tmpfs"),
+                 "ue_tmpfs": ("tmpfs", "disk"), "dn_tmpfs": ("disk", "tmpfs")}
+        for lab in ("durable", "ue_tmpfs", "dn_tmpfs", "tmpfs"):
+            d = fl.get(lab, [])
+            if not d:
+                continue
+            lo, hi = boot_med(d)
+            L.append(f"| {lab} | {where[lab][0]} | {where[lab][1]} | {len(d)}/{ntot[lab]} | "
+                     f"{statistics.mean(d):.3f} | {statistics.median(d):.3f} | [{lo:.3f}, {hi:.3f}] |")
+        L.append("")
+        if all(fl.get(k) for k in ("durable", "tmpfs", "ue_tmpfs", "dn_tmpfs")):
+            rows_ = [
+                ("Flush UE (NEXT sebelum Message3)", "durable - ue_tmpfs", fl["durable"], fl["ue_tmpfs"]),
+                ("Flush UE, tanpa flush DN-AAA", "dn_tmpfs - tmpfs", fl["dn_tmpfs"], fl["tmpfs"]),
+                ("Flush DN-AAA (commit sebelum Message4)", "durable - dn_tmpfs", fl["durable"], fl["dn_tmpfs"]),
+                ("Flush DN-AAA, tanpa flush UE", "ue_tmpfs - tmpfs", fl["ue_tmpfs"], fl["tmpfs"]),
+                ("Kedua flush", "durable - tmpfs", fl["durable"], fl["tmpfs"]),
+            ]
+            L.append("| Biaya | Selisih median | Nilai (ms) | 95% CI (ms) |")
+            L.append("| --- | --- | --- | --- |")
+            for name, expr, a_, b_ in rows_:
+                v, lo, hi = boot_diff(a_, b_)
+                L.append(f"| {name} | {expr} | {v:.3f} | [{lo:.3f}, {hi:.3f}] |")
+            L.append("")
+            med = {k: statistics.median(v) for k, v in fl.items()}
+            alone = (med["dn_tmpfs"] - med["tmpfs"]) + (med["ue_tmpfs"] - med["tmpfs"])
+            both_ = med["durable"] - med["tmpfs"]
+            L.append("- Tiap flush diukur dua kali (dengan dan tanpa flush pihak lain). Satu flush "
+                     f"saja: UE {med['dn_tmpfs'] - med['tmpfs']:.3f} ms, DN-AAA "
+                     f"{med['ue_tmpfs'] - med['tmpfs']:.3f} ms (jumlah {alone:.3f} ms); kedua flush "
+                     f"bersama: {both_:.3f} ms. Biayanya "
+                     f"{'tidak aditif: flush kedua menambah lebih sedikit dari flush pertama (UE dan DN-AAA di disk VM yang sama)' if alone - both_ > 0.1 else 'kira-kira aditif'}.")
+            L.append(f"- Selisih durable - tmpfs pada seri ini ({both_:.3f} ms) berbeda dari seri "
+                     "dua-konfigurasi di atas karena diukur di sesi VM lain; perbandingan per flush "
+                     "hanya memakai seri ini.")
+            L.append("")
+
     # ---- 1c-5. Method 4: precomputed rotation key / X-Wing per spec ----
     inproc_path = os.path.join(RESULTS, "m4-inprocess-compute.csv")
     pool_path = os.path.join(RESULTS, "e2e-pool-ablation.csv")
