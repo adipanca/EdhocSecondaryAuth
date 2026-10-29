@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T11:39:00._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:15:42._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -474,4 +474,18 @@ Ukuran pesan dan jumlah fragmen EAP untuk method 0..6 di bawah ini adalah **hasi
 | 6 | message_4 | 23 | 1 | 1 | 1 | no | observasi nyata |
 
 Pesan yang memerlukan fragmentasi pada method 4 (SIGMA XWING PQC) dan method 6 (EAP-TLS Hybrid PQC) — keduanya observasi nyata: XWING/hybrid-KEM (X25519+ML-KEM-768) menambah ~1.1-1.2 KB per elemen KEM dan tanda tangan ML-DSA-44 menambah ~2.4 KB per pesan, sehingga keduanya memerlukan banyak round-trip fragmentasi EAP sedangkan method 0, 1, 2, 3 dan 5 (klasik) selalu muat dalam sedikit fragmen.
+
+### Model ukuran method 4 vs live
+
+`edhoc_sizes.py` memodelkan format kawat `edhoc4.c` byte demi byte (field digabung mentah tanpa CBOR, tag AES-128-GCM 16 B, item EAD = label 1 B + Npk) dan fragmenter EAP-EDHOC yang sama dengan `transport.cpp`/harness (payload maksimum 1000 B: fragmen pertama 997 B data, berikutnya 999 B). `mtu_fragmentation.py` berhenti dengan error jika model berbeda dari live.
+
+| Pesan | Model (B) | Live (B) | Fragmen EAP model | Fragmen EAP live |
+| --- | --- | --- | --- | --- |
+| message_1 | 2358 | 2358 | 3 | 3 |
+| message_2 | 6097 | 6097 | 7 | 7 |
+| message_3 | 3756 | 3756 | 4 | 4 |
+| message_4 | 16 | 16 | 1 | 1 |
+| **Total** | **12227** | **12227** | **15** | **15** |
+
+- Satu fragmen EAP = satu round-trip RADIUS, jadi n_RT method 4 = **15**. Model sama dengan live.
 

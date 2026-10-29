@@ -3,9 +3,13 @@
 edhoc_sizes.py — per-method message-size table for the MTU/fragmentation and
 lossy-network benchmarks (methods 0..6).
 
-Methods 0..4 (EDHOC, RFC 9528 style): sizes are a genuine model, computed from
+Methods 0..3 (EDHOC, RFC 9528 style): sizes are a genuine model, computed from
 real cryptographic element sizes (CBOR framing etc.), not observed on any
 wire.
+
+Method 4: byte-exact model of the edhoc4.c wire format (raw concatenation,
+AES-128-GCM tag 16), with the EAP-EDHOC fragment count of the live
+fragmenter (edhoc4_eap_fragments); it equals e2e-handshake.csv.
 
 Methods 5..6 (EAP-TLS Classic / Hybrid PQC): sizes are the real byte counts
 actually observed on the wire in the live handshake
@@ -97,34 +101,52 @@ _TLS_CLASSIC_SIZES = {"message_1": 289, "message_2": 1148, "message_3": 990, "me
 _TLS_HYBRID_SIZES = {"message_1": 1589, "message_2": 12600, "message_3": 10983, "message_4": 23}
 
 
+# Method 4 wire format (edhoc4/edhoc4.c): fields are concatenated raw (no
+# CBOR framing) and the AEAD is AES-128-GCM with a 16-byte tag.
+E4_AEAD_TAG = 16
+E4_METHOD_F = 1
+E4_EAD_ITEM = 1 + XWING_PK                  # label 0x60 + Npk
+
+# EAP-EDHOC fragmentation (edhoc4.h, transport.cpp, e2e_radius_bench.c): an
+# EAP-EDHOC payload is at most 1000 bytes = 1 flags byte + data; the first
+# fragment of a multi-fragment message also carries a 2-byte total length.
+E4_FRAG_WIRE_MAX = 1000
+E4_FRAG_HDR = 1
+E4_FRAG_LEN = 2
+E4_FRAG_FIRST_CAP = E4_FRAG_WIRE_MAX - E4_FRAG_HDR - E4_FRAG_LEN   # 997
+E4_FRAG_NEXT_CAP = E4_FRAG_WIRE_MAX - E4_FRAG_HDR                  # 999
+
+
+def edhoc4_eap_fragments(n: int) -> int:
+    """EAP-EDHOC fragments (= EAP round trips) for an n-byte method-4 message."""
+    if n <= E4_FRAG_FIRST_CAP:
+        return 1
+    return 1 + -(-(n - E4_FRAG_FIRST_CAP) // E4_FRAG_NEXT_CAP)
+
+
 def _message_sizes_sigma_xwing() -> dict:
     """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), final v3 protocol: no
     ephemeral X-Wing; the next one-time keys travel in EAD_1 / EAD_2.
+    Byte-exact with edhoc4.c:
 
-    message_1 = (ctB, AEAD.enc(K1, Plaintext1))
-        Plaintext1 = (METHOD, SUITES_I, ID_CRED_I, C_I, EAD_1 = NpkA)
-    message_2 = (ctA, AEAD.enc(K2, Plaintext2))
-        Plaintext2 = (C_R, ID_CRED_R, VK_R, EAD_2 = NpkB, MAC2, sigma_R)
-    message_3 = AEAD.enc(K3, Plaintext3)
-        Plaintext3 = (MAC3, VK_I, sigma_I)          (no EAD_3)
-    message_4 = AEAD.enc(K4, empty)                 (tag only, mandatory)
-    An EAD item is a one-byte label plus its value.
+    message_1 = ctB || AEAD(K1, PT1)
+        PT1 = METHOD || C_I || ID_CRED_I || EAD_1 (= 0x60 || NpkA)
+    message_2 = ctA || AEAD(K2, PT2)
+        PT2 = C_R || ID_CRED_R || VK_R || EAD_2 (= 0x60 || NpkB) || MAC2 || sigma_R
+    message_3 = AEAD(K3, PT3)
+        PT3 = MAC3 || VK_I || sigma_I               (no EAD_3)
+    message_4 = AEAD(K4, empty)                     (tag only, mandatory)
     """
-    ead1 = 1 + _bstr(XWING_PK)
-    ead2 = 1 + _bstr(XWING_PK)
+    pt1 = E4_METHOD_F + CONN_ID + ID_CRED + E4_EAD_ITEM
+    m1 = XWING_CT + pt1 + E4_AEAD_TAG
 
-    ct_b = _bstr(XWING_CT)
-    plaintext1 = METHOD_F + SUITES_F + ID_CRED + CONN_ID + ead1
-    m1 = ct_b + _bstr(plaintext1 + AEAD_TAG)
+    pt2 = CONN_ID + ID_CRED + MLDSA44_PK + E4_EAD_ITEM + MAC_LEN + MLDSA44_SIG
+    m2 = XWING_CT + pt2 + E4_AEAD_TAG
 
-    ct_a = _bstr(XWING_CT)
-    plaintext2 = CONN_ID + ID_CRED + MLDSA44_PK + ead2 + MAC_LEN + MLDSA44_SIG
-    m2 = ct_a + _bstr(plaintext2 + AEAD_TAG)
+    pt3 = MAC_LEN + MLDSA44_PK + MLDSA44_SIG
+    m3 = pt3 + E4_AEAD_TAG
 
-    plaintext3 = MAC_LEN + MLDSA44_PK + MLDSA44_SIG
-    m3 = _bstr(plaintext3 + AEAD_TAG)
-
-    m4 = _bstr(AEAD_TAG)
+    m4 = E4_AEAD_TAG
 
     return {"message_1": m1, "message_2": m2, "message_3": m3, "message_4": m4}
 

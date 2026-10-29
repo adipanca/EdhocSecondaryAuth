@@ -685,6 +685,33 @@ def main():
              "muat dalam sedikit fragmen.")
     L.append("")
 
+    # ---- method 4: size model (edhoc_sizes.py, mtu-fragmentation.csv) vs live ----
+    from edhoc_sizes import edhoc4_eap_fragments, message_sizes
+    model4 = message_sizes(4)
+    r4 = by_m[4][0]
+    L.append("### Model ukuran method 4 vs live")
+    L.append("")
+    L.append("`edhoc_sizes.py` memodelkan format kawat `edhoc4.c` byte demi byte (field "
+             "digabung mentah tanpa CBOR, tag AES-128-GCM 16 B, item EAD = label 1 B + Npk) "
+             "dan fragmenter EAP-EDHOC yang sama dengan `transport.cpp`/harness (payload "
+             "maksimum 1000 B: fragmen pertama 997 B data, berikutnya 999 B). "
+             "`mtu_fragmentation.py` berhenti dengan error jika model berbeda dari live.")
+    L.append("")
+    L.append("| Pesan | Model (B) | Live (B) | Fragmen EAP model | Fragmen EAP live |")
+    L.append("| --- | --- | --- | --- | --- |")
+    tm = tl = fm = fl = 0
+    for i in range(1, 5):
+        mb = model4[f"message_{i}"]
+        lb, lf = int(r4[f"msg{i}_bytes"]), int(r4[f"msg{i}_frags"])
+        mf = edhoc4_eap_fragments(mb)
+        tm, tl, fm, fl = tm + mb, tl + lb, fm + mf, fl + lf
+        L.append(f"| message_{i} | {mb} | {lb} | {mf} | {lf} |")
+    L.append(f"| **Total** | **{tm}** | **{tl}** | **{fm}** | **{fl}** |")
+    L.append("")
+    L.append(f"- Satu fragmen EAP = satu round-trip RADIUS, jadi n_RT method 4 = **{fl}**. "
+             f"Model {'sama dengan' if (tm, fm) == (tl, fl) else 'BERBEDA dari'} live.")
+    L.append("")
+
     with open(OUT, "w") as f:
         f.write("\n".join(L) + "\n")
     print(f"wrote {OUT} ({len(L)} lines)")
