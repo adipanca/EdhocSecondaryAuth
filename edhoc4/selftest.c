@@ -1,8 +1,11 @@
 /*
- * selftest.c — In-process EAP-EDHOC method 4 v2 handshake test
- * (no ephemeral X-Wing; forward secrecy from one-time rotated static keys).
+ * selftest.c — In-process EAP-EDHOC method 4 v3 handshake test
+ * (no ephemeral X-Wing; forward secrecy from one-time rotated static keys;
+ * next keys in EAD_1 / EAD_2, next pseudonym in EAD_2).
  *
- * Runs THREE consecutive sessions between one UE and the DN-AAA:
+ * Runs FIVE consecutive sessions per UE between two UEs and the DN-AAA:
+ *   - the P_next the UE receives equals the one the DN-AAA sent, and no
+ *     pseudonym repeats across all sessions;
  *   - each session: message_1..4, MSK/EMSK must match on both sides;
  *   - after each session both sides call edhoc4_commit(): the next session
  *     must use the rotated keys, and the old secret keys must be erased;
@@ -49,6 +52,10 @@ static ue_record *select_record(const char *eap_identity)
     return NULL;
 }
 
+#define MAX_SEEN 64
+static uint8_t seen[MAX_SEEN][E4_PSEUDO_LEN];
+static int n_seen;
+
 static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
                        int verbose)
 {
@@ -77,8 +84,13 @@ static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
                "  total     : %zu bytes\n", n1, n2, n3, n4, n1 + n2 + n3 + n4);
 
     int ok = memcmp(I.msk, R.msk, E4_MSK_LEN) == 0 &&
-             memcmp(I.emsk, R.emsk, E4_EMSK_LEN) == 0 && I.done && R.done;
-    printf("  UE %02x run %d: MSK/EMSK %s\n", ue->id_cred[2], n, ok ? "MATCH" : "MISMATCH");
+             memcmp(I.emsk, R.emsk, E4_EMSK_LEN) == 0 && I.done && R.done &&
+             memcmp(I.pnext, R.pnext, E4_PSEUDO_LEN) == 0;
+    /* every pseudonym is fresh */
+    for (int k = 0; k < n_seen; k++)
+        if (memcmp(seen[k], R.pnext, E4_PSEUDO_LEN) == 0) ok = 0;
+    if (n_seen < MAX_SEEN) memcpy(seen[n_seen++], R.pnext, E4_PSEUDO_LEN);
+    printf("  UE %02x run %d: MSK/EMSK/P_next %s\n", ue->id_cred[2], n, ok ? "MATCH" : "MISMATCH");
     if (!ok) return E4_ERR_MAC;
 
     /* rotate: UE installs NskA/NpkA and NpkB; DN-AAA installs NskB/NpkB and
@@ -99,7 +111,7 @@ static int run_session(int n, edhoc4_creds *ue, uint8_t ue_peer_pk[E4_XWING_PK],
 int main(void)
 {
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
-    printf("[edhoc4 selftest v2] SIGMA XWING without ephemeral key pair\n");
+    printf("[edhoc4 selftest v3] X-Wing + ML-DSA-44, rotation keys in EAD_1/EAD_2\n");
 
     edhoc4_creds ue[NUE];
     uint8_t ue_peer_pk[NUE][E4_XWING_PK];        /* each UE's copy of its pk_B */
@@ -123,7 +135,7 @@ int main(void)
     }
     edhoc4_creds ue0_before = ue[0];             /* snapshot to test stale keys */
 
-    for (int n = 1; n <= 3; n++)
+    for (int n = 1; n <= 5; n++)
         for (int i = 0; i < NUE; i++) {
             int rc = run_session(n, &ue[i], ue_peer_pk[i], n == 1 && i == 0);
             if (rc != E4_OK) {
@@ -152,6 +164,6 @@ int main(void)
     sodium_memzero(&ue0_before, sizeof(ue0_before));
     if (rc == E4_OK) { printf("\nRESULT: FAIL\n"); return 1; }
 
-    printf("\nRESULT: PASS — 2 UEs x 3 runs, identical MSK/EMSK, per-UE keys rotated every run\n");
+    printf("\nRESULT: PASS — 2 UEs x 5 runs, identical MSK/EMSK and P_next, %d distinct pseudonyms, per-UE keys rotated every run\n", n_seen);
     return 0;
 }

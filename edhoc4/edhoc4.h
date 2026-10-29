@@ -57,6 +57,14 @@ extern "C" {
 #define E4_ID_CRED    3     /* ID_CRED_I / ID_CRED_R identifier length */
 #define E4_METHOD     0x04  /* method byte in PT1 */
 
+/* EAD items carrying the rotation state (v3): EAD_1 = Npk_A,
+ * EAD_2 = (Npk_B, P_next); each item is a one-byte label + value. */
+#define E4_PSEUDO_LEN    16    /* one-time pseudonym P (NAI p<32 hex>@realm) */
+#define E4_EAD_NEXT_PK   0x60  /* next one-time X-Wing public key           */
+#define E4_EAD_PSEUDONYM 0x61  /* next pseudonym P_next                     */
+#define E4_EAD1_LEN (1 + E4_XWING_PK)
+#define E4_EAD2_LEN (1 + E4_XWING_PK + 1 + E4_PSEUDO_LEN)
+
 #define E4_MSK_LEN    64
 #define E4_EMSK_LEN   64
 
@@ -114,10 +122,12 @@ typedef struct {
     uint8_t prk4e3m[E4_PRK_LEN];
     uint8_t prk_out[E4_PRK_LEN];
 
-    /* ratcheting: freshly generated static XWING keypairs (EAD3 / EAD4) */
+    /* rotation: next one-time X-Wing key pairs (EAD_1 / EAD_2) */
     uint8_t new_sk[E4_XWING_SK];    /* own next static sk   */
     uint8_t new_pk[E4_XWING_PK];    /* own next static pk (sent as EAD)   */
     uint8_t peer_new_pk[E4_XWING_PK]; /* peer next static pk (received)   */
+    uint8_t pnext[E4_PSEUDO_LEN];   /* next pseudonym: made by the DN-AAA,
+                                       received by the UE in EAD_2        */
 
     /* saved ciphertext to initiator static (ctA), needed msg2->msg3 */
     uint8_t ct_a[E4_XWING_CT];
@@ -149,37 +159,45 @@ int edhoc4_pub_save_atomic_raw(const char *path, const uint8_t pk[E4_XWING_PK]);
 
 /* ---- two-slot key record (rotating state of one party) ----
  * One preallocated file per record: a header block and two fixed-size
- * slots, each holding (own creds, peer's current pk) with a sequence number
- * and a SHA-256 tag. The valid slot with the highest seq is active, the
- * other valid slot is prev (the DN-AAA's grace key). A commit writes the
- * inactive slot and issues ONE fdatasync: the file size never changes, so
- * no rename, directory flush or metadata commit is needed, and a torn write
- * fails its tag and leaves the old slot in force. Overwriting a slot is
- * also how an old key is erased. */
-#define E4_REC_PAYLOAD (sizeof(edhoc4_creds) + E4_XWING_PK)
+ * slots, each holding (own creds, peer's current pk, pseudonym) with a
+ * sequence number and a SHA-256 tag. A torn write fails its tag and leaves
+ * the other slot in force; a write never changes the file size, so one
+ * fdatasync makes it durable. Overwriting a slot is how a key is erased.
+ *   DN-AAA rec.bin: newest valid slot = the record in force; an older valid
+ *     slot exists only between a commit and the erasure of the old sk_B.
+ *   UE ue.rec: one valid slot = CUR; two valid slots = CUR (older) and
+ *     NEXT (newer), written before message_3 and promoted after message_4
+ *     by dropping the older slot. */
+#define E4_REC_PAYLOAD (sizeof(edhoc4_creds) + E4_XWING_PK + E4_PSEUDO_LEN)
 
 typedef struct {
     int      valid[2];
     uint64_t seq[2];
-    int      active;        /* slot index, -1 if no slot is valid */
+    int      active;        /* slot index of the newest valid slot, -1 if none */
 } edhoc4_rec_info;
 
 /* provisioning: allocate and zero the file, write slot 0 (seq 1), fsync */
 int edhoc4_rec_create(const char *path, const edhoc4_creds *self,
-                      const uint8_t peer_pk[E4_XWING_PK]);
-/* read the active (prev = 0) or the prev (prev = 1) slot; info may be NULL */
-int edhoc4_rec_load(const char *path, int prev, edhoc4_creds *self,
-                    uint8_t peer_pk[E4_XWING_PK], edhoc4_rec_info *info);
-/* write (self, peer_pk) to the inactive slot with seq = active + 1 and
- * fdatasync once. keep_prev = 0 then zeroes the now-previous slot without
- * a flush (UE: it has no use for its old key). */
-int edhoc4_rec_commit(const char *path, const edhoc4_creds *self,
-                      const uint8_t peer_pk[E4_XWING_PK], int keep_prev);
-/* zero the prev slot without a flush; the next commit's fdatasync, which
- * covers the same file, makes it durable */
-int edhoc4_rec_erase_prev(const char *path);
-/* lost message_4: copy prev over the active slot with a higher seq, flush */
-int edhoc4_rec_promote_prev(const char *path);
+                      const uint8_t peer_pk[E4_XWING_PK],
+                      const uint8_t pseudo[E4_PSEUDO_LEN]);
+/* read the newest (older = 0) or the older (older = 1) valid slot; any
+ * output may be NULL except self; info may be NULL */
+int edhoc4_rec_load(const char *path, int older, edhoc4_creds *self,
+                    uint8_t peer_pk[E4_XWING_PK], uint8_t pseudo[E4_PSEUDO_LEN],
+                    edhoc4_rec_info *info);
+/* write (self, peer_pk, pseudo) over the older (or empty) slot with
+ * seq = newest + 1, then fdatasync once; the newest slot is kept */
+int edhoc4_rec_write_next(const char *path, const edhoc4_creds *self,
+                          const uint8_t peer_pk[E4_XWING_PK],
+                          const uint8_t pseudo[E4_PSEUDO_LEN]);
+/* zero the newest (which = 0) or the older (which = 1) slot if both are
+ * valid; flush = 1 adds an fdatasync */
+int edhoc4_rec_drop(const char *path, int which, int flush);
+
+/* pseudonym <-> NAI "p<32 hex>@realm" (realm may be NULL or empty) */
+int edhoc4_pseudo_to_nai(const uint8_t pseudo[E4_PSEUDO_LEN], const char *realm,
+                         char *out, size_t cap);
+int edhoc4_nai_to_pseudo(const char *nai, uint8_t pseudo[E4_PSEUDO_LEN]);
 
 /* ---- rotation-key pool (optional, off by default) ----
  * By default the EAD3/EAD4 key pair (next session's one-time X-Wing key) is
@@ -204,22 +222,25 @@ int edhoc4_xwing_selftest_kat(const uint8_t seed[32], const uint8_t eseed[64],
 void edhoc4_init_initiator(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK]);
 
-/* build message_1 (encapsulates to pk_B only; no ephemeral key pair) */
+/* build message_1 (encapsulates to pk_B only; no ephemeral key pair);
+ * generates the next key pair (Nsk_A, Npk_A) and sends Npk_A in EAD_1 */
 int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *out_len);
-/* consume message_2, build message_3 */
+/* consume message_2 (MAC_2/sigma_R cover EAD_2 = Npk_B, P_next), build
+ * message_3 (no EAD). The UE must store NEXT before sending message_3. */
 int edhoc4_i_handle_msg2(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len);
-/* consume message_4 (EAP-Success payload) -> derive MSK/EMSK */
+/* consume message_4 = AEAD(K_4, empty) -> handshake done */
 int edhoc4_i_handle_msg4(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len);
 
 /* ---- responder (DN-AAA) ---- */
 void edhoc4_init_responder(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK]);
 
-/* consume message_1, build message_2 */
+/* consume message_1 (EAD_1 = Npk_A), generate (Nsk_B, Npk_B) and P_next,
+ * build message_2 */
 int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len);
-/* consume message_3, build message_4 -> derive MSK/EMSK */
+/* consume message_3, derive MSK/EMSK, build message_4 = AEAD(K_4, empty) */
 int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len);
 
@@ -232,6 +253,11 @@ void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg);
  * whole session context. Export MSK/EMSK first, then persist creds/peer_pk. */
 int  edhoc4_commit(edhoc4_ctx *ctx, edhoc4_creds *creds, uint8_t peer_pk[E4_XWING_PK]);
 void edhoc4_ctx_wipe(edhoc4_ctx *ctx);
+/* the rotated state of this session without wiping ctx: *next = own creds
+ * with (Nsk, Npk), peer_pk = the peer's next pk. Valid once both EADs are
+ * known (UE: after message_2; DN-AAA: after message_1). */
+void edhoc4_next_state(const edhoc4_ctx *ctx, edhoc4_creds *next,
+                       uint8_t peer_pk[E4_XWING_PK]);
 
 /* returns a static human-readable string for an error code (<0) */
 const char *edhoc4_strerror(int rc);
@@ -247,6 +273,7 @@ const char *edhoc4_strerror(int rc);
 #define E4_ERR_SIG          -7
 #define E4_ERR_STATE        -8
 #define E4_ERR_PEER         -9
+#define E4_ERR_PSEUDO      -10   /* unknown pseudonym (DN-AAA, before any KEM) */
 
 #ifdef __cplusplus
 }
