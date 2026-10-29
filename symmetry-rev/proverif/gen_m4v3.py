@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""ProVerif models for method 4 v3: the next one-time X-Wing keys travel in
-EAD_1 (Npk_A) and EAD_2 (Npk_B, P_next), EAD_2 is covered by MAC_2 / sigma_R,
-Message3 carries no EAD, Message4 is AEAD(K_4, empty) and stays mandatory.
-The UE accepts after Message4, the DN-AAA commits after Message3.
+"""ProVerif models for method 4, final v3 protocol: the next one-time X-Wing
+keys travel in EAD_1 (Npk_A) and EAD_2 (Npk_B), EAD_2 is covered by MAC_2 /
+sigma_R, PT3 = (MAC_3, VK_I, sigma_I) without EAD, Message4 is
+AEAD(K_4, empty) and stays mandatory. No pseudonym. The UE accepts after
+Message4, the DN-AAA commits after Message3.
 
 Same compact X-Wing abstraction as gen_v3.py / edhoc_m4_hybrid_*.pv
 (xwpk / xw_ct / xw_ss / xw_decaps, quantum oracle QXW).
@@ -20,21 +21,20 @@ pre = old[old.index("(* ---------------- Channel, types"):old.index("(* ========
 # ID_CRED_R is a private name so that Q5b can query its secrecy
 pre2 = pre.replace("const SuitesI, CI, CR, ID_CREDR, EAD2,", "const SuitesI, CI, CR, EAD4empty,")
 pre2 = pre2.replace("free ID_CREDI : bitstring [private].",
-                    "free ID_CREDI : bitstring [private].\nfree ID_CREDR : bitstring [private].\n"
-                    "free P_test : bitstring [private].   (* stand-in secret encrypted under P_next *)")
+                    "free ID_CREDI : bitstring [private].\nfree ID_CREDR : bitstring [private].")
 assert pre2 != pre and "free ID_CREDR" in pre2 and "EAD4empty" in pre2
-# authentication events also carry the next keys and the pseudonym
+# authentication events also carry the next keys
 for e in ("DN_send_M2", "UE_recv_M2", "UE_send_M3", "DN_recv_M3", "DN_send_M4", "UE_recv_M4"):
     a = f"event {e}(bitstring, bitstring, bitstring)."
     assert a in pre2, a
-    pre2 = pre2.replace(a, f"event {e}(bitstring, bitstring, bitstring, bitstring, bitstring, bitstring).")
+    pre2 = pre2.replace(a, f"event {e}(bitstring, bitstring, bitstring, bitstring, bitstring).")
 for need in ("fun xwpk(kemsk, exponent) : xpk.", "xw_decaps(k, x, xw_ct(xwpk(k, x), s, e))",
              "let QXW =", "MSK_test2", "fun xpk2b(xpk) : bitstring [data, typeConverter]."):
     assert need in pre2, need
 
-TITLE = ("EAP-EDHOC hybrid PQC method 4 v3 (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 detached-signature gate),\n"
-         " *           no ephemeral X-Wing; next one-time keys in EAD_1 (Npk_A) and EAD_2 (Npk_B, P_next);\n"
-         " *           EAD_2 under MAC_2/sigma_R; Message3 without EAD; Message4 = AEAD(K_4, empty)")
+TITLE = ("EAP-EDHOC hybrid PQC method 4, final v3 (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 detached-signature\n"
+         " *           gate), no ephemeral X-Wing; next one-time keys in EAD_1 (Npk_A) and EAD_2 (Npk_B);\n"
+         " *           EAD_2 under MAC_2/sigma_R; PT3 = (MAC_3, VK_I, sigma_I); Message4 = AEAD(K_4, empty)")
 
 
 def header(fname, setting, expect):
@@ -74,14 +74,13 @@ def ue_body(tail):
   let K2 = expands(PRK2e, (lbl_K2, TH2)) in
   let PT2 = AEAD_dec(K2, encP2) in
   let (=CR, =ID_CREDR, =pkSigR, EAD2:bitstring, MAC2:bitstring, sigR:bitstring) = PT2 in
-  let (EAD2pk:bitstring, pnext:bitstring) = EAD2 in
   let PRK3e2m = extract(PRK2e, ssB) in
   let MAC2chk = expands(PRK3e2m, (lbl_MAC2, TH2, ID_CREDR, EAD2, Len2)) in
   let v2 = mdverify(pkSigR, sigR) in
   if MAC2 = MAC2chk then
   if v2 = (TH2, ID_CREDR, MAC2) then
-  event UE_recv_M2(w, MAC2, TH2, EAD1, EAD2pk, pnext);
-  (* write-ahead: NEXT = (Nsk_A, Npk_A, Npk_B, P_next) is stored before Message3 *)
+  event UE_recv_M2(w, MAC2, TH2, EAD1, EAD2);
+  (* write-ahead: NEXT = (Nsk_A, Npk_A, Npk_B) is stored before Message3 *)
   let TH3 = H((TH2, PT2)) in
   let PRK4e3m = PRK3e2m in
   let MAC3 = expands(PRK4e3m, (lbl_MAC3, TH3, ID_CREDI, Len3)) in
@@ -90,13 +89,13 @@ def ue_body(tail):
   let PT3 = (MAC3, pkSigI, sigI) in
   let Message3 = AEAD_enc(K3, PT3) in
   let TH4 = H((TH3, PT3)) in
-  event UE_send_M3(w, MAC3, TH3, EAD1, EAD2pk, pnext);
+  event UE_send_M3(w, MAC3, TH3, EAD1, EAD2);
   out(c, Message3);
   in(c, Message4:bitstring);
   let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
   let PT4 = AEAD_dec(K4, Message4) in
   if PT4 = EAD4empty then
-  event UE_recv_M4(w, Message4, TH4, EAD1, EAD2pk, pnext);
+  event UE_recv_M4(w, Message4, TH4, EAD1, EAD2);
   (* UE accepts and promotes NEXT to CUR only now *)
   let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
   let MSK = expands(PRKout, lbl_MSK) in
@@ -107,16 +106,15 @@ def ue_body(tail):
 def dn_body(tail):
     return """  in(c, Message1:bitstring);
   let (ctB:bitstring, encP1:bitstring) = Message1 in
-  (* (sk_B, pk_B): per-UE record selected from the pseudonym (process argument) *)
+  (* (sk_B, pk_B): per-UE record selected from the EAP identity (process argument) *)
   let ssB = xw_decaps(B_pq, B_x, ctB) in
   let TH1 = H(ctB) in
   let K1 = expands(extract(TH1, ssB), TH1) in
   let (=M_4, =SuitesI, claimedI:bitstring, =CI, EAD1:bitstring) = AEAD_dec(K1, encP1) in
   let xpk2b(NpkA:xpk) = EAD1 in
-  (* next one-time key pair and next pseudonym, announced in EAD_2 *)
-  new NB_pq:kemsk; new NB_x:exponent; new pnext:bitstring;
-  let EAD2pk = xpk2b(xwpk(NB_pq, NB_x)) in
-  let EAD2 = (EAD2pk, pnext) in
+  (* next one-time key pair, announced in EAD_2 *)
+  new NB_pq:kemsk; new NB_x:exponent;
+  let EAD2 = xpk2b(xwpk(NB_pq, NB_x)) in
   new sA:bitstring; new eA:exponent;
   let ctA = xw_ct(pkA, sA, eA) in
   let ssA = xw_ss(pkA, sA, eA) in
@@ -128,9 +126,8 @@ def dn_body(tail):
   let sigR = mdsign((TH2, ID_CREDR, MAC2), skSigR) in
   let PT2 = (CR, ID_CREDR, pkSigR, EAD2, MAC2, sigR) in
   let TH3 = H((TH2, PT2)) in
-  event DN_send_M2(w, MAC2, TH2, EAD1, EAD2pk, pnext);
+  event DN_send_M2(w, MAC2, TH2, EAD1, EAD2);
   out(c, (ctA, AEAD_enc(K2, PT2)));
-  out(c, AEAD_enc(pnext, P_test));
   in(c, Message3:bitstring);
   let K3 = expands(PRK3e2m, (lbl_K3, TH3)) in
   let PT3 = AEAD_dec(K3, Message3) in
@@ -141,11 +138,11 @@ def dn_body(tail):
   let v3 = mdverify(pkSigI, sigIr) in
   if MAC3r = MAC3chk then
   if v3 = (TH3, claimedI, MAC3r) then
-  event DN_recv_M3(w, MAC3r, TH3, EAD1, EAD2pk, pnext);
-  (* commit (write-ahead): (P_next, Nsk_B, Npk_B, pk_A := Npk_A); old sk_B erased *)
+  event DN_recv_M3(w, MAC3r, TH3, EAD1, EAD2);
+  (* commit (write-ahead): (Nsk_B, Npk_B, pk_A := Npk_A); old sk_B erased *)
   let K4 = expands(PRK4e3m, (lbl_K4, TH4)) in
   let Message4 = AEAD_enc(K4, EAD4empty) in
-  event DN_send_M4(w, Message4, TH4, EAD1, EAD2pk, pnext);
+  event DN_send_M4(w, Message4, TH4, EAD1, EAD2);
   out(c, Message4);
   let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
   let MSK = expands(PRKout, lbl_MSK) in
@@ -166,16 +163,16 @@ UE_T = ("  event UE_finish(w, MSK, EMSK);\n"
 DN_T = ("  event DN_finish(w, MSK, EMSK);\n"
         "  out(c, AEAD_enc(MSK, app_data_DN));\n"
         "  out(c, AEAD_enc(EMSK, EMSK_test))")
-# Post-run state after a completed run: the rotated key and P_next only (old
+# Post-run state after a completed run: the rotated key only (old
 # one-time secret keys erased by both parties).
-UE_T_ERASE = UE_T + ";\n  (* post-run state: rotated key + P_next (old sk_A erased) *)\n  phase 1; out(c, NA_pq); out(c, NA_x); out(c, pnext)"
-DN_T_ERASE = DN_T + ";\n  (* post-run state: rotated key + P_next (old sk_B erased) *)\n  phase 1; out(c, NB_pq); out(c, NB_x); out(c, pnext)"
+UE_T_ERASE = UE_T + ";\n  (* post-run state: rotated key only (old sk_A erased) *)\n  phase 1; out(c, NA_pq); out(c, NA_x)"
+DN_T_ERASE = DN_T + ";\n  (* post-run state: rotated key only (old sk_B erased) *)\n  phase 1; out(c, NB_pq); out(c, NB_x)"
 # Negative control: neither party erases its used one-time key.
 UE_T_KEEP = UE_T_ERASE + "; out(c, A_pq); out(c, A_x)"
 DN_T_KEEP = DN_T_ERASE + "; out(c, B_pq); out(c, B_x)"
 # Recovery: Message4 lost, so the UE never accepts but keeps NEXT and the old
 # sk_A; the DN-AAA has committed and erased the old sk_B. The UE's state is
-# leaked whether or not Message4 arrived: old sk_A and Nsk_A (+ P_next).
+# leaked whether or not Message4 arrived: old sk_A and Nsk_A.
 UE_T_REC_SENT = ("  (* (UE state leak placed before Message4; see UE_recovery) *)\n"
                  "  event UE_finish(w, MSK, EMSK);\n"
                  "  out(c, AEAD_enc(MSK, app_data_UE))")
@@ -183,29 +180,29 @@ UE_T_REC_SENT = ("  (* (UE state leak placed before Message4; see UE_recovery) *
 
 def ue_recovery():
     """UE whose old sk_A survives (Message4 lost or not yet promoted): its whole
-    state (old sk_A, Nsk_A, P_next) leaks in phase 1 right after Message3."""
+    state (old sk_A, Nsk_A) leaks in phase 1 right after Message3."""
     body = ue_body(UE_T_REC_SENT)
     leak = ("  out(c, Message3);\n"
-            "  (* Message4 may be lost: the UE keeps CUR (old sk_A) and NEXT (Nsk_A, P_next);\n"
+            "  (* Message4 may be lost: the UE keeps CUR (old sk_A) and NEXT (Nsk_A);\n"
             "     its whole state leaks in phase 1 *)\n"
-            "  (phase 1; out(c, A_pq); out(c, A_x); out(c, NA_pq); out(c, NA_x); out(c, pnext)) |\n  (\n")
+            "  (phase 1; out(c, A_pq); out(c, A_x); out(c, NA_pq); out(c, NA_x)) |\n  (\n")
     assert body.count("  out(c, Message3);\n") == 1
     body = body.replace("  out(c, Message3);\n", leak) + "\n  )"
     return ("let UE(w:bitstring, A_pq:kemsk, A_x:exponent, pkB:xpk,\n"
             "       skSigI:mdsk, pkSigI:mdpk, pkSigR:mdpk) =\n" + body + ".\n\n"
             "let DN(w:bitstring, B_pq:kemsk, B_x:exponent, pkA:xpk,\n"
             "       skSigR:mdsk, pkSigR:mdpk, pkSigI:mdpk) =\n" + dn_body(
-                DN_T + ";\n  (* DN committed: old sk_B erased; only Nsk_B (and P_next) remain *)\n"
-                "  phase 1; out(c, NB_pq); out(c, NB_x); out(c, pnext)") + ".\n")
+                DN_T + ";\n  (* DN committed: old sk_B erased; only Nsk_B remains *)\n"
+                "  phase 1; out(c, NB_pq); out(c, NB_x)") + ".\n")
 
 
-ARGS = "x:bitstring, t:bitstring, a:bitstring, b:bitstring, p:bitstring"
+ARGS = "x:bitstring, t:bitstring, a:bitstring, b:bitstring"
 
 
 def auth(w, which=("Q2", "Q3", "Q4")):
-    q = {"Q2": f"query {ARGS}; inj-event(UE_recv_M2({w}, x, t, a, b, p)) ==> inj-event(DN_send_M2({w}, x, t, a, b, p)).   (* Q2: DN authenticated to UE, incl. Npk_A, Npk_B, P_next *)\n",
-         "Q3": f"query {ARGS}; inj-event(DN_recv_M3({w}, x, t, a, b, p)) ==> inj-event(UE_send_M3({w}, x, t, a, b, p)).   (* Q3: UE authenticated to DN, incl. Npk_A, Npk_B, P_next *)\n",
-         "Q4": f"query {ARGS}; inj-event(UE_recv_M4({w}, x, t, a, b, p)) ==> inj-event(DN_send_M4({w}, x, t, a, b, p)).   (* Q4: key confirmation by DN *)\n"}
+    q = {"Q2": f"query {ARGS}; inj-event(UE_recv_M2({w}, x, t, a, b)) ==> inj-event(DN_send_M2({w}, x, t, a, b)).   (* Q2: DN authenticated to UE, incl. Npk_A, Npk_B *)\n",
+         "Q3": f"query {ARGS}; inj-event(DN_recv_M3({w}, x, t, a, b)) ==> inj-event(UE_send_M3({w}, x, t, a, b)).   (* Q3: UE authenticated to DN, incl. Npk_A, Npk_B *)\n",
+         "Q4": f"query {ARGS}; inj-event(UE_recv_M4({w}, x, t, a, b)) ==> inj-event(DN_send_M4({w}, x, t, a, b)).   (* Q4: key confirmation by DN *)\n"}
     return "".join(q[k] for k in which)
 
 
@@ -219,9 +216,8 @@ SECRECY = ("query attacker(ID_CREDI).        (* Q5: identity concealment (initia
            "query attacker(app_data_DN).     (* Q7: confidentiality *)\n"
            "query attacker(MSK_test).        (* Q8: MSK secrecy + FS through rotation *)\n"
            "query attacker(EMSK_test).       (* Q9: EMSK secrecy + FS through rotation *)\n")
-PNEXT = "query attacker(P_test) phase 0.  (* Q12: P_next secret during the run (phase 0) *)\n"
-QUERIES = SANITY + auth("W0") + SECRECY + PNEXT
-QUERIES_NOERASE = SANITY + SECRECY + PNEXT
+QUERIES = SANITY + auth("W0") + SECRECY
+QUERIES_NOERASE = SANITY + SECRECY
 
 
 def one_time_main(quantum):
@@ -255,8 +251,8 @@ def write(fname, setting, expect, queries, body, main):
 files = []
 files.append(write("edhoc_m4v3_classical.pv",
     "classical Dolev-Yao; one-time static X-Wing keys per run; phase 1 leaks the post-run\n"
-    " *           state (rotated X-Wing keys, P_next) and both ML-DSA signing keys (FS through rotation)",
-    "Q0/Q1 false (reachable); Q2-Q4 true; Q5, Q5b, Q6-Q9, Q12 true",
+    " *           state (rotated X-Wing keys) and both ML-DSA signing keys (FS through rotation)",
+    "Q0/Q1 false (reachable); Q2-Q4 true; Q5, Q5b, Q6-Q9 true",
     QUERIES, procs(UE_T_ERASE, DN_T_ERASE), one_time_main(False)))
 files.append(write("edhoc_m4v3_quantum.pv",
     "as edhoc_m4v3_classical + quantum oracle (X25519 half of X-Wing) in all phases",
@@ -266,12 +262,12 @@ files.append(write("edhoc_m4v3_fs_noerase.pv",
     "NEGATIVE CONTROL: as edhoc_m4v3_classical, but neither party erases its used one-time\n"
     " *           X-Wing key, which leaks in phase 1",
     "Q0/Q1 false (reachable); Q5, Q5b, Q6-Q9 FALSE (FS and identity concealment rely\n"
-    " *           on erasure); Q12 true (phase 0); Q2-Q4 omitted (identical to edhoc_m4v3_classical)",
+    " *           on erasure); Q2-Q4 omitted (identical to edhoc_m4v3_classical)",
     QUERIES_NOERASE, procs(UE_T_KEEP, DN_T_KEEP), one_time_main(False)))
 files.append(write("edhoc_m4v3_recovery.pv",
     "synchronisation/recovery: the DN-AAA committed and erased the old sk_B, while the UE still\n"
     " *           holds the old sk_A (Message4 lost, NEXT not promoted). Phase 1 leaks the whole UE\n"
-    " *           state (old sk_A, Nsk_A, P_next), the DN state (Nsk_B, P_next) and both ML-DSA keys",
+    " *           state (old sk_A, Nsk_A), the DN state (Nsk_B) and both ML-DSA keys",
     "Q0/Q1 false (reachable); Q7-Q9 true (session keys of DN-accepted runs keep FS);\n"
     " *           Q5 true (ID_CRED_I needs sk_B)",
     SANITY + "query attacker(ID_CREDI).        (* Q5: identity concealment (initiator) *)\n"
