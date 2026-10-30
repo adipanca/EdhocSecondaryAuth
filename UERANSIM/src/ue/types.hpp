@@ -113,6 +113,10 @@ struct UeConfig
     std::optional<std::string> tunName{};
     std::optional<std::string> tunNetmask{};
 
+    /* secondaryAuth.identity: DN-specific identity of the EAP secondary
+     * authentication (EAP-Response/Identity, TS 33.501 11.1.2) */
+    std::optional<std::string> secondaryAuthIdentity{};
+
     struct
     {
         bool mps{};

@@ -47,6 +47,12 @@ uacAcc:
   class14: false
   class15: false
 
+# EAP secondary authentication by the DN-AAA during PDU session
+# establishment: DN-specific identity sent in the EAP-Response/Identity
+# (TS 33.501 11.1.2). The DN-AAA selects the UE's EAP-EDHOC record with it.
+secondaryAuth:
+  identity: 'ue1@edhoc.internet'
+
 # Initial PDU sessions to be established
 sessions:
   - type: 'IPv4'

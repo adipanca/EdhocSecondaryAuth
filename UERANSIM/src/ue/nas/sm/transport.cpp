@@ -429,10 +429,15 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     }
     else if (msg.eapMessage.eap->eapType == eap::EEapType::IDENTITY)
     {
-        // The DN-AAA selects the per-UE EDHOC record (<db>/<identity>/) from
-        // this identity, so it must match the provisioned record name.
+        // EAP-Request/Identity from the SMF (TS 33.501 11.1.2): answer with
+        // the DN-specific identity (ue.yaml secondaryAuth.identity; the
+        // EDHOC_EAP_IDENTITY environment variable overrides it), not the
+        // SUPI unless nothing is configured. The DN-AAA selects the per-UE
+        // EDHOC record (<db>/<identity>/) from it.
         std::string identity = "imsi-000000000000000";
-        if (m_base && m_base->config && m_base->config->supi.has_value())
+        if (m_base && m_base->config && m_base->config->secondaryAuthIdentity.has_value())
+            identity = *m_base->config->secondaryAuthIdentity;
+        else if (m_base && m_base->config && m_base->config->supi.has_value())
             identity = m_base->config->supi.value().value;
         if (const char *eapId = std::getenv("EDHOC_EAP_IDENTITY"))
             identity = eapId;

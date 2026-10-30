@@ -142,7 +142,14 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
         return;
 
     freeProcedureTransactionId(msg.pti);
-    E4T("ue_pdu_acc", msg.pduSessionId, 0);
+    if (E4TimingOn())
+    {
+        // eap: EAP code carried in the Accept (3 = EAP-Success), 0 = none
+        int eap = (msg.eapMessage.has_value() && msg.eapMessage->eap) ? (int)msg.eapMessage->eap->code : 0;
+        char extra[16];
+        std::snprintf(extra, sizeof(extra), " eap=%d", eap);
+        E4T("ue_pdu_acc", msg.pduSessionId, 0, extra);
+    }
 
     // EAP-Success of the secondary authentication may arrive here
     edhocOnResult(msg.eapMessage);
@@ -186,7 +193,15 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
 void NasSm::receiveEstablishmentReject(const nas::PduSessionEstablishmentReject &msg)
 {
     m_logger->err("PDU Session Establishment Reject received [%s]", nas::utils::EnumToString(msg.smCause.value));
-    E4T("ue_pdu_rej", msg.pduSessionId, 0);
+    if (E4TimingOn())
+    {
+        // cause: 5GSM cause (#29 user authentication or authorization
+        // failed); eap: EAP code in the Reject (4 = EAP-Failure), 0 = none
+        int eap = (msg.eapMessage.has_value() && msg.eapMessage->eap) ? (int)msg.eapMessage->eap->code : 0;
+        char extra[32];
+        std::snprintf(extra, sizeof(extra), " cause=%d eap=%d", (int)msg.smCause.value, eap);
+        E4T("ue_pdu_rej", msg.pduSessionId, 0, extra);
+    }
     edhocOnResult(msg.eapMessage);
 
     if (!checkPtiAndPsi(msg))

@@ -164,6 +164,12 @@ static nr::ue::UeConfig *ReadConfigYaml()
         result->tunName = yaml::GetString(config, "tunName", 1, 12);
     if (yaml::HasField(config, "tunNetmask"))
         result->tunNetmask = yaml::GetString(config, "tunNetmask", 9, 15);
+    if (yaml::HasField(config, "secondaryAuth"))
+    {
+        auto secondaryAuth = config["secondaryAuth"];
+        if (yaml::HasField(secondaryAuth, "identity"))
+            result->secondaryAuthIdentity = yaml::GetString(secondaryAuth, "identity", 1, 200);
+    }
 
     yaml::AssertHasField(config, "integrity");
     yaml::AssertHasField(config, "ciphering");
@@ -363,6 +369,7 @@ static nr::ue::UeConfig *GetConfigByUe(int ueIndex)
     c->routingIndicator = g_refConfig->routingIndicator;
     c->tunName = g_refConfig->tunName;
     c->tunNetmask = g_refConfig->tunNetmask;
+    c->secondaryAuthIdentity = g_refConfig->secondaryAuthIdentity;
     c->hplmn = g_refConfig->hplmn;
     c->configuredNssai = g_refConfig->configuredNssai;
     c->defaultConfiguredNssai = g_refConfig->defaultConfiguredNssai;
