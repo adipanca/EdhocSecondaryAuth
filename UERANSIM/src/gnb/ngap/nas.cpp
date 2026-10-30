@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <ue/nas/sm/e4t.hpp>
 #include "encode.hpp"
 #include "task.hpp"
 #include "utils.hpp"
@@ -156,6 +157,7 @@ void NgapTask::handleUplinkNasTransport(int ueId, const OctetString &nasPdu)
     asn::SetOctetString(ieNasPdu->value.choice.NAS_PDU, nasPdu);
 
     auto *pdu = asn::ngap::NewMessagePdu<ASN_NGAP_UplinkNASTransport>({ieNasPdu});
+    nr::ue::E4T("gnb_ngap_tx", ueId, nasPdu.length());     // UplinkNASTransport out
     sendNgapUeAssociated(ueId, pdu);
 }
 
@@ -181,6 +183,7 @@ void NgapTask::sendNasNonDeliveryIndication(int ueId, const OctetString &nasPdu,
 
 void NgapTask::receiveDownlinkNasTransport(int amfId, ASN_NGAP_DownlinkNASTransport *msg)
 {
+    nr::ue::E4T("gnb_ngap_dl_rx", amfId, 0);               // DownlinkNASTransport in
     auto *ue = findUeByNgapIdPair(amfId, ngap_utils::FindNgapIdPair(msg));
     if (ue == nullptr)
         return;

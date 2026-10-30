@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <ue/nas/sm/e4t.hpp>
 #include "task.hpp"
 
 #include <gnb/ngap/task.hpp>
@@ -41,6 +42,7 @@ namespace nr::gnb
 
 void GnbRrcTask::handleDownlinkNasDelivery(int ueId, const OctetString &nasPdu)
 {
+    nr::ue::E4T("gnb_dl_nas_tx", ueId, nasPdu.length());   // DL NAS to the UE (RRC)
     auto *pdu = asn::New<ASN_RRC_DL_DCCH_Message>();
     pdu->message.present = ASN_RRC_DL_DCCH_MessageType_PR_c1;
     pdu->message.choice.c1 =
@@ -60,6 +62,7 @@ void GnbRrcTask::handleDownlinkNasDelivery(int ueId, const OctetString &nasPdu)
 
 void GnbRrcTask::deliverUplinkNas(int ueId, OctetString &&nasPdu)
 {
+    nr::ue::E4T("gnb_ul_nas_rx", ueId, nasPdu.length());   // RRC got the UL NAS
     auto w = std::make_unique<NmGnbRrcToNgap>(NmGnbRrcToNgap::UPLINK_NAS_DELIVERY);
     w->ueId = ueId;
     w->pdu = std::move(nasPdu);

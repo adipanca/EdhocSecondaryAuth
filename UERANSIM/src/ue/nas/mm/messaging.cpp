@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <ue/nas/sm/e4t.hpp>
 #include "mm.hpp"
 
 #include <lib/nas/utils.hpp>
@@ -104,6 +105,7 @@ static void RemoveCleartextIEs(nas::PlainMmMessage &msg, OctetString &&nasMsgCon
 
 EProcRc NasMm::sendNasMessage(const nas::PlainMmMessage &msg)
 {
+    E4T("ue_nas_tx", 0, (long long)msg.messageType);   // len = 5GMM message type
     if (!m_base->shCtx.hasActiveCell())
     {
         m_logger->debug("NAS Transport aborted, no active cell");

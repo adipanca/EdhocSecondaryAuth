@@ -192,11 +192,15 @@ void UeCmdHandler::handleCmdImpl(NmUeCliCommand &msg)
         config.sNssai = msg.cmd->sNssai;
         // The request runs the UAC check, which waits (100 ms) for the RRC
         // task: let RRC run meanwhile, or every CLI request is "barred" and
-        // only leaves on the T3580 retransmission.
+        // only leaves on the T3580 retransmission. RLS runs as well, so the
+        // request goes out at once instead of after the paused RLS loop wakes
+        // up (20 ms polling).
         m_base->rrcTask->requestUnpause();
-        for (int i = 0; i < 100 && m_base->rrcTask->isPauseConfirmed(); i++)
+        m_base->rlsTask->requestUnpause();
+        for (int i = 0; i < 100 && (m_base->rrcTask->isPauseConfirmed() || m_base->rlsTask->isPauseConfirmed()); i++)
             utils::Sleep(1);
         m_base->nasTask->sm->sendEstablishmentRequest(config);
+        m_base->rlsTask->requestPause();
         m_base->rrcTask->requestPause();
         sendResult(msg.address, "PDU session establishment procedure triggered");
         break;

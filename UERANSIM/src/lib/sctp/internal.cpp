@@ -108,6 +108,14 @@ void SetEventOptions(int sd)
 
     if (setsockopt(sd, IPPROTO_SCTP, SCTP_EVENTS, &events, 8) < 0)
         ThrowError("SCTP SCTP_EVENTS option failed");
+
+    // Send each NGAP message at once. Without it the SCTP Nagle algorithm holds
+    // a small message while earlier data waits for the peer's delayed SACK
+    // (up to 200 ms), so every request after the first one of a burst was late.
+    // Open5GS sets the same option on its side.
+    int noDelay = 1;
+    if (setsockopt(sd, IPPROTO_SCTP, SCTP_NODELAY, &noDelay, sizeof(noDelay)) < 0)
+        ThrowError("SCTP SCTP_NODELAY option failed");
 }
 
 void StartListening(int sd)

@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <ue/nas/sm/e4t.hpp>
 #include "encode.hpp"
 #include "task.hpp"
 #include "utils.hpp"
@@ -42,6 +43,7 @@ namespace nr::gnb
 
 void NgapTask::receiveSessionResourceSetupRequest(int amfId, ASN_NGAP_PDUSessionResourceSetupRequest *msg)
 {
+    nr::ue::E4T("gnb_ngap_setup_rx", amfId, 0);            // PDUSessionResourceSetupRequest in
     std::vector<ASN_NGAP_PDUSessionResourceSetupItemSURes *> successList;
     std::vector<ASN_NGAP_PDUSessionResourceFailedToSetupItemSURes *> failedList;
 
