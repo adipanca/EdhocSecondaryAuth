@@ -232,6 +232,16 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_accept(smf_sess_t *sess)
         extended_protocol_configuration_options->length = epco_len;
     }
 
+    /* EAP-Success of the secondary authentication (TS 24.501 6.3.1.1) */
+    if (sess->sec_auth.eap_result && sess->sec_auth.eap_result_len) {
+        pdu_session_establishment_accept->presencemask |=
+            OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_ACCEPT_EAP_MESSAGE_PRESENT;
+        pdu_session_establishment_accept->eap_message.length =
+            sess->sec_auth.eap_result_len;
+        pdu_session_establishment_accept->eap_message.buffer =
+            sess->sec_auth.eap_result;
+    }
+
     /* DNN */
     pdu_session_establishment_accept->presencemask |=
         OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_ACCEPT_DNN_PRESENT;
@@ -275,6 +285,18 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_reject(
 
     pdu_session_establishment_reject->gsm_cause = gsm_cause;
 
+    /* cause #29 after the secondary authentication: the EAP-Failure of the
+     * DN-AAA, if one was received (TS 24.501 6.4.1.4.1) */
+    if (gsm_cause == OGS_5GSM_CAUSE_USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED &&
+            sess->sec_auth.eap_result && sess->sec_auth.eap_result_len) {
+        pdu_session_establishment_reject->presencemask |=
+            OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_REJECT_EAP_MESSAGE_PRESENT;
+        pdu_session_establishment_reject->eap_message.length =
+            sess->sec_auth.eap_result_len;
+        pdu_session_establishment_reject->eap_message.buffer =
+            sess->sec_auth.eap_result;
+    }
+
     return ogs_nas_5gs_plain_encode(&message);
 }
 
@@ -293,7 +315,9 @@ ogs_pkbuf_t *gsm_build_pdu_session_authentication_command(
     message.gsm.h.extended_protocol_discriminator =
             OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GSM;
     message.gsm.h.pdu_session_identity = sess->psi;
-    message.gsm.h.procedure_transaction_identity = sess->pti;
+    /* TS 24.501 6.3.1.2.1: "No procedure transaction identity assigned" */
+    message.gsm.h.procedure_transaction_identity =
+        OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
     message.gsm.h.message_type = OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_COMMAND;
 
     cmd->eap_message.length = eap_len;

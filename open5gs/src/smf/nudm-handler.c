@@ -500,6 +500,15 @@ bool smf_nudm_sdm_handle_subscription(smf_sess_t *sess, ogs_sbi_stream_t *stream
 
     ogs_free(sendmsg.http.location);
 
+    /*
+     * TS 23.502 4.3.2.2.1: secondary authentication (step 6) comes after the
+     * Nsmf_PDUSession_CreateSMContext Response (step 5) and before the SM
+     * policy association (step 7). The session FSM starts it and creates the
+     * policy association once it succeeded.
+     */
+    if (smf_sec_auth_required(sess))
+        return true;
+
     r = smf_sbi_discover_and_send(
             OGS_SBI_SERVICE_TYPE_NPCF_SMPOLICYCONTROL, NULL,
             smf_npcf_smpolicycontrol_build_create, sess, stream, 0, NULL);

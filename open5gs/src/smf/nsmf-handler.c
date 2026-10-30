@@ -456,7 +456,13 @@ bool smf_nsmf_handle_update_sm_context(
 
         gsm_header = (ogs_nas_5gsm_header_t *)n1smbuf->data;
         ogs_assert(gsm_header);
-        sess->pti = gsm_header->procedure_transaction_identity;
+        /* A PDU SESSION AUTHENTICATION COMPLETE carries "no procedure
+         * transaction identity assigned" (TS 24.501 6.3.1); it must not
+         * replace the PTI of the pending establishment, which the Accept /
+         * Reject has to echo. */
+        if (gsm_header->message_type !=
+                OGS_NAS_5GS_PDU_SESSION_AUTHENTICATION_COMPLETE)
+            sess->pti = gsm_header->procedure_transaction_identity;
 
         /*
          * NOTE : The pkbuf created in the SBI message will be removed

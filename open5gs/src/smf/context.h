@@ -73,6 +73,11 @@ typedef struct smf_context_s {
     const char      *dns[MAX_NUM_OF_DNS];
     const char      *dns6[MAX_NUM_OF_DNS];
 
+#define MAX_NUM_OF_SEC_AUTH_DNN     16
+    /* smf.yaml "secondary_auth": DNNs with EAP secondary authentication */
+    const char      *sec_auth_dnn[MAX_NUM_OF_SEC_AUTH_DNN];
+    int             num_of_sec_auth_dnn;
+
 #define MAX_NUM_OF_P_CSCF           16
     const char      *p_cscf[MAX_NUM_OF_P_CSCF];
     int             num_of_p_cscf;
@@ -283,12 +288,18 @@ typedef struct smf_sess_s {
     uint8_t         pti; /* 5GS-NAS : Procedure transaction identity */
 
 #define SMF_SEC_AUTH_STATE_MAX 4096
+    /* EAP secondary authentication inside PDU session establishment
+     * (TS 23.502 4.3.2.2.1 step 6, TS 24.501 6.3.1) */
     struct {
         bool in_progress;
-        uint8_t eap_id;
-        uint8_t state[SMF_SEC_AUTH_STATE_MAX];
+        char *identity;             /* DN-specific identity from the UE */
+        uint8_t state[SMF_SEC_AUTH_STATE_MAX];  /* RADIUS State */
         size_t state_len;
-        ogs_timer_t *t_start;
+        uint32_t relay_seq;         /* outstanding relay request */
+        ogs_timer_t *t_relay;       /* relay reply timeout */
+        uint8_t *eap_result;        /* EAP-Success / EAP-Failure */
+        uint16_t eap_result_len;
+        bool failed;                /* Reject with cause #29 */
     } sec_auth;
 
     char            *sm_context_status_uri; /* SmContextStatusNotification */
@@ -630,6 +641,8 @@ int smf_maximum_integrity_protected_data_rate_uplink_value2enum(
 int smf_maximum_integrity_protected_data_rate_downlink_value2enum(
         const char *value);
 int smf_instance_get_load(void);
+
+bool smf_sec_auth_required(smf_sess_t *sess);
 
 #ifdef __cplusplus
 }

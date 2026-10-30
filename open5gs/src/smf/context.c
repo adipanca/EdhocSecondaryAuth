@@ -538,6 +538,52 @@ int smf_context_parse_config(void)
 
                     } while (ogs_yaml_iter_type(&dns_iter) ==
                                 YAML_SEQUENCE_NODE);
+                } else if (!strcmp(smf_key, "secondary_auth")) {
+                    /*
+                     * secondary_auth:
+                     *   - dnn: internet
+                     *     method: edhoc
+                     * EAP secondary authentication by the DN-AAA during PDU
+                     * session establishment for these DNNs.
+                     */
+                    ogs_yaml_iter_t sa_array, sa_iter;
+                    ogs_yaml_iter_recurse(&smf_iter, &sa_array);
+                    do {
+                        const char *dnn = NULL;
+                        if (ogs_yaml_iter_type(&sa_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&sa_iter, &sa_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&sa_array) ==
+                                YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&sa_array))
+                                break;
+                            ogs_yaml_iter_recurse(&sa_array, &sa_iter);
+                        } else if (ogs_yaml_iter_type(&sa_array) ==
+                                YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&sa_iter)) {
+                            const char *k = ogs_yaml_iter_key(&sa_iter);
+                            ogs_assert(k);
+                            if (!strcmp(k, "dnn"))
+                                dnn = ogs_yaml_iter_value(&sa_iter);
+                            else if (!strcmp(k, "method")) {
+                                const char *m = ogs_yaml_iter_value(&sa_iter);
+                                if (!m || strcmp(m, "edhoc"))
+                                    ogs_warn("secondary_auth: method `%s`"
+                                            " (only the EAP relay to the"
+                                            " DN-AAA exists)", m ? m : "");
+                            } else
+                                ogs_warn("unknown key `%s`", k);
+                        }
+                        if (dnn && self.num_of_sec_auth_dnn <
+                                MAX_NUM_OF_SEC_AUTH_DNN)
+                            self.sec_auth_dnn[self.num_of_sec_auth_dnn++] = dnn;
+                    } while (ogs_yaml_iter_type(&sa_array) ==
+                            YAML_SEQUENCE_NODE);
                 } else if (!strcmp(smf_key, "mtu")) {
                     ogs_assert(ogs_yaml_iter_type(&smf_iter) !=
                             YAML_SCALAR_NODE);
@@ -1477,10 +1523,10 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
 
     sess->smf_ue_id = smf_ue->id;
 
-    /* Secondary authentication (EAP-EDHOC) deferred-start timer */
-    sess->sec_auth.t_start = ogs_timer_add(ogs_app()->timer_mgr,
-            smf_timer_sec_auth_start, OGS_UINT_TO_POINTER(sess->id));
-    ogs_assert(sess->sec_auth.t_start);
+    /* Secondary authentication: relay reply timeout */
+    sess->sec_auth.t_relay = ogs_timer_add(ogs_app()->timer_mgr,
+            smf_timer_sec_auth_relay, OGS_UINT_TO_POINTER(sess->id));
+    ogs_assert(sess->sec_auth.t_relay);
 
     ogs_list_add(&smf_ue->sess_list, sess);
 
@@ -1703,10 +1749,14 @@ void smf_sess_remove(smf_sess_t *sess)
 
     ogs_list_remove(&smf_ue->sess_list, sess);
 
-    if (sess->sec_auth.t_start) {
-        ogs_timer_delete(sess->sec_auth.t_start);
-        sess->sec_auth.t_start = NULL;
+    if (sess->sec_auth.t_relay) {
+        ogs_timer_delete(sess->sec_auth.t_relay);
+        sess->sec_auth.t_relay = NULL;
     }
+    if (sess->sec_auth.identity)
+        ogs_free(sess->sec_auth.identity);
+    if (sess->sec_auth.eap_result)
+        ogs_free(sess->sec_auth.eap_result);
 
     memset(&e, 0, sizeof(e));
     e.sess_id = sess->id;
@@ -3252,4 +3302,25 @@ int smf_maximum_integrity_protected_data_rate_downlink_value2enum(
 {
     ogs_assert(value);
     return smf_maximum_integrity_protected_data_rate_uplink_value2enum(value);
+}
+
+/*
+ * EAP secondary authentication by the DN-AAA for this PDU session: its DNN
+ * is listed under smf.yaml "secondary_auth", and OPEN5GS_SEC_AUTH is not 0
+ * (baseline without secondary authentication).
+ */
+bool smf_sec_auth_required(smf_sess_t *sess)
+{
+    const char *v = getenv("OPEN5GS_SEC_AUTH");
+    int i;
+
+    ogs_assert(sess);
+    if (v && !strcmp(v, "0"))
+        return false;
+    if (!sess->session.name)
+        return false;
+    for (i = 0; i < self.num_of_sec_auth_dnn; i++)
+        if (!ogs_strcasecmp(self.sec_auth_dnn[i], sess->session.name))
+            return true;
+    return false;
 }

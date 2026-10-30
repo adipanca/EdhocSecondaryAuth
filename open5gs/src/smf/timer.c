@@ -44,8 +44,8 @@ const char *smf_timer_get_name(int timer_id)
         return "SMF_TIMER_PFCP_NO_ESTABLISHMENT_RESPONSE";
     case SMF_TIMER_PFCP_NO_DELETION_RESPONSE:
         return "SMF_TIMER_PFCP_NO_DELETION_RESPONSE";
-    case SMF_TIMER_SEC_AUTH_START:
-        return "SMF_TIMER_SEC_AUTH_START";
+    case SMF_TIMER_SEC_AUTH_RELAY:
+        return "SMF_TIMER_SEC_AUTH_RELAY";
     default: 
        break;
     }
@@ -92,7 +92,7 @@ void smf_timer_pfcp_no_heartbeat(void *data)
     timer_send_event(SMF_TIMER_PFCP_NO_HEARTBEAT, data);
 }
 
-void smf_timer_sec_auth_start(void *data)
+void smf_timer_sec_auth_relay(void *data)
 {
     int rv;
     smf_event_t *e = NULL;
@@ -100,13 +100,13 @@ void smf_timer_sec_auth_start(void *data)
 
     e = smf_event_new(SMF_EVT_5GSM_TIMER);
     ogs_assert(e);
-    e->h.timer_id = SMF_TIMER_SEC_AUTH_START;
+    e->h.timer_id = SMF_TIMER_SEC_AUTH_RELAY;
     e->sess_id = sess_id;
 
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {
         ogs_error("ogs_queue_push() failed [%d] in %s",
-                (int)rv, smf_timer_get_name(SMF_TIMER_SEC_AUTH_START));
+                (int)rv, smf_timer_get_name(SMF_TIMER_SEC_AUTH_RELAY));
         ogs_event_free(e);
     }
 }

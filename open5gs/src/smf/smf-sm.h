@@ -34,6 +34,7 @@ void smf_state_exception(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_initial(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_final(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_wait_epc_auth_initial(ogs_fsm_t *s, smf_event_t *e);
+void smf_gsm_state_wait_5gc_sec_auth(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_wait_pfcp_establishment(ogs_fsm_t *s, smf_event_t *e);
 void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e);

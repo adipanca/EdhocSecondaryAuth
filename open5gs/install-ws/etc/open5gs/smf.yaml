@@ -34,6 +34,13 @@ smf:
     server:
       - address: 127.0.0.4
         port: 9090
+  # EAP secondary authentication by the DN-AAA during PDU session
+  # establishment (TS 23.502 4.3.2.2.1 step 6) for these DNNs; the EAP
+  # messages go to FreeRADIUS through the UPF relay. OPEN5GS_SEC_AUTH=0
+  # turns it off (baseline).
+  secondary_auth:
+    - dnn: internet
+      method: edhoc
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1
