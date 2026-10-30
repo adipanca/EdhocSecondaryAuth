@@ -454,6 +454,18 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_fsm_dispatch(&sess->sm, e);
         break;
 
+    case SMF_EVT_SEC_AUTH_RELAY:
+        ogs_assert(e);
+        pkbuf = e->pkbuf;
+        ogs_assert(pkbuf);
+        sess = smf_sess_find_by_id(e->sess_id);
+        if (sess)
+            ogs_fsm_dispatch(&sess->sm, e);
+        else
+            ogs_warn("EAP relay reply: session already removed");
+        ogs_pkbuf_free(pkbuf);
+        break;
+
     case OGS_EVENT_SBI_SERVER:
         sbi_request = e->h.sbi.request;
         ogs_assert(sbi_request);

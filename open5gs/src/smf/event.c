@@ -76,6 +76,8 @@ const char *smf_event_get_name(smf_event_t *e)
         return "SMF_EVT_5GSM_MESSAGE";
     case SMF_EVT_5GSM_TIMER:
         return "SMF_EVT_5GSM_TIMER";
+    case SMF_EVT_SEC_AUTH_RELAY:
+        return "SMF_EVT_SEC_AUTH_RELAY";
 
     default:
        break;

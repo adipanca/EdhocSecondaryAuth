@@ -61,6 +61,7 @@ typedef enum {
 
     SMF_EVT_5GSM_MESSAGE,
     SMF_EVT_5GSM_TIMER,
+    SMF_EVT_SEC_AUTH_RELAY,     /* reply of the EAP relay (radius-client.c) */
 
     SMF_EVT_TOP,
 

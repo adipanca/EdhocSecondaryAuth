@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,7 +22,7 @@
 
 #define EAP_RELAY_MAGIC_REQ 0xE5E5DEADU
 #define EAP_RELAY_MAGIC_RESP 0xE5E5BEEFU
-#define EAP_RELAY_VERSION 1U
+#define EAP_RELAY_VERSION 2U
 
 #define EAP_RELAY_DEFAULT_ADDR "127.0.0.1"
 #define EAP_RELAY_DEFAULT_PORT 3870
@@ -666,26 +667,23 @@ static int radius_verify_response(const uint8_t *req, size_t req_len,
     return 0;
 }
 
-static int radius_exchange(const char *username,
-        const uint8_t *state, size_t state_len,
-        const uint8_t *eap, size_t eap_len,
-        uint8_t *out_result,
-        uint8_t *out_state, size_t out_state_cap, size_t *out_state_len,
-        uint8_t *out_eap, size_t out_eap_cap, size_t *out_eap_len)
+/*
+ * One persistent UDP socket to the DN-AAA (opened at start, connected). Each
+ * Access-Request gets the next RADIUS Identifier; a reply counts only if its
+ * Identifier and Response Authenticator match the outstanding request, any
+ * other (late reply to an earlier, timed-out request) is dropped. The wait
+ * for the matching reply is 2 s.
+ */
+static int g_rad_fd = -1;
+static const uint8_t *g_secret;
+static size_t g_secret_len;
+
+static int radius_open(void)
 {
     const char *radius_addr;
     const char *secret_env;
     uint16_t radius_port;
-    uint8_t req[8192];
-    uint8_t resp[8192];
-    size_t req_len = 0;
-    size_t resp_len = 0;
-    ssize_t rcv_len;
-    int fd = -1;
     struct sockaddr_in dst;
-    struct timeval tv;
-    const uint8_t *secret;
-    size_t secret_len;
 
     radius_addr = getenv("OPEN5GS_RADIUS_ADDR");
     if (!radius_addr || !radius_addr[0])
@@ -696,69 +694,107 @@ static int radius_exchange(const char *username,
     secret_env = getenv("OPEN5GS_RADIUS_SECRET");
     if (!secret_env || !secret_env[0])
         secret_env = "testing123";
-    secret = (const uint8_t *)secret_env;
-    secret_len = strlen(secret_env);
+    g_secret = (const uint8_t *)secret_env;
+    g_secret_len = strlen(secret_env);
 
     radius_port = get_port_from_env("OPEN5GS_RADIUS_PORT", 1812);
-
-    if (radius_build_request(username, state, state_len, eap, eap_len,
-                secret, secret_len, req, sizeof(req), &req_len) != 0) {
-        ogs_error("radius_exchange: failed to build Access-Request");
-        return -1;
-    }
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        ogs_error("radius_exchange: socket() failed (%d)", errno);
-        return -1;
-    }
-
-    memset(&tv, 0, sizeof(tv));
-    tv.tv_sec = 2;
-    tv.tv_usec = 0;
-    (void)setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
     memset(&dst, 0, sizeof(dst));
     dst.sin_family = AF_INET;
     dst.sin_port = htons(radius_port);
     if (inet_pton(AF_INET, radius_addr, &dst.sin_addr) != 1) {
-        ogs_error("radius_exchange: invalid RADIUS address [%s]", radius_addr);
-        goto done;
+        ogs_error("radius_open: invalid RADIUS address [%s]", radius_addr);
+        return -1;
+    }
+
+    g_rad_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (g_rad_fd < 0) {
+        ogs_error("radius_open: socket() failed (%d)", errno);
+        return -1;
+    }
+    if (connect(g_rad_fd, (struct sockaddr *)&dst, sizeof(dst)) < 0) {
+        ogs_error("radius_open: connect() failed (%d)", errno);
+        close(g_rad_fd);
+        g_rad_fd = -1;
+        return -1;
+    }
+    ogs_info("UPF EAP relay: RADIUS socket to %s:%u", radius_addr, radius_port);
+    return 0;
+}
+
+static int64_t mono_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+static int radius_exchange(const char *username,
+        const uint8_t *state, size_t state_len,
+        const uint8_t *eap, size_t eap_len,
+        uint8_t *out_result,
+        uint8_t *out_state, size_t out_state_cap, size_t *out_state_len,
+        uint8_t *out_eap, size_t out_eap_cap, size_t *out_eap_len)
+{
+    uint8_t req[8192];
+    uint8_t resp[8192];
+    size_t req_len = 0;
+    int64_t deadline;
+
+    if (g_rad_fd < 0)
+        return -1;
+
+    if (radius_build_request(username, state, state_len, eap, eap_len,
+                g_secret, g_secret_len, req, sizeof(req), &req_len) != 0) {
+        ogs_error("radius_exchange: failed to build Access-Request");
+        return -1;
     }
 
     e4t("upf_rad_tx", req_len, req[0]);
-    if (sendto(fd, req, req_len, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0) {
-        ogs_error("radius_exchange: sendto() failed (%d)", errno);
-        goto done;
+    if (send(g_rad_fd, req, req_len, 0) < 0) {
+        ogs_error("radius_exchange: send() failed (%d)", errno);
+        return -1;
     }
 
-    rcv_len = recvfrom(fd, resp, sizeof(resp), 0, NULL, NULL);
-    if (rcv_len < 0) {
-        ogs_error("radius_exchange: recvfrom() failed (%d)", errno);
-        goto done;
+    deadline = mono_ms() + 2000;
+    for (;;) {
+        struct pollfd pfd = { g_rad_fd, POLLIN, 0 };
+        int64_t left = deadline - mono_ms();
+        ssize_t n;
+        int pr;
+
+        if (left <= 0) {
+            ogs_warn("radius_exchange: no reply from the DN-AAA in 2 s");
+            return -1;
+        }
+        pr = poll(&pfd, 1, (int)left);
+        if (pr < 0 && errno == EINTR)
+            continue;
+        if (pr <= 0)
+            continue;               /* re-check the deadline */
+        n = recv(g_rad_fd, resp, sizeof(resp), 0);
+        if (n < 0) {
+            if (errno == EINTR || errno == EAGAIN)
+                continue;
+            ogs_error("radius_exchange: recv() failed (%d)", errno);
+            return -1;
+        }
+        if ((size_t)n < RADIUS_HEADER_LEN || resp[1] != req[1] ||
+                radius_verify_response(req, req_len, resp, (size_t)n,
+                    g_secret, g_secret_len) != 0) {
+            ogs_warn("radius_exchange: stale or invalid reply dropped "
+                    "(id %u, expected %u)", n > 1 ? resp[1] : 0, req[1]);
+            continue;
+        }
+        e4t("upf_rad_rx", (size_t)n, resp[0]);
+        if (radius_parse_response(resp, (size_t)n, out_result,
+                    out_state, out_state_cap, out_state_len,
+                    out_eap, out_eap_cap, out_eap_len) != 0) {
+            ogs_error("radius_exchange: invalid response packet");
+            return -1;
+        }
+        return 0;
     }
-    e4t("upf_rad_rx", (size_t)rcv_len, resp[0]);
-
-    resp_len = (size_t)rcv_len;
-    if (radius_verify_response(req, req_len, resp, resp_len, secret, secret_len) != 0) {
-        ogs_error("radius_exchange: response authentication failed");
-        goto done;
-    }
-
-    if (radius_parse_response(resp, resp_len, out_result,
-                out_state, out_state_cap, out_state_len,
-                out_eap, out_eap_cap, out_eap_len) != 0) {
-        ogs_error("radius_exchange: invalid response packet");
-        goto done;
-    }
-
-    close(fd);
-    return 0;
-
-done:
-    if (fd >= 0)
-        close(fd);
-    return -1;
 }
 
 static uint16_t get_port_from_env(const char *name, uint16_t default_port)
@@ -777,7 +813,9 @@ static uint16_t get_port_from_env(const char *name, uint16_t default_port)
     return (uint16_t)p;
 }
 
-static void write_response(const uint8_t result,
+/* relay protocol v2 reply: magic, version, result, state_len, eap_len,
+ * token (sess_id, seq echoed from the request), state, eap */
+static void write_response(const uint8_t result, const uint8_t token[8],
         const uint8_t *state, uint16_t state_len,
         const uint8_t *eap, uint16_t eap_len,
         uint8_t *out, size_t *out_len)
@@ -800,6 +838,9 @@ static void write_response(const uint8_t result,
     memcpy(out + pos, &v16, sizeof(v16));
     pos += sizeof(v16);
 
+    memcpy(out + pos, token, 8);
+    pos += 8;
+
     if (state_len && state) {
         memcpy(out + pos, state, state_len);
         pos += state_len;
@@ -813,38 +854,36 @@ static void write_response(const uint8_t result,
     *out_len = pos;
 }
 
+/* relay protocol v2 request: magic, version, reserved, user_len,
+ * state_len, eap_len, token (sess_id, seq), user, state, eap */
 static void process_req(const uint8_t *buf, size_t len,
         uint8_t *resp, size_t *resp_len)
 {
+    static const uint8_t no_token[8] = { 0 };
     size_t pos = 0;
     uint32_t v32 = 0;
     uint16_t state_len = 0;
     uint16_t eap_len = 0;
     uint8_t version = 0;
     uint8_t uname_len = 0;
+    const uint8_t *token = no_token;
     const uint8_t *state = NULL;
     const uint8_t *eap = NULL;
     size_t need = 0;
     char username_buf[256];
-    const char *username = NULL;
     uint8_t result = EAP_RELAY_RESULT_ERROR;
     uint8_t radius_state[2048];
     uint8_t radius_eap[8192];
     size_t radius_state_len = 0;
     size_t radius_eap_len = 0;
 
-    if (len < 10) {
-        write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
+    if (len < 19) {
+        write_response(EAP_RELAY_RESULT_ERROR, token, NULL, 0, NULL, 0, resp, resp_len);
         return;
     }
 
     memcpy(&v32, buf + pos, sizeof(v32));
     pos += sizeof(v32);
-    if (ntohl(v32) != EAP_RELAY_MAGIC_REQ) {
-        write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
-        return;
-    }
-
     version = buf[pos++];
     (void)buf[pos++]; /* reserved */
     uname_len = buf[pos++];
@@ -857,20 +896,22 @@ static void process_req(const uint8_t *buf, size_t len,
     pos += sizeof(eap_len);
     eap_len = ntohs(eap_len);
 
-    if (version != EAP_RELAY_VERSION) {
-        write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
+    token = buf + pos;
+    pos += 8;
+
+    if (ntohl(v32) != EAP_RELAY_MAGIC_REQ || version != EAP_RELAY_VERSION) {
+        write_response(EAP_RELAY_RESULT_ERROR, token, NULL, 0, NULL, 0, resp, resp_len);
         return;
     }
 
     need = pos + (size_t)uname_len + state_len + eap_len;
     if (len < need) {
-        write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
+        write_response(EAP_RELAY_RESULT_ERROR, token, NULL, 0, NULL, 0, resp, resp_len);
         return;
     }
 
     memset(username_buf, 0, sizeof(username_buf));
     memcpy(username_buf, buf + pos, uname_len);
-    username = username_buf;
     pos += uname_len;
     state = buf + pos;
     pos += state_len;
@@ -883,11 +924,11 @@ static void process_req(const uint8_t *buf, size_t len,
         return;
     }
 
-    if (radius_exchange(username, state, state_len, eap, eap_len,
+    if (radius_exchange(username_buf, state, state_len, eap, eap_len,
                 &result,
                 radius_state, sizeof(radius_state), &radius_state_len,
                 radius_eap, sizeof(radius_eap), &radius_eap_len) != 0) {
-        write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
+        write_response(EAP_RELAY_RESULT_ERROR, token, NULL, 0, NULL, 0, resp, resp_len);
         return;
     }
 
@@ -898,23 +939,16 @@ static void process_req(const uint8_t *buf, size_t len,
         return;
     }
 
-    if (radius_state_len > 0)
-        state = radius_state;
-    else
-        state = NULL;
-
-    if (radius_eap_len > 0)
-        eap = radius_eap;
-    else
-        eap = NULL;
-
-    write_response(result, state, (uint16_t)radius_state_len, eap, (uint16_t)radius_eap_len, resp, resp_len);
+    write_response(result, token,
+            radius_state_len ? radius_state : NULL, (uint16_t)radius_state_len,
+            radius_eap_len ? radius_eap : NULL, (uint16_t)radius_eap_len,
+            resp, resp_len);
 }
 
 static void *relay_main(void *unused)
 {
-    uint8_t req[8192];
-    uint8_t resp[8192];
+    uint8_t req[16384];
+    uint8_t resp[16384];
 
     (void)unused;
 
@@ -932,9 +966,13 @@ static void *relay_main(void *unused)
                 break;
             continue;
         }
+        if (n == 0 && !g_running)
+            break;
+        e4t("upf_req_rx", (size_t)n, 0);
 
         process_req(req, (size_t)n, resp, &resp_len);
         if (resp_len > 0) {
+            e4t("upf_resp_tx", resp_len, resp[5]);
             (void)sendto(g_sock, resp, resp_len, 0,
                     (struct sockaddr *)&from, from_len);
         }
@@ -955,6 +993,9 @@ int upf_eap_relay_start(void)
 
     if (!bind_addr || !bind_addr[0])
         bind_addr = EAP_RELAY_DEFAULT_ADDR;
+
+    if (radius_open() != 0)
+        return OGS_ERROR;
 
     g_sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (g_sock < 0) {
@@ -998,11 +1039,21 @@ void upf_eap_relay_stop(void)
         return;
 
     g_running = 0;
+    /* shutdown() wakes the relay thread blocked in recvfrom(); close()
+     * alone does not, and the join would hang */
+    if (g_sock >= 0)
+        shutdown(g_sock, SHUT_RDWR);
+    if (g_rad_fd >= 0)
+        shutdown(g_rad_fd, SHUT_RDWR);
+
+    (void)pthread_join(g_thread, NULL);
     if (g_sock >= 0) {
         close(g_sock);
         g_sock = -1;
     }
-
-    (void)pthread_join(g_thread, NULL);
+    if (g_rad_fd >= 0) {
+        close(g_rad_fd);
+        g_rad_fd = -1;
+    }
     ogs_info("UPF EAP relay stopped");
 }
