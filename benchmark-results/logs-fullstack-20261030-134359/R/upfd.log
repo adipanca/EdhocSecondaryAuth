@@ -1,0 +1,1695 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 13:53:00.250[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/upf.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 13:53:00.250[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+[32m10/30 13:53:00.271[0m: [[33mmetrics[0m] [1;32mINFO[0m: metrics_server() [http://127.0.0.7]:9090 (../lib/metrics/prometheus/context.c:300)
+[32m10/30 13:53:00.272[0m: [[33mpfcp[0m] [1;32mINFO[0m: pfcp_server() [127.0.0.7]:8805 (../lib/pfcp/path.c:30)
+[32m10/30 13:53:00.273[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_server() [127.0.0.7]:2152 (../lib/gtp/path.c:30)
+[32m10/30 13:53:00.274[0m: [[33mupf[0m] [1;32mINFO[0m: UPF EAP relay started on 127.0.0.1:3870 (../src/upf/eap-relay.c:991)
+[32m10/30 13:53:00.274[0m: [[33mapp[0m] [1;32mINFO[0m: UPF initialize...done (../src/upf/app.c:31)
+[32m10/30 13:53:00.326[0m: [[33mupf[0m] [1;32mINFO[0m: PFCP associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:168)
+[32m10/30 13:53:11.051[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:11.051[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_connect() [127.0.0.4]:2152 (../lib/gtp/path.c:60)
+[32m10/30 13:53:11.052[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xa48 CP:0x5a] APN[internet] PDN-Type[1] IPv4[10.45.0.2] IPv6[] (../src/upf/context.c:495)
+[32m10/30 13:53:11.055[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_connect() [127.0.0.1]:2152 (../lib/gtp/path.c:60)
+[E4T] upf_rad_tx t_us=158273929230 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158273929561 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158273936216 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158273936521 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158273942360 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158273942647 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158273953263 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158273954226 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273958709 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273959008 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273962677 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273962933 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273966765 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273967184 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273972468 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273972769 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273975973 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273976249 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158273981745 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158273982015 sess=0 len=169 code=11
+[32m10/30 13:53:11.220[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158273986838 sess=0 len=1005 code=3
+[32m10/30 13:53:13.287[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:13.711[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:13.711[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x8f2 CP:0xe5b] APN[internet] PDN-Type[1] IPv4[10.45.0.3] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158276580880 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158276581312 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158276587792 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158276588318 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158276591297 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158276591533 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158276596357 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158277598456 sess=0 len=44 code=3
+[32m10/30 13:53:14.896[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:15.321[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:15.321[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xbfc CP:0xe3] APN[internet] PDN-Type[1] IPv4[10.45.0.4] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158278217829 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158278218298 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278222087 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278222468 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278225394 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278225631 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278231267 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158278232011 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278236667 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278237021 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278242815 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278243017 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278245825 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278246015 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278250082 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278250286 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278252949 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278253187 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278255702 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278256112 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158278260095 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278260278 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278269543 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278270044 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278275049 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278275373 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278278947 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158278280341 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158278285954 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278286378 sess=0 len=182 code=2
+[32m10/30 13:53:15.579[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:16.005[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:16.005[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xd0d CP:0x1e7] APN[internet] PDN-Type[1] IPv4[10.45.0.5] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158278911083 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158278918298 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278932723 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278933007 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278937120 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158278937773 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158278941003 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158278942577 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278947217 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278947431 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278951012 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278951196 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278961776 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278962133 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278966335 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278966568 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278973822 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278979443 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158278988642 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158278988970 sess=0 len=169 code=11
+[32m10/30 13:53:16.229[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158278995247 sess=0 len=1005 code=3
+[32m10/30 13:53:18.336[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:18.834[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:18.834[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x397 CP:0xd67] APN[internet] PDN-Type[1] IPv4[10.45.0.6] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158281707261 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158281707688 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158281711757 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158281712499 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158281715524 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158281715806 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158281722524 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158282725863 sess=0 len=44 code=3
+[32m10/30 13:53:20.022[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:20.450[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:20.450[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x18b CP:0x9d5] APN[internet] PDN-Type[1] IPv4[10.45.0.7] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158283322458 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158283330106 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283474889 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158283489771 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283611559 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158283615850 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283628284 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158283631006 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283634744 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283635229 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283638294 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283638548 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283641667 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283642063 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283645000 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283645323 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283648324 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283648574 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158283651452 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283651761 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158283656663 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158283657131 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283660530 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158283660872 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283666152 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158283666405 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158283670577 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158283671858 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158283676131 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158283676786 sess=0 len=182 code=2
+[32m10/30 13:53:20.976[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:21.398[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:21.398[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xb56 CP:0x272] APN[internet] PDN-Type[1] IPv4[10.45.0.8] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158284269479 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158284269708 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158284273691 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158284274098 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158284278442 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158284278684 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158284283842 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158284284720 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284287820 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284288265 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284292629 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284292907 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284297908 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284298287 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284300895 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284301359 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284306072 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284306301 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158284310444 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158284311885 sess=0 len=169 code=11
+[32m10/30 13:53:21.550[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158284316371 sess=0 len=1005 code=3
+[32m10/30 13:53:23.650[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:24.071[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:24.071[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x71d CP:0x66d] APN[internet] PDN-Type[1] IPv4[10.45.0.9] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158286944691 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158286949759 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158286988165 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158286988588 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158286994729 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158286994987 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158286998282 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158288033703 sess=0 len=44 code=3
+[32m10/30 13:53:25.336[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:25.763[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:25.764[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xf7b CP:0xb2b] APN[internet] PDN-Type[1] IPv4[10.45.0.10] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158288641547 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158288660200 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288748170 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158288748656 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288754818 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158288755239 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288757970 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158288758821 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288761862 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288762904 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288765632 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288765893 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288770811 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288771119 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288774930 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288775289 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288777816 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288777979 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158288780436 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288780680 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158288785271 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158288785642 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288788921 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158288789280 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288793787 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158288794110 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158288797585 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158288800251 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158288805925 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158288806240 sess=0 len=182 code=2
+[32m10/30 13:53:26.089[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:26.510[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:26.510[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x43a CP:0xefc] APN[internet] PDN-Type[1] IPv4[10.45.0.11] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158289391699 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158289392258 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158289396081 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158289396567 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158289400278 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158289400551 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158289404557 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158289405360 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289412427 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289412720 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289415692 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289415968 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289419404 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289419658 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289422991 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289423299 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289426327 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289426736 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158289430292 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158289430549 sess=0 len=169 code=11
+[32m10/30 13:53:26.668[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158289435107 sess=0 len=1005 code=3
+[32m10/30 13:53:28.770[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:29.190[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:29.190[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xea8 CP:0x476] APN[internet] PDN-Type[1] IPv4[10.45.0.12] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158292059532 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158292059964 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158292063393 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158292063630 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158292066182 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158292066395 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158292079123 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158293082226 sess=0 len=44 code=3
+[32m10/30 13:53:30.371[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:30.793[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:30.793[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xf6b CP:0xa33] APN[internet] PDN-Type[1] IPv4[10.45.0.13] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158293666076 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158293666444 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293670321 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158293670572 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293673823 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158293674404 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293679700 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158293680567 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293684253 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293684551 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293689522 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293689829 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293694123 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293694372 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293697804 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293698073 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293703801 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293708279 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158293726836 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293727179 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158293731670 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158293731976 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293737350 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158293737499 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293753416 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158293753703 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158293758251 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158293759699 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158293798784 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158293799329 sess=0 len=182 code=2
+[32m10/30 13:53:31.092[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:31.513[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:31.513[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x616 CP:0x5c9] APN[internet] PDN-Type[1] IPv4[10.45.0.14] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158294387392 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158294387706 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158294393009 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158294393387 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158294396497 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158294396730 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158294401210 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158294401851 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294404657 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294404901 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294407678 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294407902 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294411596 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294411798 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294415277 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294415463 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294418303 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294418609 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158294421383 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158294421610 sess=0 len=169 code=11
+[32m10/30 13:53:31.660[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158294426734 sess=0 len=1005 code=3
+[32m10/30 13:53:33.771[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:34.192[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:34.192[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xfb4 CP:0xdd4] APN[internet] PDN-Type[1] IPv4[10.45.0.15] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158297062879 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158297073758 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158297156113 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158297156436 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158297160991 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158297161573 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158297167368 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158298171858 sess=0 len=44 code=3
+[32m10/30 13:53:35.480[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:35.902[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:35.902[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xd45 CP:0x7e6] APN[internet] PDN-Type[1] IPv4[10.45.0.16] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158298773406 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158298773795 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298779284 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158298779554 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298782982 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158298783386 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298787036 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158298788409 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298791227 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298791480 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298793731 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298793971 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298831212 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298831561 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298835770 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298836015 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298841349 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298841633 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158298846497 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298846815 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158298852109 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158298852434 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298854890 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158298855137 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298857377 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158298857601 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158298859961 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158298861515 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158298866002 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158298866362 sess=0 len=182 code=2
+[32m10/30 13:53:36.162[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:36.584[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:36.584[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xa6a CP:0xd81] APN[internet] PDN-Type[1] IPv4[10.45.0.17] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158299459319 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158299459650 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158299462876 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158299463105 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158299465628 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158299465863 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158299468268 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158299468968 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299472676 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299472905 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299477621 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299477916 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299480875 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299481093 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299485381 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299485592 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299488342 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299488598 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158299491320 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158299491557 sess=0 len=169 code=11
+[32m10/30 13:53:36.731[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158299497492 sess=0 len=1005 code=3
+[32m10/30 13:53:38.838[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:39.267[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:39.267[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x7c1 CP:0xb25] APN[internet] PDN-Type[1] IPv4[10.45.0.18] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158302141173 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158302141455 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158302146717 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158302146917 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158302149583 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158302149862 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158302158255 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158303167991 sess=0 len=44 code=3
+[32m10/30 13:53:40.460[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:40.884[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:40.884[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x465 CP:0x5f] APN[internet] PDN-Type[1] IPv4[10.45.0.19] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158303765808 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158303775916 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303847257 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158303847867 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303852454 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158303852677 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303857599 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158303858284 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303862914 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303863183 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303866694 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303867029 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303877975 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303878182 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303881942 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303882139 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303888667 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303888913 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158303895154 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303895390 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158303900550 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158303900789 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303903477 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158303903596 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303906253 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158303906453 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158303910269 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158303911569 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158303914350 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158303914706 sess=0 len=182 code=2
+[32m10/30 13:53:41.202[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:41.624[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:41.624[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xe57 CP:0xcd0] APN[internet] PDN-Type[1] IPv4[10.45.0.20] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158304498537 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158304499056 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158304504234 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158304504524 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158304507528 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158304508130 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158304511668 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158304513830 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304530401 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304530735 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304534478 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304534756 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304539997 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304540436 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304548045 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304548446 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304555138 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304555678 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158304560303 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158304560846 sess=0 len=169 code=11
+[32m10/30 13:53:41.804[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158304570473 sess=0 len=1005 code=3
+[32m10/30 13:53:43.876[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:44.294[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:44.294[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xbc8 CP:0x22d] APN[internet] PDN-Type[1] IPv4[10.45.0.21] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158307165079 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158307165351 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158307169757 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158307170014 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158307175426 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158307175746 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158307179863 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158308227161 sess=0 len=44 code=3
+[32m10/30 13:53:45.525[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:45.946[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:45.946[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x759 CP:0x702] APN[internet] PDN-Type[1] IPv4[10.45.0.22] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158308848832 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158308856761 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158308943701 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158308943963 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158308947541 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158308951284 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158308957905 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158308958557 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308962537 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308962808 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308965939 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308966232 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308968980 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308970456 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308975523 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308975759 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308980506 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308980804 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158308983694 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158308983968 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158308988227 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158308988418 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158308992816 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158308993086 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158308997716 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158308998145 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158309000612 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158309001752 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158309016575 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309023656 sess=0 len=182 code=2
+[32m10/30 13:53:46.329[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:46.750[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:46.751[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x22b CP:0x66e] APN[internet] PDN-Type[1] IPv4[10.45.0.23] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158309633182 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158309635271 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158309644303 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158309644591 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158309649422 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158309649653 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158309652405 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158309653280 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309656596 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309656818 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309661352 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309661722 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309664525 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309664767 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309667762 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309667990 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309672439 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309673401 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158309676832 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158309677283 sess=0 len=169 code=11
+[32m10/30 13:53:46.918[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158309684889 sess=0 len=1005 code=3
+[32m10/30 13:53:48.988[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:49.408[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:49.408[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x596 CP:0x48a] APN[internet] PDN-Type[1] IPv4[10.45.0.24] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158312282291 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158312282828 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158312286374 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158312286583 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158312290836 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158312291200 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158312293888 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158313321338 sess=0 len=44 code=3
+[32m10/30 13:53:50.610[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:51.030[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:51.030[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xfc9 CP:0xe06] APN[internet] PDN-Type[1] IPv4[10.45.0.25] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158313900801 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158313901629 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313915904 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158313916391 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313922989 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158313923717 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313928589 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158313929767 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313935288 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313940167 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313944153 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313944688 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313951879 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313952437 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313957023 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313957915 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313970442 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313970891 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158313975623 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158313976186 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158313983671 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158313984441 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313989319 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158313989570 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313992742 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158313992996 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158313996097 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158313997312 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158314001630 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314002135 sess=0 len=182 code=2
+[32m10/30 13:53:51.300[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:51.727[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:51.727[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x2ba CP:0x368] APN[internet] PDN-Type[1] IPv4[10.45.0.26] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158314596487 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158314596937 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158314600833 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158314601038 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158314604263 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158314604425 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158314606654 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158314607740 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314610593 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314610834 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314613781 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314614004 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314617292 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314617576 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314622708 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314622940 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314630613 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314630945 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158314634533 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158314634791 sess=0 len=169 code=11
+[32m10/30 13:53:51.873[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158314639502 sess=0 len=1005 code=3
+[32m10/30 13:53:54.000[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:54.423[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:54.423[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x803 CP:0x754] APN[internet] PDN-Type[1] IPv4[10.45.0.27] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158317294535 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158317295215 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158317299445 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158317299734 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158317304295 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158317304480 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158317307285 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158318310766 sess=0 len=44 code=3
+[32m10/30 13:53:55.599[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:56.025[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:56.025[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x751 CP:0x83d] APN[internet] PDN-Type[1] IPv4[10.45.0.28] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158318919587 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158318926876 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158318982548 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158318982826 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158318985738 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158318986167 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158318988461 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158318989142 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158318992852 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158318993202 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158318995657 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158318995882 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158318999639 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158318999843 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319004594 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319004876 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319007537 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319007716 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319011801 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319012278 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158319017098 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158319017387 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319019797 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158319020174 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319024251 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158319024449 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319028675 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158319029907 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158319036322 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319036670 sess=0 len=182 code=2
+[32m10/30 13:53:56.324[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:56.744[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:56.744[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x9b2 CP:0x165] APN[internet] PDN-Type[1] IPv4[10.45.0.29] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158319613684 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158319613944 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319620404 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158319620729 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319623964 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158319624225 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158319628486 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158319629310 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319633615 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319633879 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319638956 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319639211 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319642115 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319642542 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319646074 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319646319 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319649467 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319649903 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158319660868 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158319661384 sess=0 len=169 code=11
+[32m10/30 13:53:56.901[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:880)
+[E4T] upf_drop t_us=158319667702 sess=0 len=1005 code=3
+[32m10/30 13:53:58.985[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:53:59.408[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:53:59.408[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x3dd CP:0xc58] APN[internet] PDN-Type[1] IPv4[10.45.0.30] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158322285042 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158322287767 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158322325446 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158322325644 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158322333456 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158322333812 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158322339924 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158323352815 sess=0 len=44 code=3
+[32m10/30 13:54:00.648[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:01.083[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:01.083[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xfab CP:0xeef] APN[internet] PDN-Type[1] IPv4[10.45.0.31] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158323956302 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158323956618 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158323962056 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158323962169 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158323965433 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158323965617 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158323970590 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158323971429 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158323977186 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158323977471 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158323983585 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158323983894 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158323988038 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158323988212 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158323995173 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158323995384 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158323998462 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158323998641 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324001649 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324001858 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158324006319 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324006643 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324009982 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324010174 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324015467 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324015655 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324018666 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158324024031 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158324027057 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324027651 sess=0 len=182 code=2
+[32m10/30 13:54:01.324[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:01.742[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:01.742[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x206 CP:0xf6] APN[internet] PDN-Type[1] IPv4[10.45.0.32] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158324621713 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158324628620 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324704746 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324705097 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324708736 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324708982 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324712002 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158324712827 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324718337 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324718882 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324722134 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324722409 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324726526 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324726879 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324729805 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324730032 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324734998 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324735277 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158324739941 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158324740183 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158324745714 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324745975 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324748828 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324749030 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324751873 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158324752082 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158324754888 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158324756209 sess=0 len=80 code=11
+[32m10/30 13:54:01.990[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158324756275 sess=0 len=22 code=4
+[32m10/30 13:54:04.096[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:04.521[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:04.521[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x94d CP:0xc] APN[internet] PDN-Type[1] IPv4[10.45.0.33] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158327393880 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158327394272 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327397642 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158327397958 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327401058 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158327401350 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327404303 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158327406036 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327409009 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327409357 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327412309 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327412572 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327415958 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327416243 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327420340 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327420596 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327423437 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327423657 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158327426315 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327426543 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158327432299 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158327432562 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327437132 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158327437361 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327440135 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158327440382 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158327443400 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158327444656 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158327447441 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158327447673 sess=0 len=182 code=2
+[32m10/30 13:54:04.735[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:05.158[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:05.158[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x494 CP:0x2c0] APN[internet] PDN-Type[1] IPv4[10.45.0.34] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158328035687 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158328045934 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328062097 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158328062564 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328066124 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158328066451 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328074902 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158328075782 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328078832 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328079074 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328084161 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328084610 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328088876 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328089244 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328092423 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328092591 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328095620 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328095735 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158328101376 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158328101581 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158328105243 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158328105451 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328108297 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158328108535 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328111156 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158328111429 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158328115572 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158328116707 sess=0 len=80 code=11
+[32m10/30 13:54:05.350[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158328116751 sess=0 len=22 code=4
+[32m10/30 13:54:07.432[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:07.861[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:07.864[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x56f CP:0xbbe] APN[internet] PDN-Type[1] IPv4[10.45.0.35] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158330736608 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158330741152 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330745442 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158330745835 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330750762 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158330751795 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330754972 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158330755543 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330762481 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330762744 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330766008 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330766276 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330769945 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330770191 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330773976 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330774172 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330778616 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330778752 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158330784434 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330784671 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158330789693 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158330789939 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330792865 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158330792987 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330797135 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158330797313 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158330799879 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158330800894 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158330803636 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158330803885 sess=0 len=182 code=2
+[32m10/30 13:54:08.089[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:08.564[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:08.564[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x47e CP:0xf9c] APN[internet] PDN-Type[1] IPv4[10.45.0.36] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158331514027 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158331526183 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331613072 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158331617644 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331666806 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158331671616 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331687737 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158331688565 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331691605 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331691885 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331694931 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331695412 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331699979 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331700354 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331705355 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331705529 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331708532 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331708655 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158331713569 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158331713809 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158331718217 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158331718427 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331721567 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158331721667 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331724272 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158331724378 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158331728757 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158331730104 sess=0 len=80 code=11
+[32m10/30 13:54:08.964[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158331730168 sess=0 len=22 code=4
+[32m10/30 13:54:11.088[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:11.510[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:11.510[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x1f9 CP:0xfdd] APN[internet] PDN-Type[1] IPv4[10.45.0.37] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158334386811 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158334387351 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334406567 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158334406849 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334414513 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158334414853 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334420422 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158334421025 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334430382 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334430534 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334437742 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334438032 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334441497 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334441740 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334444900 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334445055 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334448474 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334448598 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158334458957 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334459212 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158334464051 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158334464373 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334468459 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158334468792 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334471941 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158334472124 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158334475194 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158334478703 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158334485885 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158334486043 sess=0 len=182 code=2
+[32m10/30 13:54:11.780[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:12.198[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:12.198[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x691 CP:0xb1c] APN[internet] PDN-Type[1] IPv4[10.45.0.38] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158335072930 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158335082441 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335161814 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158335162256 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335174489 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158335174748 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335178170 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158335180810 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335183998 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335184181 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335188009 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335188312 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335191233 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335191676 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335197330 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335197537 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335202348 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335202584 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158335205719 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158335205949 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158335210310 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158335210573 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335215311 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158335215591 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335219829 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158335220273 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158335222827 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158335223932 sess=0 len=80 code=11
+[32m10/30 13:54:12.457[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158335223973 sess=0 len=22 code=4
+[32m10/30 13:54:14.535[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:14.959[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:14.959[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x898 CP:0x777] APN[internet] PDN-Type[1] IPv4[10.45.0.39] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158337830849 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158337831551 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337836171 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158337836440 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337842174 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158337842405 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337845224 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158337846149 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337849424 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337849635 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337854131 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337854422 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337859488 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337859694 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337862761 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337863018 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337867036 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337867324 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158337871759 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337872000 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158337877084 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158337877357 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337880966 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158337881187 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337885254 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158337885500 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158337888338 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158337889524 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158337893295 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158337893560 sess=0 len=182 code=2
+[32m10/30 13:54:15.183[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:15.606[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:15.606[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x239 CP:0x79d] APN[internet] PDN-Type[1] IPv4[10.45.0.40] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158338521028 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158338532285 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338555854 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158338556107 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338559203 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158338559298 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338562529 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158338563093 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338568452 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338568664 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338572496 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338572722 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338575988 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338576260 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338580398 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338580512 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338585130 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338585343 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158338588785 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158338589105 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158338593008 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158338594019 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338597958 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158338598327 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338600884 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158338601040 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158338605598 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158338606782 sess=0 len=80 code=11
+[32m10/30 13:54:15.840[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158338606846 sess=0 len=22 code=4
+[32m10/30 13:54:17.922[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:18.343[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:18.343[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x942 CP:0xf6a] APN[internet] PDN-Type[1] IPv4[10.45.0.41] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158341212466 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158341212737 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341216297 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341216893 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341253118 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341253407 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341256922 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158341257529 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341260787 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341261011 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341264412 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341264641 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341269065 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341269355 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341272360 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341272536 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341277668 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341277779 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341282671 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341282875 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158341289368 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341289626 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341292679 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341293149 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341295929 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341296120 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341299214 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158341300545 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158341304489 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341304747 sess=0 len=182 code=2
+[32m10/30 13:54:18.599[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:19.029[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:19.030[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x8c7 CP:0x86d] APN[internet] PDN-Type[1] IPv4[10.45.0.42] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158341899385 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158341899779 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341904216 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341904475 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341908736 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341909059 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341912708 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158341913556 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341915828 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341916189 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341918340 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341919599 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341922172 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341922498 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341925200 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341925508 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341928780 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341928925 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158341931919 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158341932242 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158341937757 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341938197 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341941148 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341941368 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341943907 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158341944143 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158341947806 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158341951999 sess=0 len=80 code=11
+[32m10/30 13:54:19.185[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158341952098 sess=0 len=22 code=4
+[32m10/30 13:54:21.247[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:21.672[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:21.673[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x36b CP:0x610] APN[internet] PDN-Type[1] IPv4[10.45.0.43] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158344547486 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158344547841 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344551630 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158344551954 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344556213 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158344556430 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344559428 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158344560599 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344563559 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344563846 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344566635 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344567665 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344570449 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344570771 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344573607 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344573822 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344577786 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344578112 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158344582892 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344583151 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158344587716 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158344588142 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344592388 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158344592663 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344597449 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158344597632 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158344600522 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158344601820 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158344606784 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158344606888 sess=0 len=182 code=2
+[32m10/30 13:54:21.899[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:22.319[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:22.319[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x5c9 CP:0x143] APN[internet] PDN-Type[1] IPv4[10.45.0.44] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158345189569 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158345189907 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345193110 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158345193380 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345197502 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158345197597 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345201662 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158345202509 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345207489 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345207564 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345212501 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345212708 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345217720 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345218094 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345222628 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345222717 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345225389 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345225582 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158345229447 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158345229533 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158345233679 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158345233889 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345236671 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158345236871 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345242326 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158345242429 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158345245162 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158345248037 sess=0 len=80 code=11
+[32m10/30 13:54:22.481[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158345248138 sess=0 len=22 code=4
+[32m10/30 13:54:24.606[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:25.031[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:25.031[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x745 CP:0x8d6] APN[internet] PDN-Type[1] IPv4[10.45.0.45] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158347903862 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158347904179 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347908180 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158347908447 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347911315 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158347911477 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347914134 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158347914764 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347918299 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347918542 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347922285 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347922525 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347927446 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347927706 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347931166 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347931403 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347947202 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347947453 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158347950503 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347950827 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158347956593 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158347956778 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347961546 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158347962060 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347964861 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158347965098 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158347968544 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158347969912 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158347972557 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158347972826 sess=0 len=182 code=2
+[32m10/30 13:54:25.266[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:25.688[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:25.688[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xbbb CP:0xdbb] APN[internet] PDN-Type[1] IPv4[10.45.0.46] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158348564869 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158348572253 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348607922 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158348608285 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348610868 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158348611103 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348613835 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158348615240 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348620081 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348620338 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348624815 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348625088 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348630554 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348630784 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348633645 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348633892 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348640293 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348640678 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158348643613 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158348643938 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158348650200 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158348650517 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348652982 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158348653197 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348658500 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158348658641 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158348661474 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158348662589 sess=0 len=80 code=11
+[32m10/30 13:54:25.896[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158348662656 sess=0 len=22 code=4
+[32m10/30 13:54:27.967[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:28.391[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:28.391[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x1c6 CP:0x2d0] APN[internet] PDN-Type[1] IPv4[10.45.0.47] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158351265959 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158351268848 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351287124 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158351287449 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351293686 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158351294164 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351299039 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158351299983 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351302891 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351303240 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351308434 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351308554 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351311389 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351311502 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351314395 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351314608 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351317507 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351317613 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158351320484 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351320684 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158351327410 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158351327536 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351330486 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158351330606 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351332976 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158351333202 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158351335615 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158351336531 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158351339300 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158351339506 sess=0 len=182 code=2
+[32m10/30 13:54:28.720[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:29.148[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:29.148[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x777 CP:0x3ea] APN[internet] PDN-Type[1] IPv4[10.45.0.48] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158352033283 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158352033553 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352043096 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158352043253 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352046439 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158352046678 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352050568 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158352051116 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352055438 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352055615 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352058624 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352058740 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352061597 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352061702 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352069336 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352069555 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352078195 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352078326 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158352081510 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158352081639 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158352088939 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158352089114 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352106375 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158352106632 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352109650 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158352109910 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158352112804 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158352113804 sess=0 len=80 code=11
+[32m10/30 13:54:29.347[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158352114162 sess=0 len=22 code=4
+[32m10/30 13:54:31.427[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:31.854[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:31.854[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xb32 CP:0xec7] APN[internet] PDN-Type[1] IPv4[10.45.0.49] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158354727485 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158354728050 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354731961 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158354732236 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354735175 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158354735548 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354738946 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158354739853 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354744425 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354744777 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354749744 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354750014 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354754421 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354754699 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354757515 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354757719 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354760863 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354761227 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158354764099 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354764313 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158354769162 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158354769381 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354772587 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158354772999 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354777410 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158354777697 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158354780501 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158354781760 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158354786326 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158354786498 sess=0 len=182 code=2
+[32m10/30 13:54:32.079[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:32.502[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:32.503[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x4e1 CP:0x426] APN[internet] PDN-Type[1] IPv4[10.45.0.50] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158355386582 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158355402536 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355512940 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158355513412 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355517271 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158355517567 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355523936 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158355524909 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355530593 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355530861 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355534418 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355534672 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355538554 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355538848 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355541993 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355542375 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355547162 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355547386 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158355554329 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158355554616 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158355562538 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158355562879 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355565994 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158355566180 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355570486 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158355570839 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158355573831 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158355575217 sess=0 len=80 code=11
+[32m10/30 13:54:32.809[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_4 dropped after the DN-AAA committed (../src/upf/eap-relay.c:895)
+[E4T] upf_drop t_us=158355575294 sess=0 len=22 code=4
+[32m10/30 13:54:34.899[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:35.323[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:35.323[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x2a CP:0xeaf] APN[internet] PDN-Type[1] IPv4[10.45.0.51] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158358194283 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158358194643 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358198254 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358198518 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358204182 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358204322 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358208365 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158358208960 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358213122 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358213345 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358216293 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358216522 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358222494 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358222718 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358226058 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358226257 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358232394 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358232560 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358236624 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358236867 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158358242350 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358242732 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358246504 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358246715 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358252065 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358252270 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358254798 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158358256061 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158358258736 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358258949 sess=0 len=182 code=2
+[32m10/30 13:54:35.554[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:35.975[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:35.975[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x89e CP:0xa27] APN[internet] PDN-Type[1] IPv4[10.45.0.52] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158358846898 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158358866461 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358923729 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358924648 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358928492 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358928749 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358933172 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158358933995 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358938449 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358938749 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358943540 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358943886 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358947276 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358947495 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358950573 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358950778 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358956146 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358956402 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158358959265 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358959575 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158358966306 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358966592 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358969718 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358969969 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358975253 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158358975466 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158358979529 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158358981003 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158358984411 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158358984679 sess=0 len=182 code=2
+[32m10/30 13:54:36.279[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:36.711[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:36.711[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x3f9 CP:0x532] APN[internet] PDN-Type[1] IPv4[10.45.0.53] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158359584617 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158359585507 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359590824 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158359591135 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359593878 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158359594014 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359598025 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158359598820 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359604019 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359604315 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359610778 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359610901 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359615048 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359615275 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359620217 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359620340 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359624207 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359624316 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158359629652 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359629858 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158359636173 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158359636294 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359639510 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158359639631 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359645087 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158359645169 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158359648208 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158359649135 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158359652634 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158359652830 sess=0 len=182 code=2
+[32m10/30 13:54:36.937[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:37.362[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:37.362[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xb54 CP:0x29b] APN[internet] PDN-Type[1] IPv4[10.45.0.54] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158360238127 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158360238586 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360242933 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360243314 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360247177 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360247441 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360254652 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158360255447 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360258401 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360258704 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360261360 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360261573 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360265410 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360265654 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360268740 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360268959 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360272023 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360272303 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360276290 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360276524 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158360280841 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360282075 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360285448 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360285681 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360288396 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360288617 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360291834 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158360293593 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158360296881 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360297251 sess=0 len=182 code=2
+[32m10/30 13:54:37.600[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:38.022[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:38.022[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x266 CP:0x769] APN[internet] PDN-Type[1] IPv4[10.45.0.55] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158360896697 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158360897197 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360902817 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360903081 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360907113 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360907476 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360914363 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158360915102 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360918830 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360919231 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360924475 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360924776 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360928195 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360928455 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360934608 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360934895 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360937850 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360938144 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158360940994 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360941421 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158360950515 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360950951 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360955628 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360955884 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360962246 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158360962540 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158360965816 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158360967183 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158360970444 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158360970743 sess=0 len=182 code=2
+[32m10/30 13:54:38.262[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:38.690[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:38.690[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x270 CP:0xdc8] APN[internet] PDN-Type[1] IPv4[10.45.0.56] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158361564315 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158361564699 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361569759 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158361569991 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361574762 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158361575110 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361578178 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158361579000 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361582453 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361582735 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361586107 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361586397 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361589503 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361589749 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361592815 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361593031 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361597716 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361598262 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158361602521 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361602850 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158361607137 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158361607357 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361611553 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158361611864 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361616284 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158361616535 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158361621382 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158361622457 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158361626057 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158361626300 sess=0 len=182 code=2
+[32m10/30 13:54:39.016[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:39.454[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:39.454[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x32d CP:0x11e] APN[internet] PDN-Type[1] IPv4[10.45.0.57] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158362325523 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158362325872 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362330842 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158362331133 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362335086 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158362335561 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362339007 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158362340306 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362343676 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362343925 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362349097 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362349358 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362354297 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362354550 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362357640 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362357886 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362362586 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362362881 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158362365998 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362366227 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158362371603 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158362371855 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362375825 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158362376089 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362380239 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158362380464 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158362384921 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158362386048 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158362389714 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158362390062 sess=0 len=182 code=2
+[32m10/30 13:54:39.695[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:40.124[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:40.125[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xff6 CP:0x567] APN[internet] PDN-Type[1] IPv4[10.45.0.58] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158362996192 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158362996685 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363001159 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363001433 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363004979 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363005221 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363009335 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158363010108 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363013033 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363013249 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363017010 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363017297 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363021434 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363021718 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363025147 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363025366 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363029473 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363029710 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363035906 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363036295 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158363043469 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363043709 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363049654 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363049936 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363053676 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363053902 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363058187 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158363059324 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158363062695 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363062947 sess=0 len=182 code=2
+[32m10/30 13:54:40.349[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:40.766[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:40.766[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xfde CP:0xa9b] APN[internet] PDN-Type[1] IPv4[10.45.0.59] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158363636705 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158363637272 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363642691 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363642984 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363648266 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363648688 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363651914 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158363652796 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363658521 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363658866 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363664842 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363665321 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363668265 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363668489 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363673782 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363674110 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363679265 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363679536 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158363684676 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363684895 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158363690338 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363690581 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363695454 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363695690 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363701137 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158363701372 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158363704322 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158363705513 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158363712184 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158363712435 sess=0 len=182 code=2
+[32m10/30 13:54:41.004[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:41.422[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:41.422[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x819 CP:0xceb] APN[internet] PDN-Type[1] IPv4[10.45.0.60] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158364293321 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158364294118 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364303475 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158364303790 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364318145 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158364318775 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364330152 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158364332593 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364340879 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364341420 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364353266 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364353727 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364361346 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364361938 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364369917 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364370456 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364387599 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364388539 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158364395279 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364395638 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158364401636 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158364402162 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364407172 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158364407598 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364412076 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158364414873 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158364418474 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158364419628 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158364423140 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158364423546 sess=0 len=182 code=2
+[32m10/30 13:54:41.733[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:42.151[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m10/30 13:54:42.151[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x6b0 CP:0xd6] APN[internet] PDN-Type[1] IPv4[10.45.0.61] IPv6[] (../src/upf/context.c:495)
+[E4T] upf_rad_tx t_us=158365038129 sess=0 len=95 code=1
+[E4T] upf_rad_rx t_us=158365042843 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365077660 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158365077850 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365082633 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158365082777 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365085518 sess=0 len=458 code=1
+[E4T] upf_rad_rx t_us=158365086653 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365090350 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365090522 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365094313 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365094608 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365098306 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365098583 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365103900 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365104118 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365109353 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365109560 sess=0 len=1069 code=11
+[E4T] upf_rad_tx t_us=158365112913 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365113089 sess=0 len=169 code=11
+[E4T] upf_rad_tx t_us=158365119493 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158365119706 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365125290 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158365125513 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365128535 sess=0 len=1099 code=1
+[E4T] upf_rad_rx t_us=158365128716 sess=0 len=64 code=11
+[E4T] upf_rad_tx t_us=158365131522 sess=0 len=861 code=1
+[E4T] upf_rad_rx t_us=158365132630 sess=0 len=80 code=11
+[E4T] upf_rad_tx t_us=158365136011 sess=0 len=94 code=1
+[E4T] upf_rad_rx t_us=158365136245 sess=0 len=182 code=2
+[32m10/30 13:54:42.422[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m10/30 13:54:42.683[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 13:54:42.683[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 13:54:42.690[0m: [[33mupf[0m] [1;32mINFO[0m: PFCP de-associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:184)

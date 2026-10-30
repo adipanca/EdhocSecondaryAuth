@@ -99,6 +99,214 @@ def carry_section(analysis_text, start_header, end_headers):
     return "\n".join(out).rstrip()
 
 
+def full_5g_core_section(L, by_m):
+    """## 5: method 4 through UERANSIM + Open5GS + UPF relay + FreeRADIUS
+    (fullstack-handshake.csv / fullstack-recovery.csv, fullstack_analyze.py)."""
+    hs_path = os.path.join(RESULTS, "fullstack-handshake.csv")
+    if not os.path.exists(hs_path):
+        return
+    rows = load_rows(hs_path)
+    rng = random.Random(1)
+
+    def vals(cfg, k, series=None):
+        return [float(r[k]) for r in rows if r["config"] == cfg and r["status"] == "PASS" and r[k]
+                and (series is None or r["series"] == series)]
+
+    def ci_med(a):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) for _ in range(4000))
+        return bs[100], bs[3899]
+
+    def ci_diff(a, b):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) -
+                    statistics.median(rng.choices(b, k=len(b))) for _ in range(4000))
+        return statistics.median(a) - statistics.median(b), bs[100], bs[3899]
+
+    L.append("## 5. Full 5G core path (UE → gNB → AMF → SMF → UPF → FreeRADIUS)")
+    L.append("")
+    L.append("`benchmark/fullstack_bench.sh` (log: `fullstack_analyze.py`): method 4 protokol final v3 "
+             "lewat UERANSIM (nr-ue, nr-gnb) + Open5GS (AMF, SMF, UPF dengan relay RADIUS) + "
+             "FreeRADIUS `radiusd -f`, satu VM. Tiap proses menulis `[E4T] <tag> t_us=...` "
+             "(CLOCK_MONOTONIC, µs, `E4_TIMING=1`). Konfigurasi A = secondary authentication "
+             "aktif; B = `OPEN5GS_SEC_AUTH=0` (PDU session tanpa EAP-EDHOC). Seri A1 B1 A2 B2 A3 "
+             "B3, tiap seri stack di-restart, 5 sesi pemanasan dibuang lalu 100 sesi (nr-cli "
+             "`ps-establish`, tunggu hasil atau 5 s, `ps-release`, jeda 200 ms). Record UE dan "
+             "DN-AAA di-provision sekali di awal. Median dengan bootstrap 95% CI (4000 resample, seed 1).")
+    L.append("")
+    L.append("- Di SMF ini secondary authentication **dimulai setelah** PDU Session Establishment "
+             "Accept (timer 100 ms setelah N2 PDU Session Resource Setup Response), bukan sebelum "
+             "Accept. Karena itu `t_pdu_ms` (Request → Accept) tidak memuat EAP-EDHOC; waktu sampai "
+             "sesi terautentikasi adalah `t_ready_ms` (Request → Authentication Result dengan "
+             "EAP-Success; untuk B = Accept).")
+    L.append("- `t_secauth_ms` = Authentication Command pertama → Authentication Result di UE; "
+             "`t_radius_ms` = jumlah Access-Request → balasan di relay UPF (FreeRADIUS + loopback); "
+             "`t_core_ms` = selisihnya (UE, gNB, AMF, SMF, relay SMF↔UPF); `t_smf_relay_ms` = jumlah "
+             "waktu panggilan relay di SMF (SMF↔UPF + `t_radius_ms`).")
+    L.append("- UERANSIM tidak punya EAP-TLS peer, jadi EAP-TLS tidak diukur lewat full stack "
+             "(perbandingan EAP-TLS tetap dari harness, bagian 1c dan 2).")
+    L.append("")
+
+    L.append("| Konfigurasi | Sesi | PASS | Gagal | msk_match | rotated |")
+    L.append("| --- | --- | --- | --- | --- | --- |")
+    for cfg in ("A", "B"):
+        rr = [r for r in rows if r["config"] == cfg]
+        ok = [r for r in rr if r["status"] == "PASS"]
+        fails = {}
+        for r in rr:
+            if r["status"] != "PASS":
+                fails[r["outcome"]] = fails.get(r["outcome"], 0) + 1
+        fs = ", ".join(f"{k} {v}" for k, v in sorted(fails.items())) or "0"
+        if cfg == "A" and ok:
+            mm = f"{100 * sum(int(r['msk_match']) for r in ok) / len(ok):.1f}%"
+            ro = f"{100 * sum(int(r['rotated']) for r in ok) / len(ok):.1f}%"
+        else:
+            mm = ro = "n/a"
+        L.append(f"| {cfg} | {len(rr)} | {len(ok)} | {fs} | {mm} | {ro} |")
+    L.append("")
+
+    metrics = [("A", "t_pdu_ms"), ("B", "t_pdu_ms"), ("A", "t_ready_ms"), ("B", "t_ready_ms"),
+               ("A", "t_secauth_ms"), ("A", "t_radius_ms"), ("A", "t_core_ms"),
+               ("A", "t_acc_to_auth_ms"), ("A", "t_smf_relay_ms"), ("A", "ue_store_next_ms"),
+               ("A", "ue_promote_ms"), ("A", "aaa_commit_ms")]
+    L.append("| Metrik | Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for cfg, k in metrics:
+        v = vals(cfg, k)
+        if not v:
+            continue
+        lo, hi = ci_med(v)
+        L.append(f"| `{k}` | {cfg} | {len(v)} | {statistics.mean(v):.3f} | {statistics.median(v):.3f} | "
+                 f"{pct(v, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+    L.append("")
+    for k, name in (("t_pdu_ms", "Request → Accept"), ("t_ready_ms", "Request → sesi siap")):
+        a, b = vals("A", k), vals("B", k)
+        if a and b:
+            d, lo, hi = ci_diff(a, b)
+            L.append(f"- Selisih median `{k}` A − B ({name}): **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}] ms.")
+    acc = vals("A", "t_acc_to_auth_ms")
+    if acc and vals("A", "t_secauth_ms"):
+        L.append(f"- `t_pdu_ms` A ≈ B: tidak ada pesan EAP-EDHOC antara Request dan Accept (semua sesi A: "
+                 f"Command pertama datang {min(acc):.1f} ms atau lebih setelah Accept), jadi selisih "
+                 "`t_pdu_ms` bukan biaya secondary authentication. Biayanya ada di `t_ready_ms`: "
+                 f"selisih A − B = jeda Accept → Command pertama (median {statistics.median(acc):.1f} ms, "
+                 "termasuk timer 100 ms SMF dan setup N2/N3) + `t_secauth_ms` (median "
+                 f"{statistics.median(vals('A', 't_secauth_ms')):.1f} ms).")
+    L.append("")
+
+    L.append("Median per seri (ms):")
+    L.append("")
+    L.append("| Seri | N | `t_pdu_ms` | `t_ready_ms` | `t_secauth_ms` | `t_radius_ms` | `t_core_ms` |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for cfg in ("A", "B"):
+        for s in sorted({r["series"] for r in rows if r["config"] == cfg}, key=int):
+            cells = []
+            for k in ("t_pdu_ms", "t_ready_ms", "t_secauth_ms", "t_radius_ms", "t_core_ms"):
+                v = vals(cfg, k, s)
+                cells.append(f"{statistics.median(v):.3f}" if v else "-")
+            L.append(f"| {cfg}{s} | {len(vals(cfg, 't_ready_ms', s))} | " + " | ".join(cells) + " |")
+    L.append("")
+
+    # sizes and rounds against the live harness
+    okA = [r for r in rows if r["config"] == "A" and r["status"] == "PASS"]
+    shapes = {}
+    for r in okA:
+        key = (r["len_m1"], r["len_m2"], r["len_m3"], r["len_m4"], r["n_nas_rounds"], r["n_radius_rt"])
+        shapes[key] = shapes.get(key, 0) + 1
+    h4 = [r for r in by_m.get(4, []) if r["status"] == "PASS"]
+    sm = {s_: statistics.median(vals("A", "t_secauth_ms", s_)) for s_ in
+          sorted({r["series"] for r in rows if r["config"] == "A"}, key=int) if vals("A", "t_secauth_ms", s_)}
+    if len(sm) > 1:
+        L.append(f"- Antar seri A, median `t_secauth_ms` berkisar {min(sm.values()):.1f}–{max(sm.values()):.1f} ms "
+                 "(seri pertama setelah provisioning paling lambat); B stabil. Angka gabungan memakai "
+                 "ketiga seri.")
+        L.append("")
+    L.append("| Sumber | Message1 | Message2 | Message3 | Message4 | Ronde NAS | RADIUS RT | Sesi |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+    for key, n in sorted(shapes.items(), key=lambda kv: -kv[1]):
+        L.append(f"| full stack | {key[0]} | {key[1]} | {key[2]} | {key[3]} | {key[4]} | {key[5]} | {n} |")
+    if h4:
+        r = h4[0]
+        L.append(f"| harness (e2e-handshake.csv) | {r['msg1_bytes']} | {r['msg2_bytes']} | {r['msg3_bytes']} | "
+                 f"{r['msg4_bytes']} | - | {r['radius_round_trips']} | {len(h4)} |")
+    L.append("")
+    L.append("- RADIUS RT full stack = harness: EAP-Response/Identity dikirim SMF sendiri (dari SUPI) "
+             "tanpa ronde NAS, sehingga ronde NAS = RADIUS RT − 1.")
+    L.append("")
+
+    if h4:
+        hd = [float(r["duration_ms"]) for r in h4]
+        hr = [float(r["responder_ms"]) for r in h4]
+        rad = vals("A", "t_radius_ms")
+        sec = vals("A", "t_secauth_ms")
+        n_rt = int(h4[0]["radius_round_trips"])
+        L.append("| Pengukuran | Mean (ms) | Median (ms) | Per RADIUS RT, median (ms) |")
+        L.append("| --- | --- | --- | --- |")
+        L.append(f"| harness: handshake E2E (`duration_ms`) | {statistics.mean(hd):.3f} | "
+                 f"{statistics.median(hd):.3f} | {statistics.median(hd) / n_rt:.3f} |")
+        L.append(f"| harness: menunggu RADIUS (`responder_ms`) | {statistics.mean(hr):.3f} | "
+                 f"{statistics.median(hr):.3f} | {statistics.median(hr) / n_rt:.3f} |")
+        if rad:
+            L.append(f"| full stack: `t_radius_ms` | {statistics.mean(rad):.3f} | {statistics.median(rad):.3f} | "
+                     f"{statistics.median(rad) / n_rt:.3f} |")
+        if sec:
+            L.append(f"| full stack: `t_secauth_ms` | {statistics.mean(sec):.3f} | {statistics.median(sec):.3f} | "
+                     f"{statistics.median(sec) / n_rt:.3f} |")
+        L.append("")
+        if rad:
+            L.append(f"- `t_radius_ms` mengukur bagian yang sama dengan `responder_ms` harness (Access-Request "
+                     f"→ balasan, FreeRADIUS + DN-AAA), bukan `duration_ms`: `duration_ms` juga memuat "
+                     f"kriptografi dan flush UE. Selisih median `t_radius_ms` − `responder_ms` = "
+                     f"{statistics.median(rad) - statistics.median(hr):.3f} ms "
+                     f"({(statistics.median(rad) - statistics.median(hr)) / n_rt:.3f} ms per RT). Kemungkinan "
+                     "penyebab (tidak diukur terpisah): relay UPF membuat socket UDP baru per Access-Request "
+                     "dan menghitung MD5/HMAC sendiri, dan di full stack radiusd berbagi CPU dengan 13 "
+                     "proses lain (NF Open5GS, gNB, UE).")
+            L.append(f"- Bagian terbesar `t_secauth_ms` adalah `t_core_ms` (UE ↔ gNB ↔ AMF ↔ SMF, "
+                     f"{n_rt - 1} ronde NAS lewat NGAP/SBI): biaya transport 5G core per ronde, bukan "
+                     "kriptografi EDHOC.")
+            L.append("")
+
+    rec_path = os.path.join(RESULTS, "fullstack-recovery.csv")
+    if os.path.exists(rec_path):
+        rr = load_rows(rec_path)
+        L.append("### Uji pemulihan lewat full stack (`E4_DROP_ONCE` di relay UPF)")
+        L.append("")
+        L.append("Relay UPF membuang sekali Access-Request berisi fragmen pertama Message3 (tidak "
+                 "sampai ke DN-AAA) atau Access-Challenge berisi Message4 (DN-AAA sudah commit); SMF "
+                 "lalu timeout (2 s) dan mengirim Authentication Result tanpa EAP. Sesi berikutnya "
+                 "diulang sampai EAP-Success (maks. 3); UERANSIM tidak mengulang sendiri, jadi setelah "
+                 "EAP-Failure + fallback diperlukan satu PDU session lagi di CUR.")
+        L.append("")
+        L.append("| Kasus | N | Drop di UPF | Sesi drop tanpa EAP | used_next | EAP-Failure | fallback | "
+                 "Sesi sampai pulih (median) | Pulih | msk_match | Waktu pulih mean / median (ms) | "
+                 "Sesi terakhir median (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+        desync = 0
+        for case, name in (("msg3", "Message3 dibuang"), ("msg4", "Message4 dibuang")):
+            c = [r for r in rr if r["case"] == case]
+            if not c:
+                continue
+            cnt = lambda f: sum(1 for r in c if f(r))
+            t = [float(r["t_recovery_ms"]) for r in c if r["t_recovery_ms"]]
+            tl = [float(r["t_last_session_ms"]) for r in c if r["t_last_session_ms"]]
+            desync += cnt(lambda r: r["recovered"] != "1")
+            L.append(f"| {name} | {len(c)} | {cnt(lambda r: r['drop_upf'] == '1')} | "
+                     f"{cnt(lambda r: r['drop_outcome'] == 'noeap')} | {cnt(lambda r: r['used_next'] == '1')} | "
+                     f"{sum(int(r['eap_failure']) for r in c)} | {sum(int(r['fallback']) for r in c)} | "
+                     f"{statistics.median(int(r['sessions_to_recover']) for r in c):.0f} | "
+                     f"{cnt(lambda r: r['recovered'] == '1')} | {cnt(lambda r: r['msk_match'] == '1')} | "
+                     + (f"{statistics.mean(t):.1f} / {statistics.median(t):.1f}" if t else "-") + " | "
+                     + (f"{statistics.median(tl):.1f}" if tl else "-") + " |")
+        after = [r for r in rr if r["case"] == "after"]
+        desync += sum(1 for r in after if r["recovered"] != "1")
+        L.append("")
+        L.append(f"- Sesi normal sesudahnya: {sum(1 for r in after if r['recovered'] == '1')}/{len(after)} sukses. "
+                 f"Desync: **{desync}**; re-provisioning: **0** (record di-provision sekali sebelum seri pertama).")
+        L.append("- Waktu pulih = PDU Session Establishment Request sesi pemulihan pertama → EAP-Success "
+                 "sesi terakhir. Pada Message3 dibuang waktunya memuat `reject_delay = 1` FreeRADIUS "
+                 "(Access-Reject ditahan 1 s) dan satu PDU session tambahan.")
+        L.append("")
+
+
 def main():
     hs = load_rows(HS_CSV)
     ls = load_rows(LOSS_CSV)
@@ -844,6 +1052,8 @@ def main():
     L.append(f"- Satu fragmen EAP = satu round-trip RADIUS, jadi n_RT method 4 = **{fl}**. "
              f"Model {'sama dengan' if (tm, fm) == (tl, fl) else 'BERBEDA dari'} live.")
     L.append("")
+
+    full_5g_core_section(L, by_m)
 
     with open(OUT, "w") as f:
         f.write("\n".join(L) + "\n")

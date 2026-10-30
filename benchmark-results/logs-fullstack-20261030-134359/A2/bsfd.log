@@ -1,0 +1,22 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 13:47:06.981[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/bsf.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 13:47:06.981[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/bsf.log' (../lib/app/ogs-init.c:147)
+[32m10/30 13:47:06.983[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m10/30 13:47:06.983[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nbsf-management] (../lib/sbi/context.c:1994)
+[32m10/30 13:47:06.983[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.15]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m10/30 13:47:06.983[0m: [[33mapp[0m] [1;32mINFO[0m: BSF initialize...done (../src/bsf/app.c:31)
+[32m10/30 13:47:06.988[0m: [[33msbi[0m] [1;32mINFO[0m: [f59938e0-d41c-41f1-b9c8-1fe8e765b4fc] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m10/30 13:47:06.989[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 13:47:06.989[0m: [[33msbi[0m] [1;32mINFO[0m: [f59a1ed6-d41c-41f1-bdf1-7991f3fd5e6f] Subscription created until 2026-10-31T13:47:06.988760+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 13:48:29.855[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 13:48:29.855[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 13:48:29.855[0m: [[33msbi[0m] [1;32mINFO[0m: [f59938e0-d41c-41f1-b9c8-1fe8e765b4fc] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m10/30 13:48:29.856[0m: [[33msbi[0m] [1;31mFATAL[0m: session_write_callback: Assertion `sbi_sess->poll.write' failed. (../lib/sbi/nghttp2-server.c:1765)
+[32m10/30 13:48:29.876[0m: [[33mcore[0m] [1;31mFATAL[0m: backtrace() returned 7 addresses (../lib/core/ogs-abort.c:37)
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/bsf/../../lib/sbi/libogssbi.so.2(+0x3d71a) [0x71f2afe8971a]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/bsf/../../lib/core/libogscore.so.2(+0x260c7) [0x71f2afef90c7]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/bsf/open5gs-bsfd(+0x4d16) [0x654c3abe7d16]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/bsf/../../lib/core/libogscore.so.2(+0x119a4) [0x71f2afee49a4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9cb84) [0x71f2af29cb84]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129ecc) [0x71f2af329ecc]

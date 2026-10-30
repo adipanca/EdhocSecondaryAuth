@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-29T13:24:22._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T13:55:23._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -525,4 +525,78 @@ Pesan yang memerlukan fragmentasi pada method 4 (SIGMA XWING PQC) dan method 6 (
 | **Total** | **12227** | **12227** | **15** | **15** |
 
 - Satu fragmen EAP = satu round-trip RADIUS, jadi n_RT method 4 = **15**. Model sama dengan live.
+
+## 5. Full 5G core path (UE → gNB → AMF → SMF → UPF → FreeRADIUS)
+
+`benchmark/fullstack_bench.sh` (log: `fullstack_analyze.py`): method 4 protokol final v3 lewat UERANSIM (nr-ue, nr-gnb) + Open5GS (AMF, SMF, UPF dengan relay RADIUS) + FreeRADIUS `radiusd -f`, satu VM. Tiap proses menulis `[E4T] <tag> t_us=...` (CLOCK_MONOTONIC, µs, `E4_TIMING=1`). Konfigurasi A = secondary authentication aktif; B = `OPEN5GS_SEC_AUTH=0` (PDU session tanpa EAP-EDHOC). Seri A1 B1 A2 B2 A3 B3, tiap seri stack di-restart, 5 sesi pemanasan dibuang lalu 100 sesi (nr-cli `ps-establish`, tunggu hasil atau 5 s, `ps-release`, jeda 200 ms). Record UE dan DN-AAA di-provision sekali di awal. Median dengan bootstrap 95% CI (4000 resample, seed 1).
+
+- Di SMF ini secondary authentication **dimulai setelah** PDU Session Establishment Accept (timer 100 ms setelah N2 PDU Session Resource Setup Response), bukan sebelum Accept. Karena itu `t_pdu_ms` (Request → Accept) tidak memuat EAP-EDHOC; waktu sampai sesi terautentikasi adalah `t_ready_ms` (Request → Authentication Result dengan EAP-Success; untuk B = Accept).
+- `t_secauth_ms` = Authentication Command pertama → Authentication Result di UE; `t_radius_ms` = jumlah Access-Request → balasan di relay UPF (FreeRADIUS + loopback); `t_core_ms` = selisihnya (UE, gNB, AMF, SMF, relay SMF↔UPF); `t_smf_relay_ms` = jumlah waktu panggilan relay di SMF (SMF↔UPF + `t_radius_ms`).
+- UERANSIM tidak punya EAP-TLS peer, jadi EAP-TLS tidak diukur lewat full stack (perbandingan EAP-TLS tetap dari harness, bagian 1c dan 2).
+
+| Konfigurasi | Sesi | PASS | Gagal | msk_match | rotated |
+| --- | --- | --- | --- | --- | --- |
+| A | 300 | 300 | 0 | 100.0% | 100.0% |
+| B | 300 | 300 | 0 | n/a | n/a |
+
+| Metrik | Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `t_pdu_ms` | A | 300 | 193.506 | 193.445 | 205.524 | [192.566, 194.224] |
+| `t_pdu_ms` | B | 300 | 189.237 | 191.127 | 203.367 | [190.331, 192.089] |
+| `t_ready_ms` | A | 300 | 433.705 | 398.221 | 645.524 | [386.620, 410.984] |
+| `t_ready_ms` | B | 300 | 189.237 | 191.127 | 203.367 | [190.310, 191.964] |
+| `t_secauth_ms` | A | 300 | 102.802 | 73.373 | 262.023 | [70.953, 76.568] |
+| `t_radius_ms` | A | 300 | 13.275 | 9.249 | 34.137 | [7.887, 10.910] |
+| `t_core_ms` | A | 300 | 89.528 | 64.489 | 236.364 | [61.927, 67.451] |
+| `t_acc_to_auth_ms` | A | 300 | 137.397 | 121.944 | 198.471 | [111.865, 133.551] |
+| `t_smf_relay_ms` | A | 300 | 25.972 | 17.992 | 66.309 | [14.950, 22.365] |
+| `ue_store_next_ms` | A | 300 | 0.890 | 0.701 | 1.669 | [0.687, 0.731] |
+| `ue_promote_ms` | A | 300 | 0.816 | 0.603 | 1.961 | [0.585, 0.629] |
+| `aaa_commit_ms` | A | 300 | 0.880 | 0.665 | 1.915 | [0.653, 0.679] |
+
+- Selisih median `t_pdu_ms` A − B (Request → Accept): **2.318 ms**, 95% CI [1.084, 3.488] ms.
+- Selisih median `t_ready_ms` A − B (Request → sesi siap): **207.094 ms**, 95% CI [195.574, 219.377] ms.
+- `t_pdu_ms` A ≈ B: tidak ada pesan EAP-EDHOC antara Request dan Accept (semua sesi A: Command pertama datang 102.6 ms atau lebih setelah Accept), jadi selisih `t_pdu_ms` bukan biaya secondary authentication. Biayanya ada di `t_ready_ms`: selisih A − B = jeda Accept → Command pertama (median 121.9 ms, termasuk timer 100 ms SMF dan setup N2/N3) + `t_secauth_ms` (median 73.4 ms).
+
+Median per seri (ms):
+
+| Seri | N | `t_pdu_ms` | `t_ready_ms` | `t_secauth_ms` | `t_radius_ms` | `t_core_ms` |
+| --- | --- | --- | --- | --- | --- | --- |
+| A1 | 100 | 193.413 | 447.529 | 101.146 | 14.960 | 82.891 |
+| A2 | 100 | 192.032 | 380.019 | 69.665 | 7.254 | 61.829 |
+| A3 | 100 | 194.260 | 383.793 | 67.992 | 7.575 | 58.219 |
+| B1 | 100 | 190.667 | 190.667 | - | - | - |
+| B2 | 100 | 191.396 | 191.396 | - | - | - |
+| B3 | 100 | 191.151 | 191.151 | - | - | - |
+
+- Antar seri A, median `t_secauth_ms` berkisar 68.0–101.1 ms (seri pertama setelah provisioning paling lambat); B stabil. Angka gabungan memakai ketiga seri.
+
+| Sumber | Message1 | Message2 | Message3 | Message4 | Ronde NAS | RADIUS RT | Sesi |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| full stack | 2358 | 6097 | 3756 | 16 | 14 | 15 | 300 |
+| harness (e2e-handshake.csv) | 2358 | 6097 | 3756 | 16 | - | 15 | 200 |
+
+- RADIUS RT full stack = harness: EAP-Response/Identity dikirim SMF sendiri (dari SUPI) tanpa ronde NAS, sehingga ronde NAS = RADIUS RT − 1.
+
+| Pengukuran | Mean (ms) | Median (ms) | Per RADIUS RT, median (ms) |
+| --- | --- | --- | --- |
+| harness: handshake E2E (`duration_ms`) | 7.159 | 6.582 | 0.439 |
+| harness: menunggu RADIUS (`responder_ms`) | 5.863 | 5.348 | 0.356 |
+| full stack: `t_radius_ms` | 13.275 | 9.249 | 0.617 |
+| full stack: `t_secauth_ms` | 102.802 | 73.373 | 4.891 |
+
+- `t_radius_ms` mengukur bagian yang sama dengan `responder_ms` harness (Access-Request → balasan, FreeRADIUS + DN-AAA), bukan `duration_ms`: `duration_ms` juga memuat kriptografi dan flush UE. Selisih median `t_radius_ms` − `responder_ms` = 3.902 ms (0.260 ms per RT). Kemungkinan penyebab (tidak diukur terpisah): relay UPF membuat socket UDP baru per Access-Request dan menghitung MD5/HMAC sendiri, dan di full stack radiusd berbagi CPU dengan 13 proses lain (NF Open5GS, gNB, UE).
+- Bagian terbesar `t_secauth_ms` adalah `t_core_ms` (UE ↔ gNB ↔ AMF ↔ SMF, 14 ronde NAS lewat NGAP/SBI): biaya transport 5G core per ronde, bukan kriptografi EDHOC.
+
+### Uji pemulihan lewat full stack (`E4_DROP_ONCE` di relay UPF)
+
+Relay UPF membuang sekali Access-Request berisi fragmen pertama Message3 (tidak sampai ke DN-AAA) atau Access-Challenge berisi Message4 (DN-AAA sudah commit); SMF lalu timeout (2 s) dan mengirim Authentication Result tanpa EAP. Sesi berikutnya diulang sampai EAP-Success (maks. 3); UERANSIM tidak mengulang sendiri, jadi setelah EAP-Failure + fallback diperlukan satu PDU session lagi di CUR.
+
+| Kasus | N | Drop di UPF | Sesi drop tanpa EAP | used_next | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | Waktu pulih mean / median (ms) | Sesi terakhir median (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Message3 dibuang | 10 | 10 | 10 | 10 | 10 | 10 | 2 | 10 | 10 | 2091.5 / 2063.0 | 434.0 |
+| Message4 dibuang | 10 | 10 | 10 | 10 | 0 | 0 | 1 | 10 | 10 | 362.4 / 361.8 | 361.8 |
+
+- Sesi normal sesudahnya: 10/10 sukses. Desync: **0**; re-provisioning: **0** (record di-provision sekali sebelum seri pertama).
+- Waktu pulih = PDU Session Establishment Request sesi pemulihan pertama → EAP-Success sesi terakhir. Pada Message3 dibuang waktunya memuat `reject_delay = 1` FreeRADIUS (Access-Reject ditahan 1 s) dan satu PDU session tambahan.
 
