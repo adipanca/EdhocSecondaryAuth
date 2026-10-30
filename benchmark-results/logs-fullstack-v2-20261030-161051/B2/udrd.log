@@ -1,0 +1,23 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 16:14:19.293[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/udr.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 16:14:19.293[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/udr.log' (../lib/app/ogs-init.c:147)
+[32m10/30 16:14:19.295[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m10/30 16:14:19.298[0m: [[33mdbi[0m] [1;32mINFO[0m: MongoDB URI: 'mongodb://localhost/open5gs' (../lib/dbi/ogs-mongoc.c:130)
+[32m10/30 16:14:19.298[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nudr-dr] (../lib/sbi/context.c:1994)
+[32m10/30 16:14:19.299[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.20]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m10/30 16:14:19.299[0m: [[33mapp[0m] [1;32mINFO[0m: UDR initialize...done (../src/udr/app.c:31)
+[32m10/30 16:14:19.301[0m: [[33msbi[0m] [1;32mINFO[0m: [86111c62-d431-41f1-9ef4-752ff17852ea] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m10/30 16:14:19.303[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 16:14:19.303[0m: [[33msbi[0m] [1;32mINFO[0m: [86122918-d431-41f1-9960-150c350164c0] Subscription created until 2026-10-31T16:14:19.302164+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 16:15:13.625[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 16:15:13.625[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 16:15:13.625[0m: [[33msbi[0m] [1;32mINFO[0m: [86111c62-d431-41f1-9ef4-752ff17852ea] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m10/30 16:15:13.630[0m: [[33msbi[0m] [1;31mFATAL[0m: session_write_callback: Assertion `sbi_sess->poll.write' failed. (../lib/sbi/nghttp2-server.c:1765)
+[32m10/30 16:15:13.630[0m: [[33mcore[0m] [1;31mFATAL[0m: backtrace() returned 7 addresses (../lib/core/ogs-abort.c:37)
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udr/../../lib/sbi/libogssbi.so.2(+0x3d71a) [0x774006ee771a]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udr/../../lib/core/libogscore.so.2(+0x260c7) [0x774006f570c7]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udr/open5gs-udrd(+0x4d1b) [0x5eefa25c0d1b]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udr/../../lib/core/libogscore.so.2(+0x119a4) [0x774006f429a4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9cb84) [0x77400629cb84]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129ecc) [0x774006329ecc]

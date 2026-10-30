@@ -1,0 +1,37 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 16:17:36.581[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/ausf.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 16:17:36.581[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/ausf.log' (../lib/app/ogs-init.c:147)
+[32m10/30 16:17:36.583[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m10/30 16:17:36.583[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nausf-auth] (../lib/sbi/context.c:1994)
+[32m10/30 16:17:36.583[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.11]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m10/30 16:17:36.584[0m: [[33mapp[0m] [1;32mINFO[0m: AUSF initialize...done (../src/ausf/app.c:31)
+[32m10/30 16:17:36.586[0m: [[33msbi[0m] [1;32mINFO[0m: [fba8f40e-d431-41f1-ab52-61db15c442ff] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m10/30 16:17:36.589[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 16:17:36.589[0m: [[33msbi[0m] [1;32mINFO[0m: [fba98d42-d431-41f1-b1d5-5bdab57ef023] Subscription created until 2026-10-31T16:17:36.587663+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 16:17:36.589[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 16:17:36.589[0m: [[33msbi[0m] [1;32mINFO[0m: [fba99508-d431-41f1-b1d5-5bdab57ef023] Subscription created until 2026-10-31T16:17:36.588175+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 16:17:36.590[0m: [[33msbi[0m] [1;32mINFO[0m: [fba903ea-d431-41f1-9e91-ab3204e623b7] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+[32m10/30 16:17:36.590[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:80] (../lib/sbi/context.c:2374)
+[32m10/30 16:17:36.590[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m10/30 16:17:36.590[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m10/30 16:17:36.590[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m10/30 16:17:44.862[0m: [[33msbi[0m] [1;32mINFO[0m: [fba903ea-d431-41f1-9e91-ab3204e623b7] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m10/30 16:17:44.867[0m: [[33mcore[0m] [1;32mINFO[0m: AUTH_TYPE ENUMSSSSXXXXX = 1 (5G_AKA) (../lib/sbi/openapi/model/confirmation_data.c:146)
+[32m10/30 16:17:44.867[0m: [[33mausf[0m] [1;32mINFO[0m: ConfirmationData SUCCESS ausf_nausf_auth_handle_authenticate_confirmation (../src/ausf/nausf-handler.c:91)
+[32m10/30 16:17:44.869[0m: [[33mausf[0m] [1;32mINFO[0m: [suci-0-999-70-0000-0-0-0000000001] Masuk ke ausf_nudm_ueau_handle_result_confirmation_inform (../src/ausf/nudm-handler.c:713)
+[32m10/30 16:17:44.869[0m: [[33mausf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/ausf/nudm-handler.c:771)
+[32m10/30 16:17:44.869[0m: [[33mausf[0m] [1;32mINFO[0m: KAUSF untuk KSEAF [32 bytes]: 5D 88 15 1B A0 0B 4F 89 00 EA B0 CF 98 70 D7 7D 0A 0E 4C 0F 1C EB 2E 65 AA E7 CB F6 48 EC 4B 93 (../src/ausf/nudm-handler.c:34)
+[32m10/30 16:17:44.869[0m: [[33mausf[0m] [1;32mINFO[0m: serving_network_name = 5G:mnc070.mcc999.3gppnetwork.org (../src/ausf/nudm-handler.c:798)
+[32m10/30 16:17:44.869[0m: [[33mausf[0m] [1;32mINFO[0m: KSEAF [32 bytes]: B1 8C 4A CC EF 55 BC 6F 2B A2 E0 4B 8B 67 FF DF 20 3A 12 A2 AF 86 C9 B4 30 96 D9 C7 83 9D F8 D7 (../src/ausf/nudm-handler.c:34)
+[32m10/30 16:18:26.144[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 16:18:26.144[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 16:18:26.144[0m: [[33msbi[0m] [1;32mINFO[0m: [fba8f40e-d431-41f1-ab52-61db15c442ff] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m10/30 16:18:26.160[0m: [[33msbi[0m] [1;31mFATAL[0m: session_write_callback: Assertion `sbi_sess->poll.write' failed. (../lib/sbi/nghttp2-server.c:1765)
+[32m10/30 16:18:26.169[0m: [[33mcore[0m] [1;31mFATAL[0m: backtrace() returned 7 addresses (../lib/core/ogs-abort.c:37)
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/ausf/../../lib/sbi/libogssbi.so.2(+0x3d71a) [0x71aa48d4571a]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/ausf/../../lib/core/libogscore.so.2(+0x260c7) [0x71aa48db50c7]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/ausf/open5gs-ausfd(+0x5ff4) [0x6119b1243ff4]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/ausf/../../lib/core/libogscore.so.2(+0x119a4) [0x71aa48da09a4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9cb84) [0x71aa4809cb84]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129ecc) [0x71aa48129ecc]

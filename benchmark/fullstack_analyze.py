@@ -7,6 +7,8 @@ into benchmark-results/fullstack-handshake.csv and fullstack-recovery.csv.
   fullstack_analyze.py <logs-fullstack-v2-dir> v2    secondary auth inside
       establishment -> fullstack-handshake-v2.csv, fullstack-recovery-v2.csv,
       fullstack-harness-shared.csv (configuration C)
+  fullstack_analyze.py <dir> v2 <suffix>             same, file names with
+      <suffix> before ".csv" (a re-measurement next to the step-19 files)
 
 v2 columns (A): t_pdu_ms = Request -> Accept (includes the secondary
 authentication), t_secauth_ms = first Command -> Accept, t_req_to_auth_ms =
@@ -201,6 +203,7 @@ RCOLS = ["case", "iter", "drop_outcome", "drop_upf", "used_next", "eap_failure",
 def main():
     d = os.path.abspath(sys.argv[1])
     v2 = len(sys.argv) > 2 and sys.argv[2] == "v2"
+    sfx = sys.argv[3] if v2 and len(sys.argv) > 3 else ""
     aaa = events(os.path.join(d, "aaa-e4t.txt"))
     identity = ""
     if os.path.exists(os.path.join(d, "ue.yaml")):
@@ -215,7 +218,7 @@ def main():
             if key[0] == "run":
                 rows.append(row_v2(key, end, ev, identity) if v2 else row(key, end, ev))
     rows.sort(key=lambda r: (r["config"], int(r["series"]), int(r["iter"])))
-    hs_name = "fullstack-handshake-v2.csv" if v2 else "fullstack-handshake.csv"
+    hs_name = f"fullstack-handshake-v2{sfx}.csv" if v2 else "fullstack-handshake.csv"
     with open(os.path.join(RESULTS, hs_name), "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLS_V2 if v2 else COLS, extrasaction="ignore")
         w.writeheader()
@@ -259,7 +262,7 @@ def main():
                 "msk_match": int(bool(mu and ma and mu[3].get("tag") == ma[3].get("tag"))),
                 "first_recovery_outcome": recs[0][2][1] if recs and recs[0][2] else "",
             })
-        rc_name = "fullstack-recovery-v2.csv" if v2 else "fullstack-recovery.csv"
+        rc_name = f"fullstack-recovery-v2{sfx}.csv" if v2 else "fullstack-recovery.csv"
         with open(os.path.join(RESULTS, rc_name), "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=RCOLS + (["first_recovery_outcome"] if v2 else []),
                                extrasaction="ignore")
@@ -278,11 +281,11 @@ def main():
                 with open(os.path.join(d, name), newline="") as f:
                     hrows += list(csv.DictReader(f))
         if hrows:
-            with open(os.path.join(RESULTS, "fullstack-harness-shared.csv"), "w", newline="") as f:
+            with open(os.path.join(RESULTS, f"fullstack-harness-shared{sfx}.csv"), "w", newline="") as f:
                 w = csv.DictWriter(f, fieldnames=list(hrows[0].keys()))
                 w.writeheader()
                 w.writerows(hrows)
-        print(f"{len(hrows)} harness rows -> fullstack-harness-shared.csv")
+        print(f"{len(hrows)} harness rows -> fullstack-harness-shared{sfx}.csv")
     print(f"{len(rows)} sessions -> {hs_name}; {len(rec)} recovery cases "
           f"+ {len(after)} after ({os.path.basename(d)})")
 

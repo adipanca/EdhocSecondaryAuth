@@ -569,6 +569,54 @@ def full_5g_core_v2_section(L, by_m):
                  "(termasuk PCF/UPF/PFCP), bukan di Authentication Result.")
         L.append("")
 
+    # optional step 20: UERANSIM delay before the request reaches the core
+    fix_path = os.path.join(RESULTS, "fullstack-handshake-v2-ue-fix.csv")
+    if os.path.exists(fix_path):
+        fx = load_rows(fix_path)
+        L.append("### Pengukuran ulang setelah perbaikan jeda UERANSIM (step 20, opsional)")
+        L.append("")
+        L.append("Tag tambahan di gNB (`gnb_ngap_tx`, `gnb_ngap_dl_rx`, `gnb_ngap_setup_rx`, "
+                 "`gnb_dl_nas_tx`) dan UE (`ue_nas_tx`) menunjukkan bahwa jeda ~160 ms pada sesi kedua "
+                 "dan seterusnya bukan di UE sebelum request keluar: request sampai ke gNB ~20 ms "
+                 "kemudian, lalu NGAP-nya tertahan di SCTP gNB sampai SACK tertunda dari AMF datang "
+                 "(Nagle SCTP; UERANSIM tidak memasang `SCTP_NODELAY`, Open5GS memasangnya). Sesi "
+                 "pertama tidak punya data yang belum di-ACK, jadi langsung terkirim (~30 ms). Sisa "
+                 "~20 ms adalah task RLS UE yang masih di-pause oleh `nr-cli` (polling 20 ms). "
+                 "Perbaikan: `SCTP_NODELAY` di soket SCTP UERANSIM dan RLS ikut berjalan selama "
+                 "`ps-establish`; alur NAS tidak berubah. Seri A1 B1 A2 B2 A3 B3 diukur ulang "
+                 "(3 × 100, 5 pemanasan dibuang); angka step 19 di atas dan di paper tetap.")
+        L.append("")
+        L.append("| Metrik | Konf. | Step 19 median (ms) | Ulang: N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+        for cfg, k in (("A", "t_pdu_ms"), ("B", "t_pdu_ms"), ("A", "t_req_to_auth_ms"), ("A", "t_secauth_ms"),
+                       ("A", "t_core_ms"), ("A", "t_hop_smf_upf_ms"), ("A", "t_relay_proc_ms"), ("A", "t_aaa_ms")):
+            v, v19 = vals(cfg, k, src=fx), vals(cfg, k)
+            if not v:
+                continue
+            lo, hi = ci_med(v)
+            L.append(f"| `{k}` | {cfg} | {statistics.median(v19):.3f} | {len(v)} | {statistics.mean(v):.3f} | "
+                     f"{statistics.median(v):.3f} | {pct(v, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+        fa, fb = vals("A", "t_pdu_ms", src=fx), vals("B", "t_pdu_ms", src=fx)
+        if fa and fb:
+            d, lo, hi = ci_diff(fa, fb)
+            L.append("")
+            okf = [r for r in fx if r["config"] == "A"]
+            L.append(f"- `t_pdu_ms` A − B setelah perbaikan: **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}] ms "
+                     f"(step 19: {statistics.median(a) - statistics.median(b):.3f} ms). Sesi A PASS "
+                     f"{sum(1 for r in okf if r['status'] == 'PASS')}/{len(okf)}, B PASS "
+                     f"{sum(1 for r in fx if r['config'] == 'B' and r['status'] == 'PASS')}/"
+                     f"{sum(1 for r in fx if r['config'] == 'B')}.")
+            ra19, ra = vals("A", "t_req_to_auth_ms"), vals("A", "t_req_to_auth_ms", src=fx)
+            sa19, sa = vals("A", "t_secauth_ms"), vals("A", "t_secauth_ms", src=fx)
+            L.append(f"- A − B ≈ `t_req_to_auth_ms`(A) + `t_secauth_ms` − `t_pdu_ms`(B). Di step 19 jeda "
+                     f"SCTP tidak persis sama di kedua konfigurasi: A {statistics.median(ra19):.1f} ms sampai "
+                     f"Command pertama, B {statistics.median(b):.1f} ms sampai Accept; setelah perbaikan "
+                     f"{statistics.median(ra):.1f} vs {statistics.median(fb):.1f} ms. `t_secauth_ms` juga naik "
+                     f"{statistics.median(sa) - statistics.median(sa19):+.1f} ms karena VM lebih sibuk pada "
+                     "pengukuran ulang (lihat vmstat di folder log). Jadi biaya secondary authentication di dalam "
+                     "establishment berada di kisaran 78–93 ms, didominasi transport 5G core per ronde NAS.")
+        L.append("")
+
 
 def main():
     hs = load_rows(HS_CSV)

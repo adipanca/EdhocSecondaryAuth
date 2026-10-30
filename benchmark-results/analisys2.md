@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T15:07:11._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T16:19:06._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -787,4 +787,22 @@ Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengi
 
 - Step 17 mengukur sampai Authentication Result setelah Accept (termasuk timer 100 ms SMF); step 19 mengukur sampai Accept yang membawa EAP-Success, tanpa timer, dengan secondary authentication sebelum PCF/UPF/PFCP.
 - `t_radius_ms` dan `t_smf_relay_ms` turun karena socket persisten dan relay SMF non-blocking. `t_core_ms` naik: ada satu ronde NAS tambahan (EAP-Request/Identity ke UE, di step 17 dibuat SMF sendiri), dan definisi `t_secauth_ms` sekarang berakhir di Accept (termasuk PCF/UPF/PFCP), bukan di Authentication Result.
+
+### Pengukuran ulang setelah perbaikan jeda UERANSIM (step 20, opsional)
+
+Tag tambahan di gNB (`gnb_ngap_tx`, `gnb_ngap_dl_rx`, `gnb_ngap_setup_rx`, `gnb_dl_nas_tx`) dan UE (`ue_nas_tx`) menunjukkan bahwa jeda ~160 ms pada sesi kedua dan seterusnya bukan di UE sebelum request keluar: request sampai ke gNB ~20 ms kemudian, lalu NGAP-nya tertahan di SCTP gNB sampai SACK tertunda dari AMF datang (Nagle SCTP; UERANSIM tidak memasang `SCTP_NODELAY`, Open5GS memasangnya). Sesi pertama tidak punya data yang belum di-ACK, jadi langsung terkirim (~30 ms). Sisa ~20 ms adalah task RLS UE yang masih di-pause oleh `nr-cli` (polling 20 ms). Perbaikan: `SCTP_NODELAY` di soket SCTP UERANSIM dan RLS ikut berjalan selama `ps-establish`; alur NAS tidak berubah. Seri A1 B1 A2 B2 A3 B3 diukur ulang (3 × 100, 5 pemanasan dibuang); angka step 19 di atas dan di paper tetap.
+
+| Metrik | Konf. | Step 19 median (ms) | Ulang: N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `t_pdu_ms` | A | 270.529 | 300 | 141.094 | 114.352 | 208.911 | [111.453, 116.600] |
+| `t_pdu_ms` | B | 192.201 | 300 | 23.262 | 20.962 | 37.100 | [20.807, 21.363] |
+| `t_req_to_auth_ms` | A | 186.998 | 300 | 26.136 | 21.154 | 32.491 | [20.919, 21.620] |
+| `t_secauth_ms` | A | 84.233 | 300 | 114.958 | 89.970 | 183.862 | [87.951, 92.514] |
+| `t_core_ms` | A | 78.219 | 300 | 106.935 | 82.701 | 166.954 | [81.858, 85.078] |
+| `t_hop_smf_upf_ms` | A | 3.429 | 300 | 4.633 | 3.580 | 8.535 | [3.466, 3.706] |
+| `t_relay_proc_ms` | A | 1.523 | 300 | 2.322 | 1.645 | 5.657 | [1.550, 1.740] |
+| `t_aaa_ms` | A | 5.956 | 300 | 8.023 | 6.476 | 14.391 | [6.341, 6.765] |
+
+- `t_pdu_ms` A − B setelah perbaikan: **93.389 ms**, 95% CI [90.426, 95.579] ms (step 19: 78.328 ms). Sesi A PASS 300/300, B PASS 300/300.
+- A − B ≈ `t_req_to_auth_ms`(A) + `t_secauth_ms` − `t_pdu_ms`(B). Di step 19 jeda SCTP tidak persis sama di kedua konfigurasi: A 187.0 ms sampai Command pertama, B 192.2 ms sampai Accept; setelah perbaikan 21.2 vs 21.0 ms. `t_secauth_ms` juga naik +5.7 ms karena VM lebih sibuk pada pengukuran ulang (lihat vmstat di folder log). Jadi biaya secondary authentication di dalam establishment berada di kisaran 78–93 ms, didominasi transport 5G core per ronde NAS.
 
