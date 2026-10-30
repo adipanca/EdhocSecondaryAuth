@@ -65,6 +65,19 @@ static void smf_e4t(const char *tag, int psi, size_t len)
             (unsigned long long)(ts.tv_nsec / 1000), psi, len);
 }
 
+/*
+ * OPEN5GS_SEC_AUTH=0: baseline without secondary authentication, the PDU
+ * session is used as soon as it is established (default: 1, EAP-EDHOC).
+ */
+static bool smf_sec_auth_enabled(void)
+{
+    static int on = -1;
+    if (on < 0) {
+        const char *v = getenv("OPEN5GS_SEC_AUTH");
+        on = !(v && v[0] == '0' && v[1] == '\0');
+    }
+    return on;
+}
 
 /*
  * Deliver the EAP-EDHOC secondary-authentication N1 NAS payload (PDU Session
@@ -1537,7 +1550,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
              * iteration so the session's SBI object is free; defer via a
              * short one-shot timer.
              */
-            if (!sess->sec_auth.in_progress)
+            if (!sess->sec_auth.in_progress && smf_sec_auth_enabled())
                 ogs_timer_start(sess->sec_auth.t_start,
                         ogs_time_from_msec(100));
             break;
