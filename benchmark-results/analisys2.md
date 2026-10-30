@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T13:55:23._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T15:07:11._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -599,4 +599,192 @@ Relay UPF membuang sekali Access-Request berisi fragmen pertama Message3 (tidak 
 
 - Sesi normal sesudahnya: 10/10 sukses. Desync: **0**; re-provisioning: **0** (record di-provision sekali sebelum seri pertama).
 - Waktu pulih = PDU Session Establishment Request sesi pemulihan pertama → EAP-Success sesi terakhir. Pada Message3 dibuang waktunya memuat `reject_delay = 1` FreeRADIUS (Access-Reject ditahan 1 s) dan satu PDU session tambahan.
+
+## 6. Full 5G core path, standard order (secondary authentication di dalam establishment)
+
+Step 19: SMF menjalankan secondary authentication sebagai **langkah 6 TS 23.502 4.3.2.2.1**, setelah CreateSMContext Response dan data UDM, sebelum asosiasi SM policy (PCF), pemilihan UPF dan PFCP. SMF mengirim EAP-Request/Identity dalam PDU SESSION AUTHENTICATION COMMAND (PTI 0); UE menjawab dengan identitas khusus DN (`ue.yaml` `secondaryAuth.identity` = `ue1@edhoc.internet`, bukan SUPI); EAP-Success dibawa di PDU SESSION ESTABLISHMENT ACCEPT, EAP-Failure di REJECT #29 (TS 24.501 6.3.1.1, 6.4.1.4.1); timeout/error relay = REJECT #29 tanpa EAP. Relay: socket UDP persisten SMF→UPF dan UPF→FreeRADIUS, RADIUS Identifier per request dengan pencocokan Identifier + Response Authenticator, dan relay SMF **non-blocking** (socket di pollset Open5GS, balasan sebagai event, timeout `ogs_timer` 2,5 s; UPF menunggu FreeRADIUS 2 s). Konfigurasi dan prosedur pengukuran sama dengan bagian 5 (seri A1 B1 C1 A2 B2 C2 A3 B3 C3).
+
+- `t_pdu_ms` = Establishment Request → Accept, sekarang **mencakup** secondary authentication; `t_secauth_ms` = Command pertama → Accept; `t_req_to_auth_ms` = Request → Command pertama (CreateSMContext, UDM). Uraian relay per sesi: `t_hop_smf_upf_ms` = Σ(smf_relay_tx→rx) − Σ(upf_req_rx→upf_resp_tx), `t_relay_proc_ms` = Σ(upf_req_rx→upf_resp_tx) − Σ(upf_rad_tx→rx) (build/verify RADIUS di relay), `t_aaa_ms` = Σ(upf_rad_tx→rx) (FreeRADIUS + loopback, = `t_radius_ms`).
+- T3580 (TS 24.501 6.3.1.2.1): UE yang menerima Authentication Command hanya menghentikan T3396/T3584/T3585; T3580 tetap berjalan (16 s) dan berhenti saat Accept/Reject. Secondary authentication selesai jauh di bawah 16 s, jadi tidak ada Establishment Request yang dikirim ulang di tengah EAP.
+
+| Konfigurasi | Sesi | PASS | Gagal | msk_match | rotated |
+| --- | --- | --- | --- | --- | --- |
+| A | 300 | 300 | 0 | 100.0% | 100.0% |
+| B | 300 | 300 | 0 | n/a | n/a |
+
+| Metrik | Konfigurasi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `t_pdu_ms` | A | 300 | 275.731 | 270.529 | 323.493 | [267.905, 272.647] |
+| `t_pdu_ms` | B | 300 | 191.316 | 192.201 | 205.677 | [191.343, 192.868] |
+| `t_secauth_ms` | A | 300 | 90.161 | 84.233 | 132.715 | [82.134, 86.071] |
+| `t_req_to_auth_ms` | A | 300 | 185.571 | 186.998 | 197.714 | [186.209, 187.596] |
+| `t_radius_ms` | A | 300 | 6.646 | 5.956 | 10.182 | [5.823, 6.077] |
+| `t_core_ms` | A | 300 | 83.515 | 78.219 | 123.254 | [76.297, 80.041] |
+| `t_smf_relay_ms` | A | 300 | 12.337 | 11.146 | 19.210 | [10.899, 11.450] |
+| `t_hop_smf_upf_ms` | A | 300 | 3.796 | 3.429 | 6.454 | [3.351, 3.521] |
+| `t_relay_proc_ms` | A | 300 | 1.895 | 1.523 | 3.908 | [1.445, 1.565] |
+| `t_aaa_ms` | A | 300 | 6.646 | 5.956 | 10.182 | [5.830, 6.077] |
+| `ue_store_next_ms` | A | 300 | 1.762 | 1.138 | 3.327 | [0.887, 1.599] |
+| `ue_promote_ms` | A | 300 | 0.687 | 0.575 | 1.241 | [0.557, 0.588] |
+| `aaa_commit_ms` | A | 300 | 0.799 | 0.644 | 1.320 | [0.631, 0.660] |
+
+- **Biaya secondary authentication di dalam establishment**: selisih median `t_pdu_ms` A − B = **78.328 ms**, 95% CI [75.472, 80.853] ms (median `t_secauth_ms` 84.233 ms).
+- `t_secauth_ms` berakhir di Accept, jadi juga memuat langkah setelah Access-Accept (PCF, pemilihan UPF, PFCP, N1N2 Accept) yang di B juga ada; karena itu selisih A − B sedikit lebih kecil dari `t_secauth_ms` (di capture: Access-Accept → Accept ≈ 5 ms).
+
+Median per seri (ms):
+
+| Seri | N | `t_pdu_ms` | `t_secauth_ms` | `t_radius_ms` | `t_core_ms` | `t_hop_smf_upf_ms` | `t_relay_proc_ms` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A1 | 100 | 272.536 | 88.434 | 6.351 | 80.857 | 3.618 | 1.524 |
+| A2 | 100 | 270.137 | 82.962 | 5.943 | 77.490 | 3.478 | 1.583 |
+| A3 | 100 | 269.369 | 82.363 | 5.693 | 76.913 | 3.327 | 1.410 |
+| B1 | 100 | 191.957 | - | - | - | - | - |
+| B2 | 100 | 192.060 | - | - | - | - | - |
+| B3 | 100 | 192.630 | - | - | - | - | - |
+
+### Uraian waktu relay SMF → UPF → DN-AAA (per sesi, A)
+
+| Bagian | Mean (ms) | Median (ms) | Median per RT (ms) | Porsi dari mean total |
+| --- | --- | --- | --- | --- |
+| SMF ↔ UPF (hop, dua arah) | 3.796 | 3.429 | 0.229 | 30.8% |
+| relay UPF (build/verify RADIUS) | 1.895 | 1.523 | 0.102 | 15.4% |
+| FreeRADIUS + loopback (`t_aaa_ms`) | 6.646 | 5.956 | 0.397 | 53.9% |
+| **Total SMF relay** (`t_smf_relay_ms`) | 12.337 | 11.146 | 0.743 | 100% |
+
+### Konfigurasi C: harness langsung ke radiusd saat full stack menyala tetapi diam
+
+| Pengukuran | N | `duration_ms` mean / median | `responder_ms` mean / median | `responder_ms` per RT, median |
+| --- | --- | --- | --- | --- |
+| harness, VM diam (e2e-handshake.csv, bagian 1c) | 200 | 7.159 / 6.582 | 5.863 / 5.348 | 0.356 |
+| C: harness, full stack diam | 300 | 6.643 / 6.364 | 5.392 / 5.154 | 0.344 |
+| A: `t_aaa_ms` (relay UPF → FreeRADIUS) | 300 | - | 6.646 / 5.956 | 0.397 |
+
+- Berbagi CPU dengan stack yang diam: `responder_ms` median 5.348 → 5.154 ms (-0.194 ms). Sisa selisih ke `t_aaa_ms` (+0.802 ms) muncul saat stack aktif (UE, gNB, AMF, SMF bekerja di antara round-trip) dan dari klien RADIUS relay; `t_relay_proc_ms` dan `t_hop_smf_upf_ms` di tabel di atas berada di luar `t_aaa_ms`.
+
+| Sumber | Message1 | Message2 | Message3 | Message4 | Ronde NAS | RADIUS RT | Sesi |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| full stack v2 | 2358 | 6097 | 3756 | 16 | 15 | 15 | 300 |
+| harness | 2358 | 6097 | 3756 | 16 | - | 15 | 200 |
+
+- Sekarang UE sendiri yang menjawab EAP-Request/Identity, jadi ronde NAS = RADIUS RT (di bagian 5 ronde Identity tidak lewat NAS).
+
+### Uji pemulihan (v2)
+
+Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengirim REJECT #29 tanpa EAP (UE tidak fallback). Sesi berikutnya diulang sampai Accept dengan EAP-Success (maks. 3).
+
+| Kasus | N | Drop di UPF | Sesi drop: Reject #29 tanpa EAP | used_next | Sesi pemulihan pertama | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | Waktu pulih mean / median (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Message3 dibuang | 10 | 10 | 10 | 10 | failure 10 | 10 | 10 | 2 | 10 | 10 | 1452.4 / 1438.3 |
+| Message4 dibuang | 10 | 10 | 10 | 10 | success 10 | 0 | 0 | 1 | 10 | 10 | 135.9 / 112.5 |
+
+- Sesi normal sesudahnya: 10/10 sukses. Desync: **0**; re-provisioning: **0**.
+- `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat `reject_delay = 1` FreeRADIUS.
+
+### Urutan pesan dari capture (`fullstack-v2-sample.pcap`)
+
+```
+# Message order from fullstack-v2-sample.pcap (tshark, NAS NEA0 null deciphering); repeated EAP-EDHOC rounds are collapsed.
+# t [s]   interface  message
+   0.3197  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   0.3201  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   0.3209  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   0.3213  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   0.3229  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   0.3239  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   0.3246  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   0.3259  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   0.3261  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.3269  RADIUS     Access-Request id=1 [EAP-Response/Identity]
+   0.3311  ...        EAP-EDHOC rounds: 28 NAS Command/Complete, 28 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   0.5178  RADIUS     Access-Accept id=15 [EAP-Success]
+   0.5180  SBI        POST /npcf-smpolicycontrol/v1/sm-policies
+   0.5186  SBI        GET /nudr-dr/v1/policy-data/ues/imsi-999700000000001/sm-data
+   0.5203  SBI        POST /nbsf-management/v1/pcfBindings
+   0.5226  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   0.5230  NAS        PDU SESSION ESTABLISHMENT ACCEPT [EAP-Success]
+   0.5253  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.5264  SBI        PUT /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   0.7314  NAS        PDU SESSION RELEASE REQUEST (cause #36)
+   0.7317  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.7324  SBI        POST /npcf-smpolicycontrol/v1/sm-policies/1/delete
+   0.7328  SBI        DELETE /nbsf-management/v1/pcfBindings/1
+   0.7344  NAS        PDU SESSION RELEASE COMMAND (cause #36)
+   0.9386  NAS        PDU SESSION RELEASE COMPLETE
+   0.9395  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.9407  SBI        DELETE /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions/e697d8fa-d427-41f1-9f65-f7eed9e4671c
+   0.9418  SBI        DELETE /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   0.9421  SBI        DELETE /nudr-dr/v1/subscription-data/imsi-999700000000001/context-data/smf-registrations/1
+   0.9431  SBI        POST /namf-callback/v1/imsi-999700000000001/sm-context-status/1
+   1.1466  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   1.1474  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   1.1481  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   1.1486  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   1.1511  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   1.1519  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   1.1526  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   1.1543  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   1.1544  SBI        POST /nsmf-pdusession/v1/sm-contexts/2/modify
+   1.1549  RADIUS     Access-Request id=16 [EAP-Response/Identity]
+   1.1553  ...        EAP-EDHOC rounds: 20 NAS Command/Complete, 19 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   3.7607  NAS        PDU SESSION ESTABLISHMENT REJECT (cause #29)
+   4.0889  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   4.0895  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   4.0902  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   4.0906  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   4.0924  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   4.0932  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   4.0936  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   4.0950  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   4.0951  SBI        POST /nsmf-pdusession/v1/sm-contexts/3/modify
+   4.0958  RADIUS     Access-Request id=26 [EAP-Response/Identity]
+   4.0960  ...        EAP-EDHOC rounds: 6 NAS Command/Complete, 6 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   5.1303  RADIUS     Access-Reject id=29 [EAP-Failure]
+   5.1318  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   5.1327  NAS        PDU SESSION ESTABLISHMENT REJECT (cause #29) [EAP-Failure]
+   5.4207  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   5.4212  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   5.4219  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   5.4222  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   5.4235  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   5.4242  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   5.4249  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   5.4260  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   5.4262  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.4270  RADIUS     Access-Request id=30 [EAP-Response/Identity]
+   5.4272  ...        EAP-EDHOC rounds: 28 NAS Command/Complete, 28 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   5.5053  RADIUS     Access-Accept id=44 [EAP-Success]
+   5.5057  SBI        POST /npcf-smpolicycontrol/v1/sm-policies
+   5.5061  SBI        GET /nudr-dr/v1/policy-data/ues/imsi-999700000000001/sm-data
+   5.5074  SBI        POST /nbsf-management/v1/pcfBindings
+   5.5095  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   5.5099  NAS        PDU SESSION ESTABLISHMENT ACCEPT [EAP-Success]
+   5.5112  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.5120  SBI        PUT /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   5.7144  NAS        PDU SESSION RELEASE REQUEST (cause #36)
+   5.7148  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.7156  SBI        POST /npcf-smpolicycontrol/v1/sm-policies/2/delete
+   5.7160  SBI        DELETE /nbsf-management/v1/pcfBindings/2
+   5.7178  NAS        PDU SESSION RELEASE COMMAND (cause #36)
+   5.9228  NAS        PDU SESSION RELEASE COMPLETE
+   5.9234  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.9241  SBI        DELETE /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions/e9a21ec0-d427-41f1-9f65-f7eed9e4671c
+   5.9263  SBI        DELETE /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   5.9267  SBI        DELETE /nudr-dr/v1/subscription-data/imsi-999700000000001/context-data/smf-registrations/1
+   5.9293  SBI        POST /namf-callback/v1/imsi-999700000000001/sm-context-status/1
+```
+
+### Perbandingan dengan step 17 (secondary auth setelah Accept, relay blocking)
+
+| Metrik (median, ms) | Step 17 | Step 19 |
+| --- | --- | --- |
+| PDU session siap (A): `t_ready_ms` / `t_pdu_ms` | 398.221 | 270.529 |
+| Tanpa secondary auth (B): `t_pdu_ms` | 191.127 | 192.201 |
+| `t_secauth_ms` | 73.373 | 84.233 |
+| `t_radius_ms` | 9.249 | 5.956 |
+| `t_core_ms` | 64.489 | 78.219 |
+| `t_smf_relay_ms` | 17.992 | 11.146 |
+| Biaya secondary auth (A − B) | 207.094 | 78.328 |
+
+- Step 17 mengukur sampai Authentication Result setelah Accept (termasuk timer 100 ms SMF); step 19 mengukur sampai Accept yang membawa EAP-Success, tanpa timer, dengan secondary authentication sebelum PCF/UPF/PFCP.
+- `t_radius_ms` dan `t_smf_relay_ms` turun karena socket persisten dan relay SMF non-blocking. `t_core_ms` naik: ada satu ronde NAS tambahan (EAP-Request/Identity ke UE, di step 17 dibuat SMF sendiri), dan definisi `t_secauth_ms` sekarang berakhir di Accept (termasuk PCF/UPF/PFCP), bukan di Authentication Result.
 

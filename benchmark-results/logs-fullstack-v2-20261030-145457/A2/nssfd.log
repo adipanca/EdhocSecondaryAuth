@@ -1,0 +1,15 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 14:57:52.344[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/nssf.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 14:57:52.344[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/nssf.log' (../lib/app/ogs-init.c:147)
+[32m10/30 14:57:52.346[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m10/30 14:57:52.346[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nnssf-nsselection] (../lib/sbi/context.c:1994)
+[32m10/30 14:57:52.346[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.14]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m10/30 14:57:52.346[0m: [[33mapp[0m] [1;32mINFO[0m: NSSF initialize...done (../src/nssf/app.c:31)
+[32m10/30 14:57:52.349[0m: [[33msbi[0m] [1;32mINFO[0m: [d8083f74-d426-41f1-9d7f-8ba345c5e13c] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m10/30 14:57:52.351[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 14:57:52.351[0m: [[33msbi[0m] [1;32mINFO[0m: [d808e51e-d426-41f1-82ea-4b2db6834944] Subscription created until 2026-10-31T14:57:52.350368+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 14:59:17.548[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 14:59:17.548[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 14:59:17.548[0m: [[33msbi[0m] [1;32mINFO[0m: [d8083f74-d426-41f1-9d7f-8ba345c5e13c] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m10/30 14:59:17.550[0m: [[33mapp[0m] [1;32mINFO[0m: NSSF terminate...done (../src/nssf/app.c:39)

@@ -1,0 +1,32 @@
+Open5GS daemon v2.7.2
+
+[32m10/30 14:56:30.546[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/udm.yaml' (../lib/app/ogs-init.c:144)
+[32m10/30 14:56:30.546[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/udm.log' (../lib/app/ogs-init.c:147)
+[32m10/30 14:56:30.547[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m10/30 14:56:30.547[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nudm-ueau] (../lib/sbi/context.c:1994)
+[32m10/30 14:56:30.547[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nudm-uecm] (../lib/sbi/context.c:1994)
+[32m10/30 14:56:30.547[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nudm-sdm] (../lib/sbi/context.c:1994)
+[32m10/30 14:56:30.548[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.12]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m10/30 14:56:30.548[0m: [[33mapp[0m] [1;32mINFO[0m: UDM initialize...done (../src/udm/app.c:31)
+[32m10/30 14:56:30.553[0m: [[33msbi[0m] [1;32mINFO[0m: [a746cf54-d426-41f1-846d-15812e17da08] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: [a747ca9e-d426-41f1-bdf8-cd023e4e0a96] Subscription created until 2026-10-31T14:56:30.554186+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: [a7471446-d426-41f1-8d56-7b45b17a6cab] (NRF-notify) NF registered (../lib/sbi/nnrf-handler.c:1140)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: [a7471446-d426-41f1-8d56-7b45b17a6cab] (NRF-notify) NF Profile updated [type:UDR] (../lib/sbi/nnrf-handler.c:1154)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.20:80] (../lib/sbi/context.c:2374)
+[32m10/30 14:56:30.555[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.20:7777] (../lib/sbi/context.c:2113)
+[32m10/30 14:56:30.556[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m10/30 14:56:30.556[0m: [[33msbi[0m] [1;32mINFO[0m: [a747cbca-d426-41f1-bdf8-cd023e4e0a96] Subscription created until 2026-10-31T14:56:30.554214+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m10/30 14:56:38.572[0m: [[33msbi[0m] [1;32mINFO[0m: [a7471446-d426-41f1-8d56-7b45b17a6cab] Setup NF Instance [type:UDR] (../lib/sbi/path.c:307)
+[32m10/30 14:56:39.853[0m: [[33msbi[0m] [1;32mINFO[0m: [a7471446-d426-41f1-8d56-7b45b17a6cab] Setup NF Instance [type:UDR] (../lib/sbi/path.c:307)
+[32m10/30 14:57:49.797[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m10/30 14:57:49.797[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m10/30 14:57:49.797[0m: [[33msbi[0m] [1;32mINFO[0m: [a746cf54-d426-41f1-846d-15812e17da08] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m10/30 14:57:49.798[0m: [[33msbi[0m] [1;31mFATAL[0m: session_write_callback: Assertion `sbi_sess->poll.write' failed. (../lib/sbi/nghttp2-server.c:1765)
+[32m10/30 14:57:49.798[0m: [[33mcore[0m] [1;31mFATAL[0m: backtrace() returned 7 addresses (../lib/core/ogs-abort.c:37)
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udm/../../lib/sbi/libogssbi.so.2(+0x3d71a) [0x725a450bd71a]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udm/../../lib/core/libogscore.so.2(+0x260c7) [0x725a4502c0c7]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udm/open5gs-udmd(+0x6194) [0x6402876bc194]
+/home/admin-vb/EdhocSecondaryAuth/open5gs/build-ws/src/udm/../../lib/core/libogscore.so.2(+0x119a4) [0x725a450179a4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x9cb84) [0x725a4449cb84]
+/lib/x86_64-linux-gnu/libc.so.6(+0x129ecc) [0x725a44529ecc]

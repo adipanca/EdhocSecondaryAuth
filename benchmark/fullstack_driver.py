@@ -8,12 +8,17 @@ outcome in the nr-ue [E4T] log and releases them; all timing comes from the
 
   fullstack_driver.py bench    <ue.log> <marks> <config A|B> <series> <n> <warmup>
   fullstack_driver.py recovery <ue.log> <marks> <drop-file> <n>
+  fullstack_driver.py capture  <ue.log> <marks> <drop-file>
 
 marks: one line per session, written before it starts and after it ends:
   start <kind> <config> <series> <iter> <t_us>
   end   <kind> <config> <series> <iter> <t_us> <outcome> <ue_rec_changed> <dn_rec_changed>
-outcome: success (A: EAP-Success; B: Accept), failure (EAP-Failure), noeap
-(Result without EAP, i.e. relay timeout), timeout (nothing within 5 s).
+Secondary authentication runs inside the establishment (TS 23.502
+4.3.2.2.1 step 6), so a session ends with the PDU SESSION ESTABLISHMENT
+ACCEPT (EAP-Success in A) or REJECT.
+outcome: success (A: Accept with EAP-Success; B: Accept), failure (Reject #29
+with EAP-Failure), noeap (Reject without EAP, e.g. relay timeout),
+acc_noeap (A: Accept without EAP-Success), timeout (nothing within 5 s).
 """
 import hashlib
 import os
@@ -25,8 +30,9 @@ import time
 CLI = "/home/admin-vb/EdhocSecondaryAuth/UERANSIM/build/nr-cli"
 IMSI = os.environ.get("FS_IMSI", "imsi-999700000000001")
 DNN = os.environ.get("FS_DNN", "internet")
-UE_REC = f"/usr/local/etc/edhoc/ue/{IMSI}/ue.rec"
-DN_REC = f"/usr/local/etc/edhoc/edhoc_db/{IMSI}/rec.bin"
+IDENT = os.environ.get("FS_ID", IMSI)       # EAP identity = record name
+UE_REC = f"/usr/local/etc/edhoc/ue/{IDENT}/ue.rec"
+DN_REC = f"/usr/local/etc/edhoc/edhoc_db/{IDENT}/rec.bin"
 WAIT_S = 5.0
 LINE = re.compile(r"\[E4T\] (\S+) t_us=(\d+) sess=(\d+) len=(\d+)(.*)")
 
@@ -81,26 +87,24 @@ def session(log, marks, kind, config, series, it):
     marks.write(f"start {kind} {config} {series} {it} {now_us()}\n")
     marks.flush()
     cli(f"ps-establish IPv4 --sst 1 --dnn {DNN}")
-    if config == "B":
-        tag, _ = log.wait({"ue_pdu_acc", "ue_pdu_rej"}, WAIT_S)
-        outcome = "success" if tag == "ue_pdu_acc" else ("failure" if tag else "timeout")
+    tag, extra = log.wait({"ue_pdu_acc", "ue_pdu_rej"}, WAIT_S)
+    eap = re.search(r"eap=(\d+)", extra)
+    eap = int(eap.group(1)) if eap else 0
+    if tag == "ue_pdu_acc":
+        outcome = "success" if config == "B" or eap == 3 else "acc_noeap"
+    elif tag == "ue_pdu_rej":
+        outcome = "failure" if eap == 4 else "noeap"
     else:
-        # secondary auth runs after the Accept; its Result ends the session
-        tag, extra = log.wait({"ue_result_rx", "ue_pdu_rej"}, WAIT_S)
-        if tag == "ue_result_rx":
-            code = re.search(r"code=(\d+)", extra)
-            code = int(code.group(1)) if code else -1
-            outcome = {3: "success", 4: "failure", 0: "noeap"}.get(code, "other")
-        else:
-            outcome = "failure" if tag else "timeout"
+        outcome = "timeout"
     t_end = now_us()
     time.sleep(0.02)   # promotion after the closing ACK
     ue1, dn1 = digest(UE_REC), digest(DN_REC)
     marks.write(f"end {kind} {config} {series} {it} {t_end} {outcome} "
                 f"{int(ue0 != ue1)} {int(dn0 != dn1)}\n")
     marks.flush()
-    cli("ps-release 1")
-    log.wait({"ue_pdu_rel"}, 2.0)   # release finished on the UE
+    if tag == "ue_pdu_acc":
+        cli("ps-release 1")
+        log.wait({"ue_pdu_rel"}, 2.0)   # release finished on the UE
     log.wait({"__never__"}, 0.2)    # 200 ms gap, keeps following the log
     if outcome == "timeout":
         # a request UERANSIM did not send (UAC "barred") is retransmitted on
@@ -141,11 +145,30 @@ def recovery(ue_log, marks_path, drop_file, n):
             session(log, marks, "after", "A", 0, i)
 
 
+def capture(ue_log, marks_path, drop_file):
+    """for the sample pcap: one normal session, then a session whose
+    message_3 is dropped, then sessions until EAP-Success"""
+    log = UeLog(ue_log)
+    with open(marks_path, "a") as marks:
+        out = session(log, marks, "capture_ok", "A", 0, 1)
+        with open(drop_file, "w") as f:
+            f.write("msg3\n")
+        out2 = session(log, marks, "capture_drop_msg3", "A", 0, 1)
+        outs = []
+        for k in range(1, 4):
+            outs.append(session(log, marks, "capture_recover_msg3", "A", k, 1))
+            if outs[-1] == "success":
+                break
+        print(f"  capture: normal {out}, drop {out2}, recovery {outs}", flush=True)
+
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "bench":
         bench(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7]))
     elif mode == "recovery":
         recovery(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+    elif mode == "capture":
+        capture(sys.argv[2], sys.argv[3], sys.argv[4])
     else:
         sys.exit(__doc__)
