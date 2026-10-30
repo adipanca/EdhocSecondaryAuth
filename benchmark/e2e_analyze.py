@@ -307,6 +307,50 @@ def full_5g_core_section(L, by_m):
         L.append("")
 
 
+def recovery_v2_table(L, rec_path, title):
+    """recovery table of fullstack-recovery-v2*.csv (fullstack_analyze.py v2)"""
+    if not os.path.exists(rec_path):
+        return
+    rr = load_rows(rec_path)
+    L.append(title)
+    L.append("")
+    L.append("Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengirim "
+             "REJECT #29 tanpa EAP (UE tidak fallback). Sesi berikutnya diulang sampai Accept "
+             "dengan EAP-Success (maks. 3).")
+    L.append("")
+    L.append("| Kasus | N | Drop di UPF | Sesi drop: Reject #29 tanpa EAP | used_next | Sesi pemulihan "
+             "pertama | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | "
+             "Waktu pulih mean / median (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    desync = 0
+    for case, name in (("msg3", "Message3 dibuang"), ("msg4", "Message4 dibuang")):
+        c = [r for r in rr if r["case"] == case]
+        if not c:
+            continue
+        cnt = lambda f: sum(1 for r in c if f(r))
+        t = [float(r["t_recovery_ms"]) for r in c if r["t_recovery_ms"]]
+        firsts = {}
+        for r in c:
+            firsts[r["first_recovery_outcome"]] = firsts.get(r["first_recovery_outcome"], 0) + 1
+        fo = ", ".join(f"{k} {v}" for k, v in sorted(firsts.items()))
+        desync += cnt(lambda r: r["recovered"] != "1")
+        L.append(f"| {name} | {len(c)} | {cnt(lambda r: r['drop_upf'] == '1')} | "
+                 f"{cnt(lambda r: r['drop_outcome'] == 'noeap')} | {cnt(lambda r: r['used_next'] == '1')} | "
+                 f"{fo} | {sum(int(r['eap_failure']) for r in c)} | {sum(int(r['fallback']) for r in c)} | "
+                 f"{statistics.median(int(r['sessions_to_recover']) for r in c):.0f} | "
+                 f"{cnt(lambda r: r['recovered'] == '1')} | {cnt(lambda r: r['msk_match'] == '1')} | "
+                 + (f"{statistics.mean(t):.1f} / {statistics.median(t):.1f}" if t else "-") + " |")
+    after = [r for r in rr if r["case"] == "after"]
+    desync += sum(1 for r in after if r["recovered"] != "1")
+    L.append("")
+    L.append(f"- Sesi normal sesudahnya: {sum(1 for r in after if r['recovered'] == '1')}/{len(after)} sukses. "
+             f"Desync: **{desync}**; re-provisioning: **0**.")
+    L.append("- `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu "
+             "fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat "
+             "`reject_delay = 1` FreeRADIUS.")
+    L.append("")
+
+
 def full_5g_core_v2_section(L, by_m):
     """## 6: secondary authentication inside PDU session establishment
     (step 19: fullstack-handshake-v2.csv, fullstack-harness-shared.csv,
@@ -488,46 +532,7 @@ def full_5g_core_v2_section(L, by_m):
     L.append("")
 
     # recovery
-    rec_path = os.path.join(RESULTS, "fullstack-recovery-v2.csv")
-    if os.path.exists(rec_path):
-        rr = load_rows(rec_path)
-        L.append("### Uji pemulihan (v2)")
-        L.append("")
-        L.append("Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengirim "
-                 "REJECT #29 tanpa EAP (UE tidak fallback). Sesi berikutnya diulang sampai Accept "
-                 "dengan EAP-Success (maks. 3).")
-        L.append("")
-        L.append("| Kasus | N | Drop di UPF | Sesi drop: Reject #29 tanpa EAP | used_next | Sesi pemulihan "
-                 "pertama | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | "
-                 "Waktu pulih mean / median (ms) |")
-        L.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
-        desync = 0
-        for case, name in (("msg3", "Message3 dibuang"), ("msg4", "Message4 dibuang")):
-            c = [r for r in rr if r["case"] == case]
-            if not c:
-                continue
-            cnt = lambda f: sum(1 for r in c if f(r))
-            t = [float(r["t_recovery_ms"]) for r in c if r["t_recovery_ms"]]
-            firsts = {}
-            for r in c:
-                firsts[r["first_recovery_outcome"]] = firsts.get(r["first_recovery_outcome"], 0) + 1
-            fo = ", ".join(f"{k} {v}" for k, v in sorted(firsts.items()))
-            desync += cnt(lambda r: r["recovered"] != "1")
-            L.append(f"| {name} | {len(c)} | {cnt(lambda r: r['drop_upf'] == '1')} | "
-                     f"{cnt(lambda r: r['drop_outcome'] == 'noeap')} | {cnt(lambda r: r['used_next'] == '1')} | "
-                     f"{fo} | {sum(int(r['eap_failure']) for r in c)} | {sum(int(r['fallback']) for r in c)} | "
-                     f"{statistics.median(int(r['sessions_to_recover']) for r in c):.0f} | "
-                     f"{cnt(lambda r: r['recovered'] == '1')} | {cnt(lambda r: r['msk_match'] == '1')} | "
-                     + (f"{statistics.mean(t):.1f} / {statistics.median(t):.1f}" if t else "-") + " |")
-        after = [r for r in rr if r["case"] == "after"]
-        desync += sum(1 for r in after if r["recovered"] != "1")
-        L.append("")
-        L.append(f"- Sesi normal sesudahnya: {sum(1 for r in after if r['recovered'] == '1')}/{len(after)} sukses. "
-                 f"Desync: **{desync}**; re-provisioning: **0**.")
-        L.append("- `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu "
-                 "fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat "
-                 "`reject_delay = 1` FreeRADIUS.")
-        L.append("")
+    recovery_v2_table(L, os.path.join(RESULTS, "fullstack-recovery-v2.csv"), "### Uji pemulihan (v2)")
 
     seq_path = os.path.join(RESULTS, "fullstack-v2-sequence.txt")
     if os.path.exists(seq_path):
@@ -616,6 +621,21 @@ def full_5g_core_v2_section(L, by_m):
                      "pengukuran ulang (lihat vmstat di folder log). Jadi biaya secondary authentication di dalam "
                      "establishment berada di kisaran 78–93 ms, didominasi transport 5G core per ronde NAS.")
         L.append("")
+        recovery_v2_table(L, os.path.join(RESULTS, "fullstack-recovery-v2-ue-fix.csv"),
+                          "#### Uji pemulihan setelah perbaikan SCTP (step 21)")
+        r19 = os.path.join(RESULTS, "fullstack-recovery-v2.csv")
+        rfx = os.path.join(RESULTS, "fullstack-recovery-v2-ue-fix.csv")
+        if os.path.exists(r19) and os.path.exists(rfx):
+            def med(path, case):
+                t = [float(r["t_recovery_ms"]) for r in load_rows(path)
+                     if r["case"] == case and r["t_recovery_ms"]]
+                return statistics.median(t) if t else float("nan")
+            L.append(f"- Median waktu pulih step 19 → step 21: Message3 {med(r19, 'msg3'):.1f} → "
+                     f"{med(rfx, 'msg3'):.1f} ms, Message4 {med(r19, 'msg4'):.1f} → {med(rfx, 'msg4'):.1f} ms. "
+                     "Hampir sama: sesi pemulihan didahului sesi yang berakhir dengan Reject setelah timeout "
+                     "2,5 s, jadi SCTP gNB tidak punya data yang belum di-ACK dan jeda Nagle tidak muncul "
+                     "di step 19 pun.")
+            L.append("")
 
 
 def main():

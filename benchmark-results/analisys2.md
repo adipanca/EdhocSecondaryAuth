@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T16:19:06._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T16:32:21._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -805,4 +805,18 @@ Tag tambahan di gNB (`gnb_ngap_tx`, `gnb_ngap_dl_rx`, `gnb_ngap_setup_rx`, `gnb_
 
 - `t_pdu_ms` A − B setelah perbaikan: **93.389 ms**, 95% CI [90.426, 95.579] ms (step 19: 78.328 ms). Sesi A PASS 300/300, B PASS 300/300.
 - A − B ≈ `t_req_to_auth_ms`(A) + `t_secauth_ms` − `t_pdu_ms`(B). Di step 19 jeda SCTP tidak persis sama di kedua konfigurasi: A 187.0 ms sampai Command pertama, B 192.2 ms sampai Accept; setelah perbaikan 21.2 vs 21.0 ms. `t_secauth_ms` juga naik +5.7 ms karena VM lebih sibuk pada pengukuran ulang (lihat vmstat di folder log). Jadi biaya secondary authentication di dalam establishment berada di kisaran 78–93 ms, didominasi transport 5G core per ronde NAS.
+
+#### Uji pemulihan setelah perbaikan SCTP (step 21)
+
+Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengirim REJECT #29 tanpa EAP (UE tidak fallback). Sesi berikutnya diulang sampai Accept dengan EAP-Success (maks. 3).
+
+| Kasus | N | Drop di UPF | Sesi drop: Reject #29 tanpa EAP | used_next | Sesi pemulihan pertama | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | Waktu pulih mean / median (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Message3 dibuang | 10 | 10 | 10 | 10 | failure 10 | 10 | 10 | 2 | 10 | 10 | 1442.6 / 1420.0 |
+| Message4 dibuang | 10 | 10 | 10 | 10 | success 10 | 0 | 0 | 1 | 10 | 10 | 149.7 / 125.1 |
+
+- Sesi normal sesudahnya: 10/10 sukses. Desync: **0**; re-provisioning: **0**.
+- `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat `reject_delay = 1` FreeRADIUS.
+
+- Median waktu pulih step 19 → step 21: Message3 1438.3 → 1420.0 ms, Message4 112.5 → 125.1 ms. Hampir sama: sesi pemulihan didahului sesi yang berakhir dengan Reject setelah timeout 2,5 s, jadi SCTP gNB tidak punya data yang belum di-ACK dan jeda Nagle tidak muncul di step 19 pun.
 
