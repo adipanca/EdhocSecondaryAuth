@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <cstdlib>
 #include "ie6.hpp"
 
 #include <iostream>
@@ -441,6 +442,14 @@ IE5gsMobileIdentity IE5gsMobileIdentity::Decode(const OctetView &stream, int len
 //     return r;
 // }
 
+// Hex dumps of every EAP IE (debug only, slow for multi-kilobyte EAP-EDHOC
+// messages): enabled with UERANSIM_NAS_DEBUG=1.
+static bool NasDebugDump()
+{
+    static const bool on = std::getenv("UERANSIM_NAS_DEBUG") != nullptr;
+    return on;
+}
+
 IEEapMessage IEEapMessage::Decode(const OctetView &stream, int length)
 {
     IEEapMessage r;
@@ -448,6 +457,8 @@ IEEapMessage IEEapMessage::Decode(const OctetView &stream, int length)
     const uint8_t* subData = stream.rawData() + stream.currentIndex();
     OctetView subStream(subData, length);
 
+    if (NasDebugDump())
+    {
     std::cerr << "============= [IEEapMessage::Decode] START =============" << std::endl;
     std::cerr << "[IEEapMessage::Decode] EAP IE length = " << length << std::endl;
 
@@ -458,6 +469,7 @@ IEEapMessage IEEapMessage::Decode(const OctetView &stream, int length)
         if ((i + 1) % 16 == 0) std::cerr << std::endl;
     }
     std::cerr << std::endl;
+    }
 
     // Decode EAP PDU
     r.eap = eap::DecodeEapPdu(subStream);
@@ -467,7 +479,7 @@ IEEapMessage IEEapMessage::Decode(const OctetView &stream, int length)
     }
 
     // Manual EAP Header dump
-    if (length >= 6) {
+    if (NasDebugDump() && length >= 6) {
         uint8_t code = subData[0];
         uint8_t id = subData[1];
         uint16_t len = (subData[2] << 8) | subData[3];
@@ -522,7 +534,8 @@ IEEapMessage IEEapMessage::Decode(const OctetView &stream, int length)
         }
     }
 
-    std::cerr << "============= [IEEapMessage::Decode] END =============" << std::endl;
+    if (NasDebugDump())
+        std::cerr << "============= [IEEapMessage::Decode] END =============" << std::endl;
 
     stream.advance(length);
     return r;

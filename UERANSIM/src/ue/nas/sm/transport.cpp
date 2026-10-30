@@ -254,6 +254,23 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
         const auto &in = (const eap::EapEdhoc &)*msg.eapMessage.eap;
         OctetString outData;
 
+        // EDHOC start (a single 0x01 byte; ACKs are 0x00, fragments longer):
+        // a new secondary authentication. Drop what the previous session left
+        // in memory (finished, or aborted by a timeout without EAP-Success /
+        // Failure) and reload the record, NEXT if present; after a fallback
+        // the CUR state is kept. The EAP identity is sent by the SMF, so the
+        // UE sees no EAP-Request/Identity to reset on.
+        if (in.rawData.length() == 1 && in.rawData.data()[0] == 0x01)
+        {
+            m_edhocRound = -1;
+            m_edhocInLen = m_edhocInPos = 0;
+            m_edhocOutLen = m_edhocOutPos = 0;
+            m_edhocPromotePending = false;
+            edhoc4_ctx_wipe(&m_edhocCtx);
+            if (!m_edhocFallbackDone)
+                m_edhocProvisioned = false;
+        }
+
         if (!ensureEdhocProvisioned())
         {
             m_logger->err("EAP-EDHOC: missing provisioning material, cannot run secondary authentication");

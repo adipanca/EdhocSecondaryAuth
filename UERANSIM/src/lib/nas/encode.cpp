@@ -6,6 +6,7 @@
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include <cstdlib>
 #include "encode.hpp"
 
 #include <stdexcept>
@@ -244,6 +245,13 @@ static SecuredMmMessage *DecodeSecuredMmMessage(const OctetView &stream, ESecuri
 //     return p;
 // }
 
+// decoder trace (debug only): enabled with UERANSIM_NAS_DEBUG=1
+static bool NasDebugTrace()
+{
+    static const bool on = std::getenv("UERANSIM_NAS_DEBUG") != nullptr;
+    return on;
+}
+
 template <typename T>
 static T *DecodeViaBuilder(const OctetView &stream)
 {
@@ -252,6 +260,7 @@ static T *DecodeViaBuilder(const OctetView &stream)
     NasMessageBuilder builder{};
     p->onBuild(builder);
 
+    if (NasDebugTrace())
     std::cerr << "[DecodeViaBuilder] Start decoding stream at offset "
           << stream.currentIndex() << std::endl;
 
@@ -275,7 +284,8 @@ static T *DecodeViaBuilder(const OctetView &stream)
         }
     }
 
-    std::cerr << "[DecodeViaBuilder] Successfully decoded message." << std::endl;
+    if (NasDebugTrace())
+        std::cerr << "[DecodeViaBuilder] Successfully decoded message." << std::endl;
 
 
     return p;
