@@ -7,6 +7,7 @@
 //
 
 #include "sm.hpp"
+#include "e4t.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -233,6 +234,10 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     nas::PduSessionAuthenticationComplete resp;
 
     m_logger->info("PDU Session Authentication Command received for PSI[%d]", msg.pduSessionId);
+    if (msg.eapMessage.eap && msg.eapMessage.eap->eapType == eap::EEapType::EAP_EDHOC)
+        E4T("ue_cmd_rx", msg.pduSessionId, 5 + ((const eap::EapEdhoc &)*msg.eapMessage.eap).rawData.length());
+    else
+        E4T("ue_cmd_rx", msg.pduSessionId, 0);
 
     resp.pduSessionId = msg.pduSessionId;
     resp.pti = msg.pti;
@@ -294,6 +299,7 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             rc = edhoc4_i_make_msg1(&m_edhocCtx, buf, sizeof(buf), &outLen);
             if (rc == E4_OK)
             {
+                E4T("ue_msg1", msg.pduSessionId, (long long)outLen);
                 m_edhocRound = 1;
                 std::memcpy(m_edhocOut, buf, outLen);
                 m_edhocOutLen = outLen;
@@ -327,18 +333,25 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 outData = OctetString::FromArray(ackWire, sizeof(ackWire));
                 resp.eapMessage.eap = std::make_unique<eap::EapEdhoc>(
                     eap::ECode::RESPONSE, msg.eapMessage.eap->id, std::move(outData));
+                E4T("ue_cmpl_tx", msg.pduSessionId, 5 + sizeof(ackWire));
                 sendSmMessage(msg.pduSessionId, resp);
                 return;
             }
 
             if (m_edhocRound == 1)
             {
+                E4T("ue_msg2", msg.pduSessionId, (long long)msgLen);
                 rc = edhoc4_i_handle_msg2(&m_edhocCtx, msgData, msgLen, buf, sizeof(buf), &outLen);
                 // write-ahead: NEXT = (Nsk_A, Npk_A, Npk_B) is durable before message_3
                 if (rc == E4_OK)
+                {
+                    uint64_t t0 = E4NowUs();
                     rc = edhoc4_ue_store_next(m_edhocRecPath.c_str(), &m_edhocUe, &m_edhocCtx);
+                    E4TDuration("ue_store_next", msg.pduSessionId, t0);
+                }
                 if (rc == E4_OK)
                 {
+                    E4T("ue_msg3", msg.pduSessionId, (long long)outLen);
                     m_edhocRound = 2;
                     std::memcpy(m_edhocOut, buf, outLen);
                     m_edhocOutLen = outLen;
@@ -355,10 +368,12 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             }
             else if (m_edhocRound == 2)
             {
+                E4T("ue_msg4", msg.pduSessionId, (long long)msgLen);
                 rc = edhoc4_i_handle_msg4(&m_edhocCtx, msgData, msgLen);
                 if (rc == E4_OK)
                 {
                     std::memcpy(m_edhocMsk, m_edhocCtx.msk, E4_MSK_LEN);
+                    E4TMskTag(msg.pduSessionId, m_edhocMsk, E4_MSK_LEN);
                     std::memcpy(m_edhocEmsk, m_edhocCtx.emsk, E4_EMSK_LEN);
                     m_logger->info("EAP-EDHOC: handshake complete, MSK/EMSK derived");
 
@@ -391,6 +406,7 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             return;
         }
 
+        E4T("ue_cmpl_tx", msg.pduSessionId, 5 + outData.length());
         resp.eapMessage.eap = std::make_unique<eap::EapEdhoc>(
             eap::ECode::RESPONSE, msg.eapMessage.eap->id, std::move(outData));
     }
@@ -404,6 +420,7 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
         if (const char *eapId = std::getenv("EDHOC_EAP_IDENTITY"))
             identity = eapId;
         m_edhocRound = -1;
+        E4T("ue_cmpl_tx", msg.pduSessionId, 5 + (long long)identity.size());
 
         resp.eapMessage.eap = std::make_unique<eap::EapIdentity>(
             eap::ECode::RESPONSE,
@@ -426,7 +443,10 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
     if (m_edhocPromotePending)
     {
         m_edhocPromotePending = false;
-        if (edhoc4_ue_promote(m_edhocRecPath.c_str(), &m_edhocUe) != E4_OK)
+        uint64_t t0 = E4NowUs();
+        int prc = edhoc4_ue_promote(m_edhocRecPath.c_str(), &m_edhocUe);
+        E4TDuration("ue_promote", msg.pduSessionId, t0);
+        if (prc != E4_OK)
             m_logger->err("EAP-EDHOC: failed to promote NEXT in %s", m_edhocRecPath.c_str());
         else
             m_logger->info("EAP-EDHOC: NEXT promoted, old one-time key erased");
@@ -456,6 +476,7 @@ bool NasSm::ensureEdhocProvisioned()
 
     m_edhocProvisioned = true;
     m_logger->info("EAP-EDHOC: loaded method-4 key record (%s slot)", m_edhocUe.using_next ? "NEXT" : "CUR");
+    E4T("ue_load", 0, 0, m_edhocUe.using_next ? " next=1" : " next=0");
     return true;
 }
 
@@ -474,6 +495,7 @@ void NasSm::edhocOnResult(const std::optional<nas::IEEapMessage> &eap)
         if (edhoc4_ue_fallback(m_edhocRecPath.c_str(), &m_edhocUe) == E4_OK)
         {
             m_edhocFallbackDone = true;   // keep the CUR state for the retry
+            E4T("ue_fallback", 0, 0);
             m_logger->warn("EAP-EDHOC: EAP-Failure on NEXT, fallback=1 (next attempt on CUR, NEXT kept)");
         }
         else
@@ -495,6 +517,14 @@ void NasSm::edhocOnResult(const std::optional<nas::IEEapMessage> &eap)
 
 void NasSm::receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg)
 {
+    if (E4TimingOn())
+    {
+        // code: 3 EAP-Success, 4 EAP-Failure, 0 no EAP (relay error / timeout)
+        int code = (msg.eapMessage.has_value() && msg.eapMessage->eap) ? (int)msg.eapMessage->eap->code : 0;
+        char extra[16];
+        std::snprintf(extra, sizeof(extra), " code=%d", code);
+        E4T("ue_result_rx", msg.pduSessionId, 0, extra);
+    }
     edhocOnResult(msg.eapMessage);
 
     if (msg.eapMessage.has_value() && msg.eapMessage->eap)

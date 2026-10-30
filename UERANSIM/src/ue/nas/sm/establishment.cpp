@@ -7,6 +7,7 @@
 //
 
 #include "sm.hpp"
+#include "e4t.hpp"
 #include <algorithm>
 #include <lib/nas/proto_conf.hpp>
 #include <lib/nas/utils.hpp>
@@ -129,6 +130,7 @@ void NasSm::sendEstablishmentRequest(const SessionConfig &config)
     pt.psi = psi;
 
     /* Send SM message */
+    E4T("ue_pdu_req", psi, 0);
     sendSmMessage(psi, *pt.message);
 }
 
@@ -140,6 +142,7 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
         return;
 
     freeProcedureTransactionId(msg.pti);
+    E4T("ue_pdu_acc", msg.pduSessionId, 0);
 
     // EAP-Success of the secondary authentication may arrive here
     edhocOnResult(msg.eapMessage);
@@ -183,6 +186,7 @@ void NasSm::receiveEstablishmentAccept(const nas::PduSessionEstablishmentAccept 
 void NasSm::receiveEstablishmentReject(const nas::PduSessionEstablishmentReject &msg)
 {
     m_logger->err("PDU Session Establishment Reject received [%s]", nas::utils::EnumToString(msg.smCause.value));
+    E4T("ue_pdu_rej", msg.pduSessionId, 0);
     edhocOnResult(msg.eapMessage);
 
     if (!checkPtiAndPsi(msg))

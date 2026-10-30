@@ -41,6 +41,32 @@
 #define SMF_SEC_AUTH_EAP_MAX 8192
 
 /*
+ * E4_TIMING=1: "[E4T] <tag> t_us=<CLOCK_MONOTONIC us> sess=<psi> len=<bytes>"
+ * on stderr around every relay exchange, for benchmark/fullstack_bench.sh.
+ */
+static bool smf_e4t_on(void)
+{
+    static int on = -1;
+    if (on < 0) {
+        const char *v = getenv("E4_TIMING");
+        on = (v && atoi(v) > 0);
+    }
+    return on;
+}
+
+static void smf_e4t(const char *tag, int psi, size_t len)
+{
+    struct timespec ts;
+    if (!smf_e4t_on())
+        return;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    fprintf(stderr, "[E4T] %s t_us=%llu sess=%d len=%zu\n", tag,
+            (unsigned long long)ts.tv_sec * 1000000ULL +
+            (unsigned long long)(ts.tv_nsec / 1000), psi, len);
+}
+
+
+/*
  * Deliver the EAP-EDHOC secondary-authentication N1 NAS payload (PDU Session
  * Authentication Command / Result) to an already-established PDU session.
  *
@@ -127,12 +153,14 @@ static void smf_sec_auth_relay_and_deliver(
     ogs_assert(sess);
     ogs_assert(smf_ue);
 
+    smf_e4t("smf_relay_begin", sess->psi, eap_in_len);
     rc = smf_eap_relay_exchange(smf_ue->supi,
             sess->sec_auth.state, sess->sec_auth.state_len,
             eap_in, eap_in_len,
             &out_result,
             out_state, sizeof(out_state), &out_state_len,
             out_eap, sizeof(out_eap), &out_eap_len);
+    smf_e4t("smf_relay_end", sess->psi, out_eap_len);
     if (rc != 0) {
         ogs_error("[%s:%d] Secondary auth relay exchange failed",
                 smf_ue->supi, sess->psi);

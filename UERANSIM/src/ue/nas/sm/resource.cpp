@@ -7,6 +7,7 @@
 //
 
 #include "sm.hpp"
+#include "e4t.hpp"
 #include <algorithm>
 #include <lib/nas/proto_conf.hpp>
 #include <lib/nas/utils.hpp>
@@ -32,6 +33,7 @@ static bool IsEstablished(EPsState state)
 void NasSm::localReleaseSession(int psi)
 {
     m_logger->debug("Performing local release of PDU session[%d]", psi);
+    E4T("ue_pdu_rel", psi, 0);
 
     bool isEstablished = IsEstablished(m_pduSessions[psi]->psState);
 

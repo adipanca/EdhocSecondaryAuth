@@ -43,6 +43,63 @@ RCSID("$Id$")
 #include "edhoc4_db.h"
 #include "edhoc03.h"
 
+#include <sodium.h>
+#include <time.h>
+
+/*
+ * E4_TIMING=1: "[E4T] <tag> t_us=<CLOCK_MONOTONIC us> sess=0 len=<bytes>"
+ * for benchmark/fullstack_bench.sh: aaa_commit (duration of the record
+ * commit before message_4) and msk_tag (first 8 bytes of SHA-256(MSK); no
+ * key material is printed). Written to E4_TIMING_FILE if set (radiusd -f
+ * without -X points stderr at /dev/null), else to stderr.
+ */
+static int e4t_on(void)
+{
+	static int on = -1;
+	if (on < 0) {
+		char const *v = getenv("E4_TIMING");
+		on = (v && atoi(v) > 0);
+	}
+	return on;
+}
+
+static uint64_t e4t_now_us(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (uint64_t)ts.tv_sec * 1000000ULL + (uint64_t)(ts.tv_nsec / 1000);
+}
+
+static void e4t_line(char const *line)
+{
+	char const *path = getenv("E4_TIMING_FILE");
+	FILE *f = (path && path[0]) ? fopen(path, "a") : NULL;
+	fputs(line, f ? f : stderr);
+	if (f) fclose(f);
+}
+
+static void e4t_commit(uint64_t t0)
+{
+	char line[128];
+	uint64_t t1;
+	if (!e4t_on()) return;
+	t1 = e4t_now_us();
+	snprintf(line, sizeof(line), "[E4T] aaa_commit t_us=%llu sess=0 len=0 dur_us=%llu\n",
+		 (unsigned long long)t1, (unsigned long long)(t1 - t0));
+	e4t_line(line);
+}
+
+static void e4t_msk_tag(uint8_t const *msk, size_t len)
+{
+	char line[128];
+	uint8_t h[crypto_hash_sha256_BYTES];
+	if (!e4t_on()) return;
+	crypto_hash_sha256(h, msk, len);
+	snprintf(line, sizeof(line), "[E4T] msk_tag t_us=%llu sess=0 len=%zu tag=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+		 (unsigned long long)e4t_now_us(), len, h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+	e4t_line(line);
+}
+
 typedef struct rlm_eap_edhoc_t {
 	char const	*creds_path;	//!< legacy server.creds, only used to locate the db
 	char const	*peer_pub_path;	//!< legacy ue.pub (unused, kept for old configs)
@@ -470,7 +527,12 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
 		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
 		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, handler->identity, sess->emsk);
-		rc = edhoc4_db_commit(&sess->ctx, &sess->rec);
+		e4t_msk_tag(sess->msk, E4_MSK_LEN);
+		{
+			uint64_t t0 = e4t_now_us();
+			rc = edhoc4_db_commit(&sess->ctx, &sess->rec);
+			e4t_commit(t0);
+		}
 		if (rc != E4_OK) {
 			edhoc4_db_rec_wipe(&sess->rec);
 			REDEBUG("rlm_eap_edhoc: key rotation commit failed: %s", edhoc4_strerror(rc));

@@ -50,6 +50,32 @@
 #define RADIUS_MAX_PACKET_LEN 4096
 #define RADIUS_MAX_ATTR_VALUE 253
 
+/*
+ * E4_TIMING=1: "[E4T] upf_rad_tx|upf_rad_rx t_us=<CLOCK_MONOTONIC us> sess=0
+ * len=<RADIUS bytes>" on stderr around every Access-Request -> reply, for
+ * benchmark/fullstack_bench.sh.
+ */
+static int e4t_on(void)
+{
+    static int on = -1;
+    if (on < 0) {
+        const char *v = getenv("E4_TIMING");
+        on = (v && atoi(v) > 0);
+    }
+    return on;
+}
+
+static void e4t(const char *tag, size_t len, int code)
+{
+    struct timespec ts;
+    if (!e4t_on())
+        return;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    fprintf(stderr, "[E4T] %s t_us=%llu sess=0 len=%zu code=%d\n", tag,
+            (unsigned long long)ts.tv_sec * 1000000ULL +
+            (unsigned long long)(ts.tv_nsec / 1000), len, code);
+}
+
 static int g_sock = -1;
 static pthread_t g_thread;
 static volatile int g_running = 0;
@@ -622,6 +648,7 @@ static int radius_exchange(const char *username,
         goto done;
     }
 
+    e4t("upf_rad_tx", req_len, req[0]);
     if (sendto(fd, req, req_len, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0) {
         ogs_error("radius_exchange: sendto() failed (%d)", errno);
         goto done;
@@ -632,6 +659,7 @@ static int radius_exchange(const char *username,
         ogs_error("radius_exchange: recvfrom() failed (%d)", errno);
         goto done;
     }
+    e4t("upf_rad_rx", (size_t)rcv_len, resp[0]);
 
     resp_len = (size_t)rcv_len;
     if (radius_verify_response(req, req_len, resp, resp_len, secret, secret_len) != 0) {
