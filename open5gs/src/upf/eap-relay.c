@@ -50,6 +50,12 @@
 #define RADIUS_MAX_PACKET_LEN 4096
 #define RADIUS_MAX_ATTR_VALUE 253
 
+#define EAP_CODE_REQUEST 1
+#define EAP_CODE_RESPONSE 2
+#define EAP_TYPE_IDENTITY 1
+#define EAP_TYPE_EDHOC 56
+#define EDHOC_FRAG_FLAG_LEN 0x80
+
 /*
  * E4_TIMING=1: "[E4T] upf_rad_tx|upf_rad_rx t_us=<CLOCK_MONOTONIC us> sess=0
  * len=<RADIUS bytes>" on stderr around every Access-Request -> reply, for
@@ -74,6 +80,78 @@ static void e4t(const char *tag, size_t len, int code)
     fprintf(stderr, "[E4T] %s t_us=%llu sess=0 len=%zu code=%d\n", tag,
             (unsigned long long)ts.tv_sec * 1000000ULL +
             (unsigned long long)(ts.tv_nsec / 1000), len, code);
+}
+
+/*
+ * E4_DROP_ONCE=msg3|msg4 (recovery test): lose, once, the Access-Request
+ * that carries the first fragment of EDHOC message_3 (it never reaches the
+ * DN-AAA), or the Access-Challenge that carries message_4 (the DN-AAA has
+ * committed). Nothing is returned to the SMF, which times out as on a real
+ * loss. E4_DROP_ONCE=file:<path> re-arms per session: when a conversation
+ * starts (EAP-Response/Identity) and <path> exists, its content (msg3 or
+ * msg4) arms one drop and the file is removed.
+ * message_3 is recognised as the second UE message with the EDHOC length
+ * flag (message_1 is the first), message_4 as the first EAP-Request with
+ * EDHOC data after message_3 started (the others only acknowledge
+ * fragments).
+ */
+static int g_drop_armed = 0;        /* 0, 3 or 4 */
+static int g_drop_lflag = 0;        /* UE messages started in this conversation */
+
+static void drop_new_conversation(void)
+{
+    const char *v = getenv("E4_DROP_ONCE");
+    static int env_used = 0;
+
+    g_drop_lflag = 0;
+    if (!v || !v[0])
+        return;
+    if (strncmp(v, "file:", 5) == 0) {
+        char buf[16] = {0};
+        FILE *f = fopen(v + 5, "r");
+        if (!f)
+            return;
+        if (fgets(buf, sizeof(buf), f)) {
+            if (strncmp(buf, "msg3", 4) == 0) g_drop_armed = 3;
+            else if (strncmp(buf, "msg4", 4) == 0) g_drop_armed = 4;
+        }
+        fclose(f);
+        unlink(v + 5);
+    } else if (!env_used) {
+        env_used = 1;
+        if (strcmp(v, "msg3") == 0) g_drop_armed = 3;
+        else if (strcmp(v, "msg4") == 0) g_drop_armed = 4;
+    }
+}
+
+/* request side: 1 if this EAP-Response is the dropped message_3 */
+static int drop_request(const uint8_t *eap, size_t eap_len)
+{
+    if (eap_len < 5 || eap[0] != EAP_CODE_RESPONSE)
+        return 0;
+    if (eap[4] == EAP_TYPE_IDENTITY) {
+        drop_new_conversation();
+        return 0;
+    }
+    if (eap[4] != EAP_TYPE_EDHOC || eap_len < 6 || !(eap[5] & EDHOC_FRAG_FLAG_LEN))
+        return 0;
+    g_drop_lflag++;
+    if (g_drop_armed == 3 && g_drop_lflag == 2) {
+        g_drop_armed = 0;
+        return 1;
+    }
+    return 0;
+}
+
+/* reply side: 1 if this EAP-Request is the dropped message_4 */
+static int drop_reply(const uint8_t *eap, size_t eap_len)
+{
+    if (g_drop_armed != 4 || g_drop_lflag < 2)
+        return 0;
+    if (eap_len < 7 || eap[0] != EAP_CODE_REQUEST || eap[4] != EAP_TYPE_EDHOC)
+        return 0;
+    g_drop_armed = 0;
+    return 1;
 }
 
 static int g_sock = -1;
@@ -798,11 +876,25 @@ static void process_req(const uint8_t *buf, size_t len,
     pos += state_len;
     eap = buf + pos;
 
+    if (drop_request(eap, eap_len)) {
+        ogs_warn("E4_DROP_ONCE: message_3 dropped before the DN-AAA");
+        e4t("upf_drop", eap_len, 3);
+        *resp_len = 0;
+        return;
+    }
+
     if (radius_exchange(username, state, state_len, eap, eap_len,
                 &result,
                 radius_state, sizeof(radius_state), &radius_state_len,
                 radius_eap, sizeof(radius_eap), &radius_eap_len) != 0) {
         write_response(EAP_RELAY_RESULT_ERROR, NULL, 0, NULL, 0, resp, resp_len);
+        return;
+    }
+
+    if (drop_reply(radius_eap, radius_eap_len)) {
+        ogs_warn("E4_DROP_ONCE: message_4 dropped after the DN-AAA committed");
+        e4t("upf_drop", radius_eap_len, 4);
+        *resp_len = 0;
         return;
     }
 

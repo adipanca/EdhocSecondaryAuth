@@ -8,7 +8,8 @@ O5G="$ROOT/open5gs"
 BIN="$O5G/build-ws"
 CFG="$O5G/install-ws/etc/open5gs"
 TS="$(date +%Y%m%d-%H%M%S)"
-LOGDIR="$ROOT/benchmark-results/logs-live-$TS"
+# LIVE_LOGDIR overrides the log directory (benchmark/fullstack_bench.sh)
+LOGDIR="${LIVE_LOGDIR:-$ROOT/benchmark-results/logs-live-$TS}"
 mkdir -p "$LOGDIR"
 echo "$LOGDIR" > "$ROOT/.last_live_logdir"
 
