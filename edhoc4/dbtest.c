@@ -1,18 +1,22 @@
 /*
  * dbtest.c — file-level tests of the method-4 key records (protocol v4):
- * the DN-AAA store with its KID index (edhoc4_db_*) and the UE's CUR/NEXT
+ * the DN-AAA store with its KeyID index (edhoc4_db_*) and the UE's CUR/NEXT
  * record (edhoc4_ue_*), with failure injection, without radiusd. Built
  * with -DE4_TEST_HOOKS (see Makefile).
  *
  *   1. 2 UEs x 5 sessions: MSK/EMSK match, the DN-AAA picks the UE's own
- *      record by KID_B; after commit + erasure the DN-AAA file holds one
- *      sk_B and the index exactly the KID of the new pk_B, after the
+ *      record by KeyID_B; after commit + erasure the DN-AAA file holds one
+ *      sk_B and the index exactly the KeyID of the new pk_B, after the
  *      promotion the UE file holds no old sk_A.
- *   2. KID checks:
- *        clear KID_B != KID_B in PT1              E4_ERR_KID
- *        KID_B != SHA-256(pk_B) of the record     E4_ERR_KID (edhoc4 core),
- *        index pointing to another record         E4_ERR_PEER, entry removed
- *        unknown KID_B                            E4_ERR_PEER, no decaps
+ *   2. KeyID / message_1 checks:
+ *        KeyID_B with one bit flipped, a forged index entry pointing to the
+ *        same record                              E4_ERR_KEYID, no decaps
+ *        KeyID_B != SHA-256(pk_B) (edhoc4 core)   E4_ERR_KEYID, no decaps
+ *        ct_B with one bit flipped                E4_ERR_AEAD (AAD_1, TH_1)
+ *        KeyID_B and ct_B of another session      rejected
+ *        ciphertext with one bit flipped          E4_ERR_AEAD
+ *        unknown KeyID_B                          E4_ERR_PEER, no decaps
+ *        message_1 vector                         layout, 2390 B, edhoc_sizes.py
  *   3. failure injection, each followed by a normal session that must
  *      complete without re-provisioning:
  *        message_3 dropped          NEXT (H(Npk_B)) unknown -> EAP-Failure ->
@@ -20,7 +24,7 @@
  *        message_4 dropped          H(Npk_B) already indexed -> NEXT succeeds
  *        EAP-Success dropped        normal (the UE promoted after message_4)
  *        UE stopped after message_3 NEXT succeeds, or fallback if not committed
- *        DN-AAA stopped after commit, before erase_old: both KIDs found;
+ *        DN-AAA stopped after commit, before erase_old: both KeyIDs found;
  *                                   the next message_1 cleans the older one
  *        forged EAP-Failure after message_1 while the DN-AAA committed NEXT:
  *                                   fallback to CUR is rejected, NEXT is kept,
@@ -46,7 +50,6 @@
 #define DB   ROOT "/edhoc_db"
 #define N_MANY 100
 
-extern int edhoc4_test_flip_pt1_kid;
 extern unsigned long edhoc4_test_decaps_calls;
 
 static int fails;
@@ -82,7 +85,7 @@ static void provision(const char *id, unsigned idx, const edhoc4_creds *dn_sig)
     edhoc4_creds srv, ue;
     uint8_t id_srv[E4_ID_CRED] = { 0, 0, 2 };
     uint8_t id_ue[E4_ID_CRED] = { 0, (uint8_t)(idx >> 8), (uint8_t)idx };
-    uint8_t kid[E4_KID_LEN];
+    uint8_t kid[E4_KEYID_LEN];
     char d[512], p[512];
     edhoc4_gen_creds(&srv, id_srv);
     memcpy(srv.sig_sk, dn_sig->sig_sk, E4_MLDSA_SK);
@@ -93,7 +96,7 @@ static void provision(const char *id, unsigned idx, const edhoc4_creds *dn_sig)
     edhoc4_rec_create(p, &srv, ue.kem_pk);
     write_raw(d, "ue.vk", ue.sig_vk, E4_MLDSA_PK);
     write_raw(d, "id_cred", ue.id_cred, E4_ID_CRED);
-    edhoc4_kid(srv.kem_pk, kid);
+    edhoc4_keyid(srv.kem_pk, kid);
     edhoc4_db_index_put(DB, kid, id);
     snprintf(d, sizeof(d), ROOT "/ue/%s", id); mkdirs(d);
     ue_path(id, p, sizeof(p));
@@ -122,14 +125,14 @@ static int valid_slots(const char *path)
     return info.valid[0] + info.valid[1];
 }
 
-/* KID of slot `slot` (-1: newest) of the DN-AAA record of `id` */
-static int dn_kid(const char *id, int slot, uint8_t kid[E4_KID_LEN])
+/* KeyID of slot `slot` (-1: newest) of the DN-AAA record of `id` */
+static int dn_kid(const char *id, int slot, uint8_t kid[E4_KEYID_LEN])
 {
     char p[512];
     edhoc4_creds c;
     dn_path(id, p, sizeof(p));
     if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) return -1;
-    edhoc4_kid(c.kem_pk, kid);
+    edhoc4_keyid(c.kem_pk, kid);
     sodium_memzero(&c, sizeof(c));
     return 0;
 }
@@ -157,7 +160,7 @@ static int index_entries(const char *id)
 }
 
 /* the index names `id` for `kid` */
-static int indexed(const uint8_t kid[E4_KID_LEN], const char *id)
+static int indexed(const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
     char got[256];
     return edhoc4_db_index_get(DB, kid, got, sizeof(got)) == E4_OK && strcmp(got, id) == 0;
@@ -172,13 +175,13 @@ typedef struct {
     int rejected;      /* every attempt got an explicit EAP-Failure */
     int used_next;
     int first_rc;      /* DN-AAA result of the first message_1 */
-    char rec_id[256];  /* record the DN-AAA selected by KID_B */
+    char rec_id[256];  /* record the DN-AAA selected by KeyID_B */
 } result;
 
 /* One session of UE `id`; `fault` disturbs it at the given point. An
  * explicit EAP-Failure before message_2 on NEXT triggers one retry on CUR
  * (NEXT kept); a timeout does not. The DN-AAA sees no identity: it finds
- * the record by KID_B. */
+ * the record by KeyID_B. */
 static int session(const char *id, enum fault fault, result *res)
 {
     char up[512];
@@ -235,7 +238,7 @@ static int session(const char *id, enum fault fault, result *res)
     if ((rc = edhoc4_db_commit(&R, &rec)) != E4_OK) goto out;
     if (fault == F_DN_STOP_COMMIT) {
         /* DN-AAA dies before message_4 and before the erasure; the next
-         * message_1 naming the new key erases the old sk_B and its KID */
+         * message_1 naming the new key erases the old sk_B and its KeyID */
         edhoc4_ctx_wipe(&I); edhoc4_db_rec_wipe(&rec); edhoc4_ue_state_wipe(&st);
         rc = E4_OK; goto out;
     }
@@ -260,13 +263,13 @@ out:
 }
 
 /* a normal session that checks the record choice, the erasure of the keys
- * it replaced and the index (exactly the KID of the new pk_B) */
+ * it replaced and the index (exactly the KeyID of the new pk_B) */
 static int normal_session(const char *id, int *fallback)
 {
     char up[512], dp[512];
     edhoc4_creds dn_old, ue_cur, ue_other;
     edhoc4_rec_info info;
-    uint8_t new_kid[E4_KID_LEN];
+    uint8_t new_kid[E4_KEYID_LEN];
     result r;
     ue_path(id, up, sizeof(up));
     dn_path(id, dp, sizeof(dp));
@@ -328,7 +331,7 @@ static void *many_main(void *arg)
 
 int main(void)
 {
-    static uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG];
+    static uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG], m3_buf[E4_MAX_MSG], m4_buf[E4_MAX_MSG];
     size_t n1, n2;
     edhoc4_ctx R;
     edhoc4_db_rec rec;
@@ -340,61 +343,98 @@ int main(void)
     edhoc4_gen_creds(&dn_sig, id_srv);
     provision("ue-a", 1, &dn_sig);
     provision("ue-b", 2, &dn_sig);
-    printf("[edhoc4 dbtest v4] record by KID_B = H(pk_B), anonymous identity, CUR/NEXT, no grace key\n");
+    printf("[edhoc4 dbtest v4] record by KeyID_B = H(pk_B), AAD_1, anonymous identity, CUR/NEXT, no grace key\n");
 
     /* ---- 1. 2 UEs x 5 sessions ---- */
     int ok_all = 1;
     for (int n = 0; n < 5; n++)
         for (int u = 0; u < 2; u++)
             ok_all &= normal_session(u ? "ue-b" : "ue-a", NULL);
-    check(ok_all, "2 UEs x 5 sessions: own record by KID, keys match, index = new KID only");
+    check(ok_all, "2 UEs x 5 sessions: own record by KeyID, keys match, index = new KeyID only");
 
-    /* ---- 2. KID checks ---- */
+    /* ---- 2. KeyID / message_1 checks ---- */
     {
-        /* clear KID_B != KID_B inside PT1 */
-        edhoc4_test_flip_pt1_kid = 1;
-        int rc0 = make_msg1("ue-a", m1, &n1);
-        edhoc4_test_flip_pt1_kid = 0;
-        int rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
-        check(rc0 == E4_OK && rc == E4_ERR_KID, "clear KID_B != KID_B in PT1: E4_ERR_KID");
+        char p[512], got[256];
+        unsigned long d0;
+        int rc;
 
-        /* the record's pk_B does not hash to KID_B (core check, no KEM) */
-        char p[512];
+        /* message_1 vector: layout and size, against edhoc_sizes.py */
+        edhoc4_ue_state st;
+        ue_path("ue-a", p, sizeof(p));
+        edhoc4_ue_load(p, &st);
+        uint8_t kid_a[E4_KEYID_LEN];
+        edhoc4_keyid(st.peer_pk, kid_a);
+        edhoc4_ue_state_wipe(&st);
+        make_msg1("ue-a", m1, &n1);
+        long model = -1;
+        FILE *mf = popen("python3 ../benchmark/edhoc_sizes.py | sed -n 's/^method 4 .*msg1=\\([0-9]*\\).*/\\1/p'", "r");
+        if (mf) { if (fscanf(mf, "%ld", &model) != 1) model = -1; pclose(mf); }
+        check(n1 == 2390 && (long)n1 == model && memcmp(m1, kid_a, E4_KEYID_LEN) == 0,
+              "message_1 vector: KeyID_B first, 2390 B == edhoc_sizes.py");
+
+        /* KeyID_B with one bit flipped; a forged index entry names the record */
+        uint8_t forged[E4_KEYID_LEN];
+        memcpy(forged, m1, E4_KEYID_LEN);
+        forged[0] ^= 1;
+        edhoc4_db_index_put(DB, forged, "ue-a");
+        memcpy(m3_buf, m1, n1);
+        m3_buf[0] ^= 1;
+        d0 = edhoc4_test_decaps_calls;
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        int removed = edhoc4_db_index_get(DB, forged, got, sizeof(got)) == E4_ERR_PEER;
+        check(rc == E4_ERR_KEYID && edhoc4_test_decaps_calls == d0 && removed,
+              "KeyID_B 1 bit flipped, forged index: E4_ERR_KEYID, no decaps, removed");
+
+        /* the record's pk_B does not hash to KeyID_B (core check, no KEM) */
         edhoc4_creds b_srv;
         uint8_t b_ue_pk[E4_XWING_PK];
         dn_path("ue-b", p, sizeof(p));
         edhoc4_rec_load(p, -1, &b_srv, b_ue_pk, NULL);
-        make_msg1("ue-a", m1, &n1);
-        unsigned long d0 = edhoc4_test_decaps_calls;
+        d0 = edhoc4_test_decaps_calls;
         edhoc4_init_responder(&R, &b_srv, b_ue_pk);
         rc = edhoc4_r_handle_msg1(&R, m1, n1, m2, sizeof(m2), &n2);
         edhoc4_ctx_wipe(&R);
         sodium_memzero(&b_srv, sizeof(b_srv));
-        check(rc == E4_ERR_KID && edhoc4_test_decaps_calls == d0,
-              "KID_B != SHA-256(pk_B) of the record: E4_ERR_KID, no decaps");
+        check(rc == E4_ERR_KEYID && edhoc4_test_decaps_calls == d0,
+              "KeyID_B != SHA-256(pk_B) of the record: E4_ERR_KEYID, no decaps");
 
-        /* index redirected to another record: stale, rejected and removed */
-        uint8_t kid_a[E4_KID_LEN];
-        dn_kid("ue-a", -1, kid_a);
-        edhoc4_db_index_put(DB, kid_a, "ue-b");
-        d0 = edhoc4_test_decaps_calls;
-        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
-        char got[256];
-        int removed = edhoc4_db_index_get(DB, kid_a, got, sizeof(got)) == E4_ERR_PEER;
-        check(rc == E4_ERR_PEER && edhoc4_test_decaps_calls == d0 && removed,
-              "index points to another record: rejected, no decaps, entry removed");
-        edhoc4_db_index_put(DB, kid_a, "ue-a");            /* restore */
+        /* ct_B with one bit flipped */
+        memcpy(m3_buf, m1, n1);
+        m3_buf[E4_KEYID_LEN + 100] ^= 1;
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        check(rc == E4_ERR_AEAD, "ct_B 1 bit flipped: E4_ERR_AEAD");
 
-        /* unknown KID */
-        make_msg1("ue-a", m1, &n1);
-        m1[0] ^= 0xff;
+        /* ciphertext with one bit flipped */
+        memcpy(m3_buf, m1, n1);
+        m3_buf[n1 - 1] ^= 1;
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        check(rc == E4_ERR_AEAD, "ciphertext 1 bit flipped: E4_ERR_AEAD");
+
+        /* KeyID_B + ct_B of another session: of the same UE, then of another
+         * UE (a valid (KeyID, ct) pair, the rest of this session) */
+        size_t n_o;
+        make_msg1("ue-a", m4_buf, &n_o);
+        memcpy(m3_buf, m1, n1);
+        memcpy(m3_buf, m4_buf, E4_KEYID_LEN + E4_XWING_CT);
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        int rc2;
+        make_msg1("ue-b", m4_buf, &n_o);
+        memcpy(m3_buf, m1, n1);
+        memcpy(m3_buf, m4_buf, E4_KEYID_LEN + E4_XWING_CT);
+        rc2 = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        check(rc == E4_ERR_AEAD && rc2 == E4_ERR_AEAD,
+              "KeyID_B and ct_B of another session (same UE, other UE): rejected");
+
+        /* unknown KeyID */
+        memcpy(m3_buf, m1, n1);
+        m3_buf[0] ^= 0xff;
         d0 = edhoc4_test_decaps_calls;
-        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
-        check(rc == E4_ERR_PEER && edhoc4_test_decaps_calls == d0, "unknown KID_B: E4_ERR_PEER, no decaps");
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        check(rc == E4_ERR_PEER && edhoc4_test_decaps_calls == d0, "unknown KeyID_B: E4_ERR_PEER, no decaps");
         uint8_t junk[64] = { 0 };
         check(edhoc4_db_handle_msg1(DB, &R, &rec, junk, sizeof(junk), m2, sizeof(m2), &n2) == E4_ERR_PARSE,
               "short message_1: rejected before the index");
-        check(normal_session("ue-a", NULL), "ue-a still works after the KID checks");
+        check(normal_session("ue-a", NULL), "ue-a still works after the tampering tests");
     }
 
     /* ---- 3. failure injection: fault, then one normal session ---- */
@@ -409,19 +449,19 @@ int main(void)
     for (size_t k = 0; k < sizeof(cases) / sizeof(cases[0]); k++) {
         result r;
         char what[160];
-        uint8_t kid_old[E4_KID_LEN], kid_new[E4_KID_LEN];
+        uint8_t kid_old[E4_KEYID_LEN], kid_new[E4_KEYID_LEN];
         dn_kid("ue-a", -1, kid_old);
         int rc = session("ue-a", cases[k].f, &r);
         int next_ok = ue_has_next("ue-a") == cases[k].want_next;
         int extra = 1;
         if (cases[k].f == F_DN_STOP_COMMIT) {
-            /* both slots and both KIDs present until the next message_1 */
+            /* both slots and both KeyIDs present until the next message_1 */
             char dp[512];
             dn_path("ue-a", dp, sizeof(dp));
             extra = valid_slots(dp) == 2 && dn_kid("ue-a", -1, kid_new) == 0 &&
                     indexed(kid_old, "ue-a") && indexed(kid_new, "ue-a");
         }
-        if (cases[k].f == F_DROP_M3)        /* the UE's NEXT KID is unknown */
+        if (cases[k].f == F_DROP_M3)        /* the UE's NEXT KeyID is unknown */
             extra = index_entries("ue-a") == 1 && indexed(kid_old, "ue-a");
         int fb = -1;
         int next = normal_session("ue-a", &fb);
