@@ -509,7 +509,8 @@ UNL_MAIN = """process
 
 def write_unlink():
     fname = "edhoc_m4v4_unlink.pv"
-    text = (header(fname,
+    text = ("(* superseded by edhoc_m4v4_unlink_bounded.pv (allocation failure, see SUMMARY_v4.txt) *)\n"
+            + header(fname,
                    "unlinkability between successful runs (diff-equivalence, choice[]): left = two consecutive\n"
                    " *           runs of the SAME UE (second run on the keys rotated in the first), right = a\n"
                    " *           run of UE1 followed by a run of ANOTHER UE; anonymous outer identity; DN-AAA\n"

@@ -1,0 +1,25 @@
+Running as unit: run-ra260dcd5fd154d488e0ac88fae95460b.scope; invocation ID: 31d1a81ae0654633aa504a6efc35891f
+Command terminated by signal 9
+	Command being timed: "systemd-run --user --scope -p MemoryMax=10G -p MemorySwapMax=0 timeout 7200 proverif edhoc_m4v4_unlink_bounded_c1.pv"
+	User time (seconds): 114.63
+	System time (seconds): 2.57
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:57.24
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 10470444
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2616833
+	Voluntary context switches: 7
+	Involuntary context switches: 1510
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 72
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

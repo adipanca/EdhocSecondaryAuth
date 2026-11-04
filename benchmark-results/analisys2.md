@@ -996,3 +996,43 @@ page cache warm  : 10000 records, 10000 KeyIDs, 455.6 ms (dbtest), 452.4 ms (--s
 page cache cold  : 10000 records, 10000 KeyIDs, 6595.8 ms (--scan, after sync + drop_caches)
 ```
 
+## 7c. Unlinkability v4 (bounded)
+
+Step 29: dua model baru di `symmetry-rev/proverif/`, primitif sama dengan `edhoc_m4v4_*.pv`. `edhoc_m4v4_unlink.pv` tetap ada dan ditandai superseded. Kernel `7.0.0-38-generic`. Batas tiap proses: `systemd-run --user --scope -p MemoryMax=10G -p MemorySwapMax=0`, `timeout 7200` (varian opsi solver: 1800 s), ditambah watchdog `MemAvailable` < 3 GB yang tidak pernah terpicu. VM tidak macet di semua percobaan.
+
+**Hasil: kerahasiaan Npk_A dan Npk_B terbukti. Unlinkability NOT CONCLUDED: tidak ada bukti dan tidak ada serangan, jadi model ini tidak mendukung klaim unlinkability.**
+
+| Model / percobaan | Waktu | Peak memory | Hasil |
+|---|---|---|---|
+| edhoc_m4v4_nextkey.pv | 0:00.12 | 22 MB | not attacker(s_NpkA[]) is true.; not attacker(s_NpkB[]) is true. |
+| edhoc_m4v4_unlink_bounded.pv (duplikat dihapus) | 1:54.41 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| 3c.1 `reconstructTrace = false` | 1:57.24 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| 3c.2 transcript diratakan | 1:56.05 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| 3c.1 + 3c.2 | 1:56.09 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| 3c.3 run 2 berhenti setelah `let PT22` | 0:55.03 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| 3c.1 + 3c.2 + 3c.3 | 0:47.62 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| tambahan: `redundancyElim = no` | 1:55.93 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| tambahan: `simplifyProcess = false` | 1:55.66 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| tambahan: `selFun = Term` | 1:12.27 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| tambahan: `redundantHypElim = false` | 1:55.76 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+| tambahan: `redundancyElim = no` + `simplifyProcess = false` | 1:56.68 | 9.99 GiB | NOT CONCLUDED (oom-kill di MemoryMax=10G) |
+
+- **Penyebab berhenti:** journal systemd mencatat `oom-kill` pada scope ProVerif untuk `unlink_bounded` dan semua variannya. Tidak ada trace, jadi penilaian serangan nyata atau false attack (langkah 3b) tidak berlaku.
+- **Percobaan 3c:** tidak ada yang berhasil, termasuk klaim yang lebih sempit (3c.3). Baris "tambahan" di luar daftar step: hanya opsi solver, model protokol tidak diubah.
+- **Letak ledakan memori:** saturasi berhenti di biprocess pertama (`let moved downwards`) pada sekitar 800–1200 clause, sebelum ada keputusan. Model yang sama tanpa `choice` selesai dalam kurang dari 600 MB (di bawah), jadi biaya itu muncul pada terjemahan biprocess. Clause mana yang meledak belum diperiksa.
+
+**Perbaikan pada file terlampir (langkah 3a).** Kedua file berhenti dengan `identifier H already defined` (baris 63), karena blok `Hash, HKDF, AEAD` tertulis dua kali. Blok kedua (10 baris) dihapus; isinya sama dengan blok pertama, dan protokol, AAD, TH_1 serta pemeriksaan KeyID_B tidak berubah. Log error asli: `results/step29-attempts/*.a0-duplicate-decl.log`.
+
+**Cek keterjangkauan (tambahan, bukan hasil baru).** Salinan model dengan event di akhir run, `choice` diganti satu sisi. Tujuannya memastikan hasil secrecy tidak vacuous dan run 2 memang bisa selesai.
+
+| Model | Waktu | Peak memory | Hasil |
+|---|---|---|---|
+| `reach_nextkey.pv` | 0.21 s | 27 MB | DN mengirim Message2 dan UE selesai: terjangkau; kedua secrecy tetap true |
+| `reach_unlink_left.pv` | 51.62 s | 583 MB | run 1 dan run 2 selesai: terjangkau |
+| `reach_unlink_right.pv` | 51.33 s | 528 MB | run 1 dan run 2 selesai: terjangkau |
+
+**Cakupan `edhoc_m4v4_nextkey.pv`.** Satu run UE dan satu sesi DN-AAA, tanpa replikasi. `pk_A` dan `pk_B` awal tidak dikirim ke penyerang, sesuai rancangan kunci satu kali yang tidak dipublikasikan. Hasil ini adalah kerahasiaan simbolik dari kunci berikutnya, bukan unlinkability.
+
+**Lint.** `lint.py` memberi OK untuk `nextkey`. Untuk `unlink_bounded`, 14 temuannya semua terkait `choice[...]`, yang tidak dikenali linter; salinan tanpa `choice` hanya memberi temuan untuk nama event `Run1Done`/`Run2Done` yang ditambahkan untuk cek ini.
+
+Berkas: `results/edhoc_m4v4_{nextkey,unlink_bounded}.{log,time}`, `results/step29-attempts/` (varian `.pv`, log, waktu), `results/SUMMARY_v4.txt` (dijalankan ulang `run_all_v4.sh`; hasil model lama tidak berubah).

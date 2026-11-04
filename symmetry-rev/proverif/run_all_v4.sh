@@ -10,14 +10,17 @@
 # never as false. To keep the VM alive: every process has a memory cap
 # (ulimit -v), a watchdog stops ProVerif when MemAvailable falls below
 # MIN_AVAIL_KB, pcs and recovery get PCS_TIMEOUT per query (the step limit
-# of 10 minutes), and the unlinkability model runs alone, after the others.
+# of 10 minutes), and the unlinkability models run alone, after the others.
+# edhoc_m4v4_unlink_bounded.pv runs under its own cap (MemoryMax=BOUNDED_MEM,
+# no swap, systemd-run; ulimit -v if that is not available).
 set -u
 cd "$(dirname "$0")"
 JOBS="${JOBS:-3}"; MEM_KB="${MEM_KB:-4500000}"; TIMEOUT="${TIMEOUT:-3600}"
 PCS_TIMEOUT="${PCS_TIMEOUT:-600}"; MIN_AVAIL_KB="${MIN_AVAIL_KB:-3000000}"
 MODELS=("$@")
 [ ${#MODELS[@]} -eq 0 ] && MODELS=(edhoc_m4v4_classical.pv edhoc_m4v4_quantum.pv edhoc_m4v4_kci.pv
-                                    edhoc_m4v4_pcs.pv edhoc_m4v4_fs_noerase.pv edhoc_m4v4_recovery.pv)
+                                    edhoc_m4v4_pcs.pv edhoc_m4v4_fs_noerase.pv edhoc_m4v4_recovery.pv
+                                    edhoc_m4v4_nextkey.pv)
 W=results/v4; mkdir -p "$W"
 
 # one file per query: keep every non-query line, plus the n-th query only
@@ -39,6 +42,18 @@ run_one() {
 }
 export -f run_one; export MEM_KB TIMEOUT PCS_TIMEOUT
 
+BOUNDED_MEM="${BOUNDED_MEM:-10G}"; BOUNDED_TIMEOUT="${BOUNDED_TIMEOUT:-7200}"
+run_bounded() {
+  local pv=$1 out=${1%.pv}.out
+  if systemd-run --user --scope -q true 2>/dev/null; then
+    /usr/bin/time -f "%e %M" -o "${out}.time" systemd-run --user --scope -q -p MemoryMax="$BOUNDED_MEM" \
+      -p MemorySwapMax=0 timeout "$BOUNDED_TIMEOUT" proverif "$pv" > "$out" 2>&1
+  else
+    ( ulimit -v 10000000; /usr/bin/time -f "%e %M" -o "${out}.time" timeout "$BOUNDED_TIMEOUT" proverif "$pv" > "$out" 2>&1 )
+  fi
+  echo $? > "${out}.rc"
+}
+
 # watchdog: never let ProVerif take the VM down
 ( while sleep 5; do
     a=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
@@ -50,9 +65,10 @@ export -f run_one; export MEM_KB TIMEOUT PCS_TIMEOUT
 trap 'kill $WD 2>/dev/null' EXIT
 
 for f in "${MODELS[@]}"; do rm -f "$W/${f%.pv}"_q*; split_model "$f"; done
-UNL=edhoc_m4v4_unlink.pv
+UNL=edhoc_m4v4_unlink.pv; UNLB=edhoc_m4v4_unlink_bounded.pv
 ls "$W"/*_q*.pv | xargs -P "$JOBS" -I{} bash -c 'run_one {}'
 [ -n "${NO_UNLINK:-}" ] || { [ -f "$UNL" ] && cp "$UNL" "$W/" && run_one "$W/$UNL"; }
+[ -n "${NO_UNLINK:-}" ] || { [ -f "$UNLB" ] && cp "$UNLB" "$W/" && run_bounded "$W/$UNLB"; }
 
 {
   proverif -help 2>&1 | head -1
@@ -71,13 +87,14 @@ ls "$W"/*_q*.pv | xargs -P "$JOBS" -I{} bash -c 'run_one {}'
       printf "  q%-5s %6ss %6dMB  %s\n" "$i" "$t" $((m / 1024)) "$r"
     done
   done
-  if [ -f "$W/${UNL%.pv}.out" ]; then
-    o="$W/${UNL%.pv}.out"; read -r t m < <(tail -1 "$o.time" 2>/dev/null) || { t=?; m=0; }
+  for u in "$UNL" "$UNLB"; do
+    [ -f "$W/${u%.pv}.out" ] || continue
+    o="$W/${u%.pv}.out"; read -r t m < <(tail -1 "$o.time" 2>/dev/null) || { t=?; m=0; }
     echo "=================================================================="
-    echo "$UNL (diff-equivalence: same UE twice on rotated keys ~ two different UEs)"
+    echo "$u (diff-equivalence: same UE twice on rotated keys ~ two different UEs)"
     r=$(grep -E "^RESULT" "$o" | tail -1)
     [ -z "$r" ] && r="NOT CONCLUDED (exit $(cat "$o.rc" 2>/dev/null)$(grep -m1 -ioE 'allocation failure|out of memory' "$o" | sed 's/^/, /'))"
     printf "  %-6s %6ss %6dMB  %s\n" equiv "$t" $((m / 1024)) "$r"
-  fi
+  done
   echo DONE
 } | tee results/SUMMARY_v4.txt
