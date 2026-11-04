@@ -50,11 +50,11 @@ static void unlock_rec(int fd)
     close(fd);
 }
 
-/* ---- KID index: <root>/kid/<hex(KID_B)> -> record id ---- */
+/* ---- KeyID index: <root>/kid/<hex(KeyID_B)> -> record id ---- */
 
-static void kid_hex(const uint8_t kid[E4_KID_LEN], char hex[2 * E4_KID_LEN + 1])
+static void kid_hex(const uint8_t kid[E4_KEYID_LEN], char hex[2 * E4_KEYID_LEN + 1])
 {
-    sodium_bin2hex(hex, 2 * E4_KID_LEN + 1, kid, E4_KID_LEN);
+    sodium_bin2hex(hex, 2 * E4_KEYID_LEN + 1, kid, E4_KEYID_LEN);
 }
 
 static int fsync_dir(const char *dir)
@@ -87,9 +87,9 @@ static int valid_id(const char *id)
     return 1;
 }
 
-static int index_get_locked(const char *root, const uint8_t kid[E4_KID_LEN], char *id, size_t cap)
+static int index_get_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], char *id, size_t cap)
 {
-    char hex[2 * E4_KID_LEN + 1], p[1300];
+    char hex[2 * E4_KEYID_LEN + 1], p[1300];
     kid_hex(kid, hex);
     snprintf(p, sizeof(p), "%s/kid/%s", root, hex);
     FILE *f = fopen(p, "r");
@@ -100,9 +100,9 @@ static int index_get_locked(const char *root, const uint8_t kid[E4_KID_LEN], cha
     return valid_id(id) ? 0 : -1;
 }
 
-static int index_put_locked(const char *root, const uint8_t kid[E4_KID_LEN], const char *id)
+static int index_put_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
-    char hex[2 * E4_KID_LEN + 1], p[1300], tmp[1300], dir[1100];
+    char hex[2 * E4_KEYID_LEN + 1], p[1300], tmp[1300], dir[1100];
     kid_hex(kid, hex);
     snprintf(dir, sizeof(dir), "%s/kid", root);
     snprintf(p, sizeof(p), "%s/%s", dir, hex);
@@ -116,9 +116,9 @@ static int index_put_locked(const char *root, const uint8_t kid[E4_KID_LEN], con
     return fsync_dir(dir);
 }
 
-static int index_del_locked(const char *root, const uint8_t kid[E4_KID_LEN], const char *id)
+static int index_del_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
-    char hex[2 * E4_KID_LEN + 1], p[1300], cur[256], dir[1100];
+    char hex[2 * E4_KEYID_LEN + 1], p[1300], cur[256], dir[1100];
     if (id && (index_get_locked(root, kid, cur, sizeof(cur)) != 0 || strcmp(cur, id) != 0))
         return 0;                       /* absent, or names another record */
     kid_hex(kid, hex);
@@ -128,7 +128,7 @@ static int index_del_locked(const char *root, const uint8_t kid[E4_KID_LEN], con
     return fsync_dir(dir);
 }
 
-int edhoc4_db_index_put(const char *root, const uint8_t kid[E4_KID_LEN], const char *id)
+int edhoc4_db_index_put(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
     if (!root || !kid || !valid_id(id)) return E4_ERR_ARG;
     int fd = lock_index(root);
@@ -138,7 +138,7 @@ int edhoc4_db_index_put(const char *root, const uint8_t kid[E4_KID_LEN], const c
     return rc;
 }
 
-int edhoc4_db_index_get(const char *root, const uint8_t kid[E4_KID_LEN], char *id, size_t cap)
+int edhoc4_db_index_get(const char *root, const uint8_t kid[E4_KEYID_LEN], char *id, size_t cap)
 {
     if (!root || !kid || !id || cap < 2) return E4_ERR_ARG;
     int fd = lock_index(root);
@@ -148,7 +148,7 @@ int edhoc4_db_index_get(const char *root, const uint8_t kid[E4_KID_LEN], char *i
     return rc;
 }
 
-int edhoc4_db_index_del(const char *root, const uint8_t kid[E4_KID_LEN], const char *id)
+int edhoc4_db_index_del(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
     if (!root || !kid) return E4_ERR_ARG;
     int fd = lock_index(root);
@@ -175,9 +175,9 @@ int edhoc4_db_reindex(const char *root)
         if (fd < 0) { rc = E4_ERR_ARG; continue; }
         for (int slot = 0; slot < 2; slot++) {
             edhoc4_creds c;
-            uint8_t kid[E4_KID_LEN];
+            uint8_t kid[E4_KEYID_LEN];
             if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) continue;
-            edhoc4_kid(c.kem_pk, kid);
+            edhoc4_keyid(c.kem_pk, kid);
             sodium_memzero(&c, sizeof(c));
             if (edhoc4_db_index_put(root, kid, de->d_name) != E4_OK) rc = E4_ERR_ARG;
             else n++;
@@ -201,27 +201,27 @@ int edhoc4_db_lookup(const uint8_t id_cred[E4_ID_CRED], uint8_t pk_a[E4_XWING_PK
 }
 
 /* slot of record file p whose SHA-256(pk_B) is kid, -1 if none */
-static int slot_of_kid(const char *p, const uint8_t kid[E4_KID_LEN])
+static int slot_of_kid(const char *p, const uint8_t kid[E4_KEYID_LEN])
 {
     for (int slot = 0; slot < 2; slot++) {
         edhoc4_creds c;
-        uint8_t k[E4_KID_LEN];
+        uint8_t k[E4_KEYID_LEN];
         if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) continue;
-        edhoc4_kid(c.kem_pk, k);
+        edhoc4_keyid(c.kem_pk, k);
         sodium_memzero(&c, sizeof(c));
-        if (sodium_memcmp(k, kid, E4_KID_LEN) == 0) return slot;
+        if (sodium_memcmp(k, kid, E4_KEYID_LEN) == 0) return slot;
     }
     return -1;
 }
 
-/* zero slot `slot` of a record and drop its KID from the index (record
+/* zero slot `slot` of a record and drop its KeyID from the index (record
  * lock held) */
 static int erase_slot(const char *root, const char *id, const char *p, int slot)
 {
     edhoc4_creds c;
-    uint8_t kid[E4_KID_LEN];
+    uint8_t kid[E4_KEYID_LEN];
     if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) return E4_OK;
-    edhoc4_kid(c.kem_pk, kid);
+    edhoc4_keyid(c.kem_pk, kid);
     sodium_memzero(&c, sizeof(c));
     int rc = edhoc4_rec_zero(p, slot, 1);
     if (rc == E4_OK) {
@@ -236,14 +236,14 @@ int edhoc4_db_handle_msg1(const char *root, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
                           uint8_t *out, size_t out_cap, size_t *out_len)
 {
     char p[1400];
-    uint8_t kid[E4_KID_LEN];
+    uint8_t kid[E4_KEYID_LEN];
     struct stat st;
     edhoc4_rec_info info;
     if (!root || !ctx || !rec) return E4_ERR_ARG;
     memset(rec, 0, sizeof(*rec));
 
-    /* clear KID_B -> record id; unknown: reject before any KEM operation */
-    if (edhoc4_r_peek_kid(in, in_len, kid) != E4_OK) return E4_ERR_PARSE;
+    /* clear KeyID_B -> record id; unknown: reject before any KEM operation */
+    if (edhoc4_r_peek_keyid(in, in_len, kid) != E4_OK) return E4_ERR_PARSE;
     if (edhoc4_db_index_get(root, kid, rec->id, sizeof(rec->id)) != E4_OK) return E4_ERR_PEER;
     snprintf(rec->root, sizeof(rec->root), "%s", root);
     snprintf(rec->dir, sizeof(rec->dir), "%s/%s", root, rec->id);
@@ -259,9 +259,11 @@ int edhoc4_db_handle_msg1(const char *root, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
     int rc = E4_ERR_PEER;
     int slot = slot_of_kid(p, kid);
     if (slot < 0) {
-        /* the index named a record without that pk_B: stale entry */
+        /* the index named a record without that pk_B: KeyID_B != SHA-256(pk_B);
+         * a stale entry, removed, no KEM operation */
         int ifd = lock_index(root);
         if (ifd >= 0) { index_del_locked(root, kid, rec->id); unlock_rec(ifd); }
+        rc = E4_ERR_KEYID;
     } else if (edhoc4_rec_load(p, -1, NULL, NULL, &info) == E4_OK && slot == info.active &&
                edhoc4_rec_load(p, slot, &rec->server, rec->ue_pub, NULL) == E4_OK &&
                read_file(rec->dir, "ue.vk", rec->ue_vk, E4_MLDSA_PK) == 0 &&
@@ -274,7 +276,7 @@ int edhoc4_db_handle_msg1(const char *root, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
         rc = edhoc4_r_handle_msg1(ctx, in, in_len, out, out_cap, out_len);
         if (rc != E4_OK) edhoc4_ctx_wipe(ctx);
     }
-    /* else: the KID names the older slot while a newer one exists; the UE
+    /* else: the KeyID names the older slot while a newer one exists; the UE
      * holds the newer key (NEXT was written before message_3) */
     unlock_rec(fd);
     if (rc != E4_OK) edhoc4_db_rec_wipe(rec);
@@ -286,7 +288,7 @@ int edhoc4_db_commit(edhoc4_ctx *ctx, edhoc4_db_rec *rec)
     char p[1400];
     edhoc4_creds disk, next;
     edhoc4_rec_info info;
-    uint8_t next_pk[E4_XWING_PK], next_kid[E4_KID_LEN];
+    uint8_t next_pk[E4_XWING_PK], next_kid[E4_KEYID_LEN];
     int rc;
 
     if (!ctx || !rec || !ctx->done) return E4_ERR_STATE;
@@ -307,7 +309,7 @@ int edhoc4_db_commit(edhoc4_ctx *ctx, edhoc4_db_rec *rec)
      * then the index names the record by SHA-256(Npk_B); both before
      * message_4. The old slot and its entry are erased later. */
     edhoc4_next_state(ctx, &next, next_pk);
-    edhoc4_kid(next.kem_pk, next_kid);
+    edhoc4_keyid(next.kem_pk, next_kid);
     rc = edhoc4_rec_write(p, 1 - rec->slot, &next, next_pk);
     sodium_memzero(&next, sizeof(next));
     edhoc4_ctx_wipe(ctx);

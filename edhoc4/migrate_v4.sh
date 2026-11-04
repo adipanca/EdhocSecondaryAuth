@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # migrate_v4.sh — move DN-AAA records named by EAP identity (protocol v3)
-# to internal record ids and build the KID index of protocol v4.
+# to internal record ids and build the KeyID index of protocol v4.
 #
 #   migrate_v4.sh <db_root> <eap_identity>=<record_id> [...]
 #   e.g. migrate_v4.sh /usr/local/etc/edhoc/edhoc_db ue1@edhoc.internet=ue1

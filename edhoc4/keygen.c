@@ -5,7 +5,7 @@
  *   edhoc4_keygen --reindex <db_root>           rebuild <db_root>/kid/
  *
  * pk_B is per UE and rotated every session, so the DN-AAA keeps one record
- * per UE under an internal record id, found by KID_B = SHA-256(pk_B) from
+ * per UE under an internal record id, found by KeyID_B = SHA-256(pk_B) from
  * message_1 through the index <dir>/edhoc_db/kid/ (written here for the
  * initial pk_B). For each record id:
  *
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
         int n = edhoc4_db_reindex(argv[2]);
         if (n < 0) { fprintf(stderr, "reindex %s failed\n", argv[2]); return 1; }
-        printf("indexed %d KID(s) in %s/kid/\n", n, argv[2]);
+        printf("indexed %d KeyID(s) in %s/kid/\n", n, argv[2]);
         return 0;
     }
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     }
     sodium_memzero(&dn_sig, sizeof(dn_sig));
 
-    /* KID index of the initial pk_B of every record */
+    /* KeyID index of the initial pk_B of every record */
     snprintf(dn_dir, sizeof(dn_dir), "%s/edhoc_db", dir);
     if (edhoc4_db_reindex(dn_dir) < 0) { fprintf(stderr, "index %s failed\n", dn_dir); return 1; }
 
