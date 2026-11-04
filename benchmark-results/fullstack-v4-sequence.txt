@@ -1,0 +1,88 @@
+# Message order from fullstack-v2-sample.pcap (tshark, NAS NEA0 null deciphering); repeated EAP-EDHOC rounds are collapsed.
+# t [s]   interface  message
+   0.3272  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   0.3279  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   0.3287  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   0.3294  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   0.3310  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   0.3317  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   0.3323  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   0.3496  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   0.3498  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.3503  RADIUS     Access-Request id=1 [EAP-Response/Identity]
+   0.3505  ...        EAP-EDHOC rounds: 28 NAS Command/Complete, 28 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   0.4159  RADIUS     Access-Accept id=15 [EAP-Success]
+   0.4162  SBI        POST /npcf-smpolicycontrol/v1/sm-policies
+   0.4168  SBI        GET /nudr-dr/v1/policy-data/ues/imsi-999700000000001/sm-data
+   0.4181  SBI        POST /nbsf-management/v1/pcfBindings
+   0.4201  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   0.4205  NAS        PDU SESSION ESTABLISHMENT ACCEPT [EAP-Success]
+   0.4217  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.4226  SBI        PUT /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   0.4669  NAS        PDU SESSION RELEASE REQUEST (cause #36)
+   0.4671  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.4675  SBI        POST /npcf-smpolicycontrol/v1/sm-policies/1/delete
+   0.4678  SBI        DELETE /nbsf-management/v1/pcfBindings/1
+   0.4816  NAS        PDU SESSION RELEASE COMMAND (cause #36)
+   0.4822  SBI        POST /nsmf-pdusession/v1/sm-contexts/1/modify
+   0.4838  NAS        PDU SESSION RELEASE COMPLETE
+   0.4848  SBI        DELETE /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions/6959b0fc-d832-41f1-a917-5bef9edd4460
+   0.4857  SBI        DELETE /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   0.4866  SBI        DELETE /nudr-dr/v1/subscription-data/imsi-999700000000001/context-data/smf-registrations/1
+   0.4889  SBI        POST /namf-callback/v1/imsi-999700000000001/sm-context-status/1
+   0.7342  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   0.7349  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   0.7366  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   0.7371  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   0.7390  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   0.7399  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   0.7404  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   0.7544  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   0.7548  SBI        POST /nsmf-pdusession/v1/sm-contexts/2/modify
+   0.7554  RADIUS     Access-Request id=16 [EAP-Response/Identity]
+   0.7557  ...        EAP-EDHOC rounds: 20 NAS Command/Complete, 19 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   3.3491  NAS        PDU SESSION ESTABLISHMENT REJECT (cause #29)
+   3.6109  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   3.6117  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   3.6126  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   3.6131  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   3.6150  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   3.6158  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   3.6164  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   3.6367  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   3.6373  SBI        POST /nsmf-pdusession/v1/sm-contexts/3/modify
+   3.6381  RADIUS     Access-Request id=26 [EAP-Response/Identity]
+   3.6384  ...        EAP-EDHOC rounds: 6 NAS Command/Complete, 6 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   4.6750  RADIUS     Access-Reject id=29 [EAP-Failure]
+   4.6792  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   4.6806  NAS        PDU SESSION ESTABLISHMENT REJECT (cause #29) [EAP-Failure]
+   4.9473  NAS        PDU SESSION ESTABLISHMENT REQUEST
+   4.9478  SBI        POST /nsmf-pdusession/v1/sm-contexts
+   4.9486  SBI        GET /nudm-sdm/v2/imsi-999700000000001/sm-data
+   4.9494  SBI        GET /nudr-dr/v1/subscription-data/imsi-999700000000001/99970/provisioned-data/sm-data
+   4.9509  SBI        POST /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions
+   4.9515  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   4.9520  NAS        PDU SESSION AUTHENTICATION COMMAND [EAP-Request/Identity]
+   4.9717  NAS        PDU SESSION AUTHENTICATION COMPLETE [EAP-Response/Identity]
+   4.9722  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   4.9727  RADIUS     Access-Request id=30 [EAP-Response/Identity]
+   4.9729  ...        EAP-EDHOC rounds: 28 NAS Command/Complete, 28 RADIUS Access-Request/Challenge (+ SBI N1N2 / UpdateSMContext)
+   5.0451  RADIUS     Access-Accept id=44 [EAP-Success]
+   5.0455  SBI        POST /npcf-smpolicycontrol/v1/sm-policies
+   5.0459  SBI        GET /nudr-dr/v1/policy-data/ues/imsi-999700000000001/sm-data
+   5.0470  SBI        POST /nbsf-management/v1/pcfBindings
+   5.0485  SBI        POST /namf-comm/v1/ue-contexts/imsi-999700000000001/n1-n2-messages
+   5.0489  NAS        PDU SESSION ESTABLISHMENT ACCEPT [EAP-Success]
+   5.0509  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.0514  SBI        PUT /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   5.1036  NAS        PDU SESSION RELEASE REQUEST (cause #36)
+   5.1038  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.1059  SBI        POST /npcf-smpolicycontrol/v1/sm-policies/2/delete
+   5.1062  SBI        DELETE /nbsf-management/v1/pcfBindings/2
+   5.1089  NAS        PDU SESSION RELEASE COMMAND (cause #36)
+   5.1095  SBI        POST /nsmf-pdusession/v1/sm-contexts/4/modify
+   5.1104  NAS        PDU SESSION RELEASE COMPLETE
+   5.1123  SBI        DELETE /nudm-sdm/v2/imsi-999700000000001/sdm-subscriptions/6c1aa116-d832-41f1-a917-5bef9edd4460
+   5.1129  SBI        DELETE /nudm-uecm/v1/imsi-999700000000001/registrations/smf-registrations/1
+   5.1136  SBI        DELETE /nudr-dr/v1/subscription-data/imsi-999700000000001/context-data/smf-registrations/1
+   5.1244  SBI        POST /namf-callback/v1/imsi-999700000000001/sm-context-status/1

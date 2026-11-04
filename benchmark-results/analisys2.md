@@ -1,6 +1,6 @@
 # Analisis Hasil Pengukuran EAP-EDHOC Secondary Authentication (End-to-End)
 
-_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-10-30T16:32:21._
+_Dibuat otomatis oleh benchmark/e2e_analyze.py pada 2026-11-04T18:32:57._
 
 Dokumen ini adalah pasangan **end-to-end** dari `analysis.md`. Setiap angka diperoleh dari handshake EAP-EDHOC **nyata** yang berjalan di atas transport EAP-over-RADIUS (RFC 2865/3579) menuju responder FreeRADIUS `rlm_eap_edhoc` yang hidup di `127.0.0.1:1812`. Tidak ada estimasi/proyeksi: kolom setiap tabel dibuat **identik** dengan `analysis.md` agar perbedaan tiap method dapat dibandingkan langsung antara kedua percobaan.
 
@@ -32,9 +32,9 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 1 | 2026-10-29T11:35:43+0900 | 1 | PASS | 1.808 | 1 |
 | 2 | 2026-10-29T11:35:43+0900 | 1 | PASS | 2.716 | 1 |
 | 3 | 2026-10-29T11:35:43+0900 | 1 | PASS | 2.116 | 1 |
-| 4 | 2026-10-29T11:35:43+0900 | 1 | PASS | 7.803 | 1 |
+| 4 | 2026-11-04T18:22:32+0900 | 1 | PASS | 8.850 | 1 |
 | 5 | 2026-10-29T11:35:44+0900 | 1 | PASS | 4.127 | 1 |
-| 6 | 2026-10-29T11:35:51+0900 | 1 | PASS | 9.009 | 1 |
+| 6 | 2026-11-04T18:22:38+0900 | 1 | PASS | 8.889 | 1 |
 
 ### Ringkasan statistik handshake end-to-end per method
 
@@ -44,12 +44,12 @@ Baris perwakilan (satu handshake sukses per method), kolom identik dengan `analy
 | 1 | SIG/STAT | 200 | 100.0 | 1.277 | 0.989 | 2.344 | 0.674 | 14.312 | 3 | 3 |
 | 2 | STAT/SIG | 200 | 100.0 | 0.996 | 0.954 | 1.378 | 0.635 | 3.103 | 3 | 3 |
 | 3 | STAT/STAT | 200 | 100.0 | 1.130 | 1.017 | 1.477 | 0.770 | 11.269 | 3 | 3 |
-| 4 | SIGMA-XWING-PQC | 200 | 100.0 | 7.159 | 6.582 | 11.939 | 5.640 | 16.138 | 15 | 15 |
+| 4 | SIGMA-XWING-PQC | 200 | 100.0 | 8.573 | 8.242 | 10.927 | 5.694 | 23.480 | 15 | 15 |
 | 5 | EAP-TLS-Classic | 200 | 100.0 | 3.483 | 3.101 | 5.474 | 2.555 | 9.481 | 6 | 6 |
-| 6 | EAP-TLS-Hybrid-PQC | 200 | 100.0 | 8.771 | 8.620 | 10.010 | 7.574 | 13.904 | 28 | 28 |
+| 6 | EAP-TLS-Hybrid-PQC | 200 | 100.0 | 8.392 | 8.087 | 9.641 | 6.845 | 27.625 | 28 | 28 |
 
 - Handshake end-to-end tercepat: **method 2** (STAT/SIG).
-- Handshake end-to-end terlambat: **method 6** (EAP-TLS-Hybrid-PQC), karena fragmentasi EAP membutuhkan 28 round-trip RADIUS dibanding 3 untuk method klasik.
+- Handshake end-to-end terlambat: **method 4** (SIGMA-XWING-PQC), karena fragmentasi EAP membutuhkan 15 round-trip RADIUS dibanding 3 untuk method klasik.
 
 ### Pembagian beban initiator vs responder (live, wall-clock nyata)
 
@@ -61,9 +61,9 @@ Setiap harness (UE/initiator) mengukur, per round-trip RADIUS, waktu yang dihabi
 | 1 | SIG/STAT | 0.132 | 1.145 | 10.3% | 89.7% | 1.277 |
 | 2 | STAT/SIG | 0.141 | 0.855 | 14.2% | 85.8% | 0.996 |
 | 3 | STAT/STAT | 0.131 | 0.999 | 11.6% | 88.4% | 1.130 |
-| 4 | SIGMA-XWING-PQC | 1.295 | 5.863 | 18.1% | 81.9% | 7.159 |
+| 4 | SIGMA-XWING-PQC | 1.261 | 7.311 | 14.7% | 85.3% | 8.573 |
 | 5 | EAP-TLS-Classic | 0.639 | 2.845 | 18.3% | 81.7% | 3.483 |
-| 6 | EAP-TLS-Hybrid-PQC | 0.676 | 8.094 | 7.7% | 92.3% | 8.771 |
+| 6 | EAP-TLS-Hybrid-PQC | 0.684 | 7.708 | 8.1% | 91.9% | 8.392 |
 
 - Di semua method, beban **responder** (AAA/FreeRADIUS) mendominasi total waktu handshake — wajar, karena responder-lah yang benar-benar memproses paket RADIUS (parsing, dispatch modul, verifikasi kripto) dan initiator cuma menunggu selama itu; porsi initiator yang genuinely CPU-bound (encode paket + panggilan engine lokal) jauh lebih kecil dari total.
 - Proporsi responder tertinggi: **method 6** (EAP-TLS-Hybrid-PQC).
@@ -152,8 +152,8 @@ Sweep utama di atas cuma 100-200 iterasi/method — cukup untuk method 4-6 (beda
 
 | Method | E2E mean (ms) | Komputasi (ms) | Penyimpanan (ms) | n_RT | Per round-trip (ms) |
 | --- | --- | --- | --- | --- | --- |
-| 4 | 7.159 | 0.985 | 1.161 | 15 | 0.334 |
-| 6 | 8.771 | 0.894 | 0.000 | 28 | 0.281 |
+| 4 | 8.573 | 0.985 | 1.161 | 15 | 0.428 |
+| 6 | 8.392 | 0.894 | 0.000 | 28 | 0.268 |
 
 ### Uji pemulihan method 4 (protokol v3, tanpa grace key)
 
@@ -497,7 +497,7 @@ Ukuran pesan dan jumlah fragmen EAP untuk method 0..6 di bawah ini adalah **hasi
 | 3 | message_1 | 34 | 1 | 1 | 1 | no | observasi nyata |
 | 3 | message_2 | 91 | 1 | 1 | 1 | no | observasi nyata |
 | 3 | message_3 | 59 | 1 | 1 | 1 | no | observasi nyata |
-| 4 | message_1 | 2358 | 10 | 3 | 2 | yes | observasi nyata |
+| 4 | message_1 | 2390 | 10 | 3 | 2 | yes | observasi nyata |
 | 4 | message_2 | 6097 | 25 | 7 | 5 | yes | observasi nyata |
 | 4 | message_3 | 3756 | 15 | 4 | 3 | yes | observasi nyata |
 | 4 | message_4 | 16 | 1 | 1 | 1 | no | observasi nyata |
@@ -518,11 +518,11 @@ Pesan yang memerlukan fragmentasi pada method 4 (SIGMA XWING PQC) dan method 6 (
 
 | Pesan | Model (B) | Live (B) | Fragmen EAP model | Fragmen EAP live |
 | --- | --- | --- | --- | --- |
-| message_1 | 2358 | 2358 | 3 | 3 |
+| message_1 | 2390 | 2390 | 3 | 3 |
 | message_2 | 6097 | 6097 | 7 | 7 |
 | message_3 | 3756 | 3756 | 4 | 4 |
 | message_4 | 16 | 16 | 1 | 1 |
-| **Total** | **12227** | **12227** | **15** | **15** |
+| **Total** | **12259** | **12259** | **15** | **15** |
 
 - Satu fragmen EAP = satu round-trip RADIUS, jadi n_RT method 4 = **15**. Model sama dengan live.
 
@@ -574,18 +574,18 @@ Median per seri (ms):
 | Sumber | Message1 | Message2 | Message3 | Message4 | Ronde NAS | RADIUS RT | Sesi |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | full stack | 2358 | 6097 | 3756 | 16 | 14 | 15 | 300 |
-| harness (e2e-handshake.csv) | 2358 | 6097 | 3756 | 16 | - | 15 | 200 |
+| harness (e2e-handshake.csv) | 2390 | 6097 | 3756 | 16 | - | 15 | 200 |
 
 - RADIUS RT full stack = harness: EAP-Response/Identity dikirim SMF sendiri (dari SUPI) tanpa ronde NAS, sehingga ronde NAS = RADIUS RT − 1.
 
 | Pengukuran | Mean (ms) | Median (ms) | Per RADIUS RT, median (ms) |
 | --- | --- | --- | --- |
-| harness: handshake E2E (`duration_ms`) | 7.159 | 6.582 | 0.439 |
-| harness: menunggu RADIUS (`responder_ms`) | 5.863 | 5.348 | 0.356 |
+| harness: handshake E2E (`duration_ms`) | 8.573 | 8.242 | 0.549 |
+| harness: menunggu RADIUS (`responder_ms`) | 7.311 | 6.995 | 0.466 |
 | full stack: `t_radius_ms` | 13.275 | 9.249 | 0.617 |
 | full stack: `t_secauth_ms` | 102.802 | 73.373 | 4.891 |
 
-- `t_radius_ms` mengukur bagian yang sama dengan `responder_ms` harness (Access-Request → balasan, FreeRADIUS + DN-AAA), bukan `duration_ms`: `duration_ms` juga memuat kriptografi dan flush UE. Selisih median `t_radius_ms` − `responder_ms` = 3.902 ms (0.260 ms per RT). Kemungkinan penyebab (tidak diukur terpisah): relay UPF membuat socket UDP baru per Access-Request dan menghitung MD5/HMAC sendiri, dan di full stack radiusd berbagi CPU dengan 13 proses lain (NF Open5GS, gNB, UE).
+- `t_radius_ms` mengukur bagian yang sama dengan `responder_ms` harness (Access-Request → balasan, FreeRADIUS + DN-AAA), bukan `duration_ms`: `duration_ms` juga memuat kriptografi dan flush UE. Selisih median `t_radius_ms` − `responder_ms` = 2.255 ms (0.150 ms per RT). Kemungkinan penyebab (tidak diukur terpisah): relay UPF membuat socket UDP baru per Access-Request dan menghitung MD5/HMAC sendiri, dan di full stack radiusd berbagi CPU dengan 13 proses lain (NF Open5GS, gNB, UE).
 - Bagian terbesar `t_secauth_ms` adalah `t_core_ms` (UE ↔ gNB ↔ AMF ↔ SMF, 14 ronde NAS lewat NGAP/SBI): biaya transport 5G core per ronde, bukan kriptografi EDHOC.
 
 ### Uji pemulihan lewat full stack (`E4_DROP_ONCE` di relay UPF)
@@ -655,16 +655,16 @@ Median per seri (ms):
 
 | Pengukuran | N | `duration_ms` mean / median | `responder_ms` mean / median | `responder_ms` per RT, median |
 | --- | --- | --- | --- | --- |
-| harness, VM diam (e2e-handshake.csv, bagian 1c) | 200 | 7.159 / 6.582 | 5.863 / 5.348 | 0.356 |
+| harness, VM diam (e2e-handshake.csv, bagian 1c) | 200 | 8.573 / 8.242 | 7.311 / 6.995 | 0.466 |
 | C: harness, full stack diam | 300 | 6.643 / 6.364 | 5.392 / 5.154 | 0.344 |
 | A: `t_aaa_ms` (relay UPF → FreeRADIUS) | 300 | - | 6.646 / 5.956 | 0.397 |
 
-- Berbagi CPU dengan stack yang diam: `responder_ms` median 5.348 → 5.154 ms (-0.194 ms). Sisa selisih ke `t_aaa_ms` (+0.802 ms) muncul saat stack aktif (UE, gNB, AMF, SMF bekerja di antara round-trip) dan dari klien RADIUS relay; `t_relay_proc_ms` dan `t_hop_smf_upf_ms` di tabel di atas berada di luar `t_aaa_ms`.
+- Berbagi CPU dengan stack yang diam: `responder_ms` median 6.995 → 5.154 ms (-1.841 ms). Sisa selisih ke `t_aaa_ms` (+0.802 ms) muncul saat stack aktif (UE, gNB, AMF, SMF bekerja di antara round-trip) dan dari klien RADIUS relay; `t_relay_proc_ms` dan `t_hop_smf_upf_ms` di tabel di atas berada di luar `t_aaa_ms`.
 
 | Sumber | Message1 | Message2 | Message3 | Message4 | Ronde NAS | RADIUS RT | Sesi |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | full stack v2 | 2358 | 6097 | 3756 | 16 | 15 | 15 | 300 |
-| harness | 2358 | 6097 | 3756 | 16 | - | 15 | 200 |
+| harness | 2390 | 6097 | 3756 | 16 | - | 15 | 200 |
 
 - Sekarang UE sendiri yang menjawab EAP-Request/Identity, jadi ronde NAS = RADIUS RT (di bagian 5 ronde Identity tidak lewat NAS).
 
@@ -819,4 +819,80 @@ Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengi
 - `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat `reject_delay = 1` FreeRADIUS.
 
 - Median waktu pulih step 19 → step 21: Message3 1438.3 → 1420.0 ms, Message4 112.5 → 125.1 ms. Hampir sama: sesi pemulihan didahului sesi yang berakhir dengan Reject setelah timeout 2,5 s, jadi SCTP gNB tidak punya data yang belum di-ACK dan jeda Nagle tidak muncul di step 19 pun.
+
+## 7. Protokol v4: KeyID_B = H(pk_B) di Message1, identitas EAP anonim
+
+Message1 = KeyID_B ‖ ct_B ‖ AEAD(K_1, AAD_1, PT1) dengan KeyID_B = SHA-256(pk_B), AAD_1 = KeyID_B ‖ ct_B, TH_1 = SHA-256(pk_B ‖ ct_B), PT1 tidak berubah dari v3. DN-AAA mencari record lewat indeks `<db>/kid/<hex(KeyID_B)>` (tanpa operasi KEM jika KeyID tidak dikenal), lalu memeriksa KeyID_B = SHA-256(pk_B record) (waktu-konstan) sebelum Decaps; KeyID_B atau ct_B yang diubah gagal di AEAD. Identitas EAP luar = NAI anonim `@edhoc.internet` (RFC 7542 §2.4) dan tidak memilih apa pun. Rotasi, write-ahead, aturan fallback dan kriptografi tidak berubah. Commit DN-AAA sekarang juga menulis entri indeks (file sementara + rename + fsync direktori) sebelum Message4.
+
+| Pesan | v3 (B) | v4 model (B) | v4 live (B) | Fragmen EAP v4 (model / live) |
+| --- | --- | --- | --- | --- |
+| Message1 | 2358 | 2390 | 2390 | 3 / 3 |
+| Message2 | 6097 | 6097 | 6097 | 7 / 7 |
+| Message3 | 3756 | 3756 | 3756 | 4 / 4 |
+| Message4 | 16 | 16 | 16 | 1 / 1 |
+| **Total** | **12227** | **12259** | **12259** | **15 / 15** |
+
+- RADIUS round-trip: v3 15, v4 15. Message1 bertambah 32 B tetapi tetap 3 fragmen EAP (997 + 999 + 394 B), jadi jumlah fragmen dan round-trip tidak berubah. Karena itu uji loss (bagian 2) **tidak diulang**: peluang kehilangan per round-trip dan jumlah round-trip sama dengan v3.
+
+### Harness E2E loss-free: proposal vs EAP-TLS Hybrid PQC (sesi pengukuran yang sama)
+
+`benchmark/v4_harness.sh`: 2 run × (20 pemanasan dibuang + 100), bergantian method 4 dan 6, radiusd di-restart tiap run (prosedur yang sama dengan seri step 12). Baris method 4 dan 6 di `e2e-handshake.csv` diganti; file lama disimpan sebagai `e2e-handshake-v3.csv`. Median dengan bootstrap 95% CI.
+
+| Method | Versi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Proposal (method 4) | v3 (step 12) | 200 | 7.159 | 6.582 | 11.939 | [6.506, 6.672] |
+| Proposal (method 4) | v4 | 200 | 8.573 | 8.242 | 10.927 | [8.100, 8.397] |
+| EAP-TLS Hybrid PQC | v3 (step 12) | 200 | 8.771 | 8.620 | 10.010 | [8.454, 8.712] |
+| EAP-TLS Hybrid PQC | v4 | 200 | 8.392 | 8.087 | 9.641 | [7.964, 8.204] |
+
+- v4, selisih median EAP-TLS Hybrid PQC − proposal: **-0.155 ms**, 95% CI [-0.348, 0.002]: tidak berbeda signifikan (CI memuat 0). Rasio median 0.98×.
+- Kenaikan method 4 dari v3 ke v4 (median): E2E 6.582 → 8.242 ms; `responder_ms` 5.348 → 6.995 ms; `initiator_ms` 1.204 → 1.192 ms. Jadi kenaikan ada di sisi DN-AAA, bukan di ukuran pesan (32 B) atau UE. `storage-strace-v4.txt`: flush DN-AAA per handshake naik dari 2 (`storage-strace.txt`) menjadi 5: tulis slot, `fdatasync` file sementara indeks dan `fsync` direktori indeks saat commit (di jalur kritis), lalu nol slot dan `fsync` direktori saat erase (di luar jalur kritis). Flush UE per panggilan tidak naik.
+
+### Full stack v4 (identitas `@edhoc.internet`)
+
+Prosedur sama dengan step 20 (A/B 3 × 100, 5 pemanasan dibuang, perbaikan SCTP aktif). File: `fullstack-handshake-v4.csv`, `fullstack-harness-shared-v4.csv`, `fullstack-recovery-v4.csv`.
+
+- A: PASS 300/300, msk_match 300/300, rotated 300/300; B: PASS 300/300; identitas `@edhoc.internet`.
+
+| Metrik | Konf. | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `t_pdu_ms` | A | 300 | 107.724 | 99.370 | 156.689 | [97.916, 101.019] |
+| `t_pdu_ms` | B | 300 | 22.715 | 21.430 | 34.755 | [21.113, 21.688] |
+| `t_secauth_ms` | A | 300 | 85.054 | 77.084 | 133.943 | [76.005, 79.100] |
+| `t_core_ms` | A | 300 | 77.775 | 69.773 | 126.931 | [68.820, 71.583] |
+| `t_hop_smf_upf_ms` | A | 300 | 2.696 | 2.664 | 3.589 | [2.623, 2.714] |
+| `t_relay_proc_ms` | A | 300 | 0.841 | 0.770 | 1.360 | [0.758, 0.793] |
+| `t_aaa_ms` | A | 300 | 7.279 | 7.133 | 9.043 | [7.013, 7.318] |
+| `ue_store_next_ms` | A | 300 | 2.384 | 2.844 | 3.189 | [2.817, 2.862] |
+| `aaa_commit_ms` | A | 300 | 2.896 | 2.814 | 3.569 | [2.788, 2.840] |
+
+- `t_pdu_ms` A − B: **77.940 ms**, 95% CI [76.386, 79.544] ms.
+- Ukuran / ronde (full stack): [('2390', '6097', '3756', '16', '15', '15')] (Message1..4 B, ronde NAS, RADIUS RT).
+- `aaa_commit_ms` sekarang memuat tulis slot dan entri indeks (bagian 6: slot saja). `ue_store_next_ms` juga lebih tinggi daripada di bagian 6 walaupun kode UE tidak berubah dan flush UE di harness tidak naik; penyebabnya di full stack belum diurai.
+
+#### Uji pemulihan v4
+
+Relay UPF membuang sekali Message3 atau Message4; SMF timeout (2,5 s) lalu mengirim REJECT #29 tanpa EAP (UE tidak fallback). Sesi berikutnya diulang sampai Accept dengan EAP-Success (maks. 3).
+
+| Kasus | N | Drop di UPF | Sesi drop: Reject #29 tanpa EAP | used_next | Sesi pemulihan pertama | EAP-Failure | fallback | Sesi sampai pulih (median) | Pulih | msk_match | Waktu pulih mean / median (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Message3 dibuang | 10 | 10 | 10 | 10 | failure 10 | 10 | 10 | 2 | 10 | 10 | 1477.0 / 1467.9 |
+| Message4 dibuang | 10 | 10 | 10 | 10 | success 10 | 0 | 0 | 1 | 10 | 10 | 123.4 / 117.1 |
+
+- Sesi normal sesudahnya: 10/10 sukses. Desync: **0**; re-provisioning: **0**.
+- `failure` = REJECT #29 berisi EAP-Failure (DN-AAA belum commit, NEXT ditolak), lalu fallback ke CUR dan PDU session berikutnya sukses. Waktu pulih Message3 memuat `reject_delay = 1` FreeRADIUS.
+
+### Identitas di RADIUS dan EAP (v4)
+
+```
+# v4 identity check: logs-fullstack-v4-20261104-182330
+RADIUS User-Name values in capture.pcap      : ['@edhoc.internet']
+EAP-Response/Identity values (all)           : ['@edhoc.internet']
+EAP-Response/Identity in NAS (UE -> SMF)     : ['@edhoc.internet']
+SUPI (imsi-999700000000001)                  in the 177 RADIUS/relay packets: absent
+old DN identity (ue1@edhoc.internet)         in the 177 RADIUS/relay packets: absent
+SUPI (imsi-999700000000001)                  in aaa-e4t.txt / radiusd.log: absent
+old DN identity (ue1@edhoc.internet)         in aaa-e4t.txt / radiusd.log: absent
+RESULT: PASS (only the anonymous NAI appears)
+```
 

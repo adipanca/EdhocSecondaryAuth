@@ -351,6 +351,154 @@ def recovery_v2_table(L, rec_path, title):
     L.append("")
 
 
+def v4_section(L, by_m):
+    """## 7: protocol v4 (KeyID_B = H(pk_B) in message_1, AAD-bound, record
+    by KeyID, anonymous outer identity): sizes, harness E2E of methods 4 and 6 in one
+    session, full stack and recovery (files *-v4)."""
+    old_path = os.path.join(RESULTS, "e2e-handshake-v3.csv")
+    if not os.path.exists(old_path):
+        return
+    old = load_rows(old_path)
+    rng = random.Random(1)
+
+    def ci_med(a):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) for _ in range(4000))
+        return bs[100], bs[3899]
+
+    def ci_diff(a, b):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) -
+                    statistics.median(rng.choices(b, k=len(b))) for _ in range(4000))
+        return statistics.median(a) - statistics.median(b), bs[100], bs[3899]
+
+    L.append("## 7. Protokol v4: KeyID_B = H(pk_B) di Message1, identitas EAP anonim")
+    L.append("")
+    L.append("Message1 = KeyID_B ‖ ct_B ‖ AEAD(K_1, AAD_1, PT1) dengan KeyID_B = SHA-256(pk_B), "
+             "AAD_1 = KeyID_B ‖ ct_B, TH_1 = SHA-256(pk_B ‖ ct_B), PT1 tidak berubah dari v3. DN-AAA "
+             "mencari record lewat indeks `<db>/kid/<hex(KeyID_B)>` (tanpa operasi KEM jika KeyID tidak "
+             "dikenal), lalu memeriksa KeyID_B = SHA-256(pk_B record) (waktu-konstan) sebelum Decaps; "
+             "KeyID_B atau ct_B yang diubah gagal di AEAD. Identitas EAP luar = NAI anonim `@edhoc.internet` "
+             "(RFC 7542 §2.4) dan tidak memilih apa pun. Rotasi, write-ahead, aturan fallback dan "
+             "kriptografi tidak berubah. Commit DN-AAA sekarang juga menulis entri indeks (file "
+             "sementara + rename + fsync direktori) sebelum Message4.")
+    L.append("")
+
+    # sizes: model == live
+    h4 = [r for r in by_m.get(4, []) if r["status"] == "PASS"]
+    o4 = [r for r in old if r["method"] == "4" and r["status"] == "PASS"]
+    mtu = [r for r in load_rows(os.path.join(RESULTS, "mtu-fragmentation.csv")) if r["method"] == "4"]
+    if h4 and o4:
+        L.append("| Pesan | v3 (B) | v4 model (B) | v4 live (B) | Fragmen EAP v4 (model / live) |")
+        L.append("| --- | --- | --- | --- | --- |")
+        for i in range(1, 5):
+            m = next((r for r in mtu if r["message"] == f"message_{i}"), None)
+            L.append(f"| Message{i} | {o4[0][f'msg{i}_bytes']} | {m['size_bytes'] if m else '-'} | "
+                     f"{h4[0][f'msg{i}_bytes']} | {m['eap_fragments'] if m else '-'} / {h4[0][f'msg{i}_frags']} |")
+        tot_o = sum(int(o4[0][f"msg{i}_bytes"]) for i in range(1, 5))
+        tot_n = sum(int(h4[0][f"msg{i}_bytes"]) for i in range(1, 5))
+        L.append(f"| **Total** | **{tot_o}** | **{sum(int(r['size_bytes']) for r in mtu)}** | **{tot_n}** | "
+                 f"**{sum(int(r['eap_fragments']) for r in mtu)} / {sum(int(h4[0][f'msg{i}_frags']) for i in range(1, 5))}** |")
+        L.append("")
+        L.append(f"- RADIUS round-trip: v3 {o4[0]['radius_round_trips']}, v4 {h4[0]['radius_round_trips']}. "
+                 "Message1 bertambah 32 B tetapi tetap 3 fragmen EAP (997 + 999 + 394 B), jadi jumlah "
+                 "fragmen dan round-trip tidak berubah. Karena itu uji loss (bagian 2) **tidak diulang**: "
+                 "peluang kehilangan per round-trip dan jumlah round-trip sama dengan v3.")
+        L.append("")
+
+    # harness E2E, methods 4 and 6 in the same session
+    L.append("### Harness E2E loss-free: proposal vs EAP-TLS Hybrid PQC (sesi pengukuran yang sama)")
+    L.append("")
+    L.append("`benchmark/v4_harness.sh`: 2 run × (20 pemanasan dibuang + 100), bergantian method 4 dan 6, "
+             "radiusd di-restart tiap run (prosedur yang sama dengan seri step 12). Baris method 4 dan 6 di "
+             "`e2e-handshake.csv` diganti; file lama disimpan sebagai `e2e-handshake-v3.csv`. Median dengan "
+             "bootstrap 95% CI.")
+    L.append("")
+    L.append("| Method | Versi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    cur = {}
+    for m, name in ((4, "Proposal (method 4)"), (6, "EAP-TLS Hybrid PQC")):
+        for ver, src in (("v3 (step 12)", old), ("v4", [r for r in by_m.get(m, [])])):
+            d = [float(r["duration_ms"]) for r in src if int(r["method"]) == m and r["status"] == "PASS"]
+            if not d:
+                continue
+            if ver == "v4":
+                cur[m] = d
+            lo, hi = ci_med(d)
+            L.append(f"| {name} | {ver} | {len(d)} | {statistics.mean(d):.3f} | {statistics.median(d):.3f} | "
+                     f"{pct(d, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+    L.append("")
+    if 4 in cur and 6 in cur:
+        d, lo, hi = ci_diff(cur[6], cur[4])
+        verdict = ("proposal lebih cepat" if lo > 0 else "proposal lebih lambat" if hi < 0
+                   else "tidak berbeda signifikan (CI memuat 0)")
+        L.append(f"- v4, selisih median EAP-TLS Hybrid PQC − proposal: **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}]: "
+                 f"{verdict}. Rasio median {statistics.median(cur[6]) / statistics.median(cur[4]):.2f}×.")
+        o_ok = [r for r in old if r["method"] == "4" and r["status"] == "PASS"]
+        n_ok = [r for r in by_m.get(4, []) if r["status"] == "PASS"]
+        med = lambda rows, k: statistics.median(float(r[k]) for r in rows)
+        L.append(f"- Kenaikan method 4 dari v3 ke v4 (median): E2E {med(o_ok, 'duration_ms'):.3f} → "
+                 f"{med(n_ok, 'duration_ms'):.3f} ms; `responder_ms` {med(o_ok, 'responder_ms'):.3f} → "
+                 f"{med(n_ok, 'responder_ms'):.3f} ms; `initiator_ms` {med(o_ok, 'initiator_ms'):.3f} → "
+                 f"{med(n_ok, 'initiator_ms'):.3f} ms. Jadi kenaikan ada di sisi DN-AAA, bukan di ukuran pesan "
+                 "(32 B) atau UE. `storage-strace-v4.txt`: flush DN-AAA per handshake naik dari 2 "
+                 "(`storage-strace.txt`) menjadi 5: tulis slot, `fdatasync` file sementara indeks dan `fsync` "
+                 "direktori indeks saat commit (di jalur kritis), lalu nol slot dan `fsync` direktori saat "
+                 "erase (di luar jalur kritis). Flush UE per panggilan tidak naik.")
+        L.append("")
+
+    # full stack and recovery v4
+    fs = os.path.join(RESULTS, "fullstack-handshake-v4.csv")
+    if os.path.exists(fs):
+        rows = load_rows(fs)
+
+        def vals(cfg, k):
+            return [float(r[k]) for r in rows if r["config"] == cfg and r["status"] == "PASS" and r.get(k)]
+        okA = [r for r in rows if r["config"] == "A" and r["status"] == "PASS"]
+        L.append("### Full stack v4 (identitas `@edhoc.internet`)")
+        L.append("")
+        L.append("Prosedur sama dengan step 20 (A/B 3 × 100, 5 pemanasan dibuang, perbaikan SCTP aktif). "
+                 "File: `fullstack-handshake-v4.csv`, `fullstack-harness-shared-v4.csv`, `fullstack-recovery-v4.csv`.")
+        L.append("")
+        nA = len([r for r in rows if r["config"] == "A"])
+        nB = len([r for r in rows if r["config"] == "B"])
+        mm = sum(int(r["msk_match"]) for r in okA)
+        ro = sum(int(r["rotated"]) for r in okA)
+        L.append(f"- A: PASS {len(okA)}/{nA}, msk_match {mm}/{len(okA)}, rotated {ro}/{len(okA)}; B: PASS "
+                 f"{len([r for r in rows if r['config'] == 'B' and r['status'] == 'PASS'])}/{nB}; identitas "
+                 f"`{okA[0]['id_identity'] if okA else ''}`.")
+        L.append("")
+        L.append("| Metrik | Konf. | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        for cfg, k in (("A", "t_pdu_ms"), ("B", "t_pdu_ms"), ("A", "t_secauth_ms"), ("A", "t_core_ms"),
+                       ("A", "t_hop_smf_upf_ms"), ("A", "t_relay_proc_ms"), ("A", "t_aaa_ms"),
+                       ("A", "ue_store_next_ms"), ("A", "aaa_commit_ms")):
+            v = vals(cfg, k)
+            if v:
+                lo, hi = ci_med(v)
+                L.append(f"| `{k}` | {cfg} | {len(v)} | {statistics.mean(v):.3f} | {statistics.median(v):.3f} | "
+                         f"{pct(v, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+        a, b = vals("A", "t_pdu_ms"), vals("B", "t_pdu_ms")
+        if a and b:
+            d, lo, hi = ci_diff(a, b)
+            L.append("")
+            L.append(f"- `t_pdu_ms` A − B: **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}] ms.")
+        shapes = {(r["len_m1"], r["len_m2"], r["len_m3"], r["len_m4"], r["n_nas_rounds"], r["n_radius_rt"]) for r in okA}
+        L.append(f"- Ukuran / ronde (full stack): {sorted(shapes)} (Message1..4 B, ronde NAS, RADIUS RT).")
+        L.append("- `aaa_commit_ms` sekarang memuat tulis slot dan entri indeks (bagian 6: slot saja). "
+                 "`ue_store_next_ms` juga lebih tinggi daripada di bagian 6 walaupun kode UE tidak berubah dan "
+                 "flush UE di harness tidak naik; penyebabnya di full stack belum diurai.")
+        L.append("")
+        recovery_v2_table(L, os.path.join(RESULTS, "fullstack-recovery-v4.csv"), "#### Uji pemulihan v4")
+
+    idc = os.path.join(RESULTS, "v4-identity-check.txt")
+    if os.path.exists(idc):
+        L.append("### Identitas di RADIUS dan EAP (v4)")
+        L.append("")
+        L.append("```")
+        L.extend(open(idc).read().rstrip("\n").split("\n"))
+        L.append("```")
+        L.append("")
+
+
 def full_5g_core_v2_section(L, by_m):
     """## 6: secondary authentication inside PDU session establishment
     (step 19: fullstack-handshake-v2.csv, fullstack-harness-shared.csv,
@@ -1386,6 +1534,7 @@ def main():
 
     full_5g_core_section(L, by_m)
     full_5g_core_v2_section(L, by_m)
+    v4_section(L, by_m)
 
     with open(OUT, "w") as f:
         f.write("\n".join(L) + "\n")
