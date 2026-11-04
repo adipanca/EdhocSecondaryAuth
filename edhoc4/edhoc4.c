@@ -11,6 +11,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifdef E4_TEST_HOOKS
+#include <signal.h>
+#endif
 #include <sodium.h>
 #include <mbedtls/gcm.h>
 
@@ -656,9 +659,19 @@ int edhoc4_rec_write(const char *path, int slot, const edhoc4_creds *self,
     if (fd < 0) return E4_ERR_ARG;
     int rc = E4_ERR_STATE;
     if (info.active >= 0) {
-        rc = (rec_pwrite(fd, rec_slot_build(info.seq[info.active] + 1, self, peer_pk, slots[slot]),
-                         REC_SLOT, REC_HDR + (off_t)slot * REC_SLOT) == 0 &&
-              fdatasync(fd) == 0) ? E4_OK : E4_ERR_ARG;
+        const uint8_t *image = rec_slot_build(info.seq[info.active] + 1, self, peer_pk, slots[slot]);
+#ifdef E4_TEST_HOOKS
+        extern int edhoc4_test_crash_point, edhoc4_test_in_commit;
+        if (edhoc4_test_in_commit && edhoc4_test_crash_point == 4) {   /* torn write, killed */
+            rec_pwrite(fd, image, REC_SLOT / 2, REC_HDR + (off_t)slot * REC_SLOT);
+            raise(SIGKILL);
+        }
+#endif
+        rc = rec_pwrite(fd, image, REC_SLOT, REC_HDR + (off_t)slot * REC_SLOT) == 0 ? E4_OK : E4_ERR_ARG;
+#ifdef E4_TEST_HOOKS
+        if (edhoc4_test_in_commit && edhoc4_test_crash_point == 2) raise(SIGKILL);   /* written, not flushed */
+#endif
+        if (rc == E4_OK && fdatasync(fd) != 0) rc = E4_ERR_ARG;
     }
     sodium_memzero(slots, sizeof(slots));
     close(fd);

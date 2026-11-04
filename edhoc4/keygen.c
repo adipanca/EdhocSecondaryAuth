@@ -2,12 +2,12 @@
  * keygen.c — provisioning tool for EAP-EDHOC method 4 (protocol v4).
  *
  *   edhoc4_keygen <dir> [record_id ...]         (default record id: edhoc-ue)
- *   edhoc4_keygen --reindex <db_root>           rebuild <db_root>/kid/
+ *   edhoc4_keygen --scan <db_root>              time of the DN-AAA index rebuild
  *
  * pk_B is per UE and rotated every session, so the DN-AAA keeps one record
  * per UE under an internal record id, found by KeyID_B = SHA-256(pk_B) from
- * message_1 through the index <dir>/edhoc_db/kid/ (written here for the
- * initial pk_B). For each record id:
+ * message_1 through an in-memory index the DN-AAA rebuilds from the record
+ * slots at start-up (nothing to write here). For each record id:
  *
  *   DN-AAA side  <dir>/edhoc_db/<record_id>/
  *       rec.bin       two-slot record: sk_B/pk_B for this UE + DN-AAA
@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <sodium.h>
 
 static int mkdir_p(const char *path)
@@ -85,11 +86,17 @@ static int save_record(const char *dn_dir, const char *ue_dir, const edhoc4_cred
 
 int main(int argc, char **argv)
 {
-    if (argc == 3 && !strcmp(argv[1], "--reindex")) {
+    if (argc == 3 && !strcmp(argv[1], "--scan")) {
+        struct timespec t0, t1;
+        size_t nr = 0, nk = 0;
         if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
-        int n = edhoc4_db_reindex(argv[2]);
-        if (n < 0) { fprintf(stderr, "reindex %s failed\n", argv[2]); return 1; }
-        printf("indexed %d KeyID(s) in %s/kid/\n", n, argv[2]);
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        edhoc4_db_index *x = edhoc4_db_index_open(argv[2], &nr, &nk);
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        if (!x) { fprintf(stderr, "scan %s failed\n", argv[2]); return 1; }
+        edhoc4_db_index_free(x);
+        printf("%zu record(s), %zu KeyID(s), %.1f ms\n", nr, nk,
+               (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6);
         return 0;
     }
 
@@ -134,10 +141,6 @@ int main(int argc, char **argv)
         sodium_memzero(&ue, sizeof(ue));
     }
     sodium_memzero(&dn_sig, sizeof(dn_sig));
-
-    /* KeyID index of the initial pk_B of every record */
-    snprintf(dn_dir, sizeof(dn_dir), "%s/edhoc_db", dir);
-    if (edhoc4_db_reindex(dn_dir) < 0) { fprintf(stderr, "index %s failed\n", dn_dir); return 1; }
 
     printf("provisioned %d EDHOC method-4 record(s) in %s/\n", nids, dir);
     return 0;

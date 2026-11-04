@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 #
 # migrate_v4.sh — move DN-AAA records named by EAP identity (protocol v3)
-# to internal record ids and build the KeyID index of protocol v4.
+# to internal record ids, and remove the on-disk KeyID index <db>/kid/ of the
+# first v4 build. The DN-AAA rebuilds its in-memory index from the record
+# slots at every start.
 #
-#   migrate_v4.sh <db_root> <eap_identity>=<record_id> [...]
+#   migrate_v4.sh <db_root> [<eap_identity>=<record_id> ...]
 #   e.g. migrate_v4.sh /usr/local/etc/edhoc/edhoc_db ue1@edhoc.internet=ue1
 #
 # Stop radiusd first. The UE side (ue.rec) does not change; only its
@@ -20,4 +22,4 @@ for map in "$@"; do
   echo "  $old -> $new"
 done
 rm -rf "$ROOT/kid"
-"$HERE/edhoc4_keygen" --reindex "$ROOT"
+"$HERE/edhoc4_keygen" --scan "$ROOT"

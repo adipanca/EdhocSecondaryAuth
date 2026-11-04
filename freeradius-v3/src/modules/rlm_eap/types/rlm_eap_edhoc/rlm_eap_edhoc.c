@@ -18,8 +18,9 @@
  *
  * Method 4 keys are per UE and rotated every session (no ephemeral X-Wing,
  * protocol v4): message_1 carries KeyID_B = SHA-256(pk_B) in clear, which
- * selects the record <db>/<record_id>/ through the index <db>/kid/; an
- * unknown KeyID is rejected before any KEM operation. The outer EAP identity
+ * selects the record <db>/<record_id>/ through an in-memory index, rebuilt
+ * from the record slots at start-up; an unknown KeyID is rejected from memory,
+ * without disk access or KEM operation. The outer EAP identity
  * only has to be an anonymous NAI (RFC 7542 2.4: "@<realm>" or
  * "anonymous@<realm>", realm = anon_realm); it does not select anything.
  * The next
@@ -107,7 +108,8 @@ static void e4t_msk_tag(uint8_t const *msk, size_t len)
 typedef struct rlm_eap_edhoc_t {
 	char const	*creds_path;	//!< legacy server.creds, only used to locate the db
 	char const	*peer_pub_path;	//!< legacy ue.pub (unused, kept for old configs)
-	char const	*db_path;	//!< per-UE records <db>/<record_id>/ + <db>/kid/ (method 4)
+	char const	*db_path;	//!< per-UE records <db>/<record_id>/ (method 4)
+	edhoc4_db_index	*db_index;	//!< KeyID_B -> (record, slot), in memory
 	char const	*emsk_dir;	//!< optional: <emsk_dir>/<record_id>.emsk.hex for aaa_keyexport
 	char const	*anon_realm;	//!< realm of the anonymous outer identity (method 4)
 	char		db_buf[1024];
@@ -171,7 +173,21 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 		return -1;
 	}
 
-	INFO("rlm_eap_edhoc: method-4 per-UE records in %s", inst->db_path);
+	{
+		struct timespec t0, t1;
+		size_t n_rec = 0, n_key = 0;
+
+		clock_gettime(CLOCK_MONOTONIC, &t0);
+		inst->db_index = edhoc4_db_index_open(inst->db_path, &n_rec, &n_key);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		if (!inst->db_index) {
+			ERROR("rlm_eap_edhoc: cannot scan the per-UE record db %s", inst->db_path);
+			return -1;
+		}
+		INFO("rlm_eap_edhoc: method-4 per-UE records in %s: %zu record(s), %zu KeyID(s), "
+		     "index rebuilt in %.1f ms", inst->db_path, n_rec, n_key,
+		     (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6);
+	}
 
 	/* The EAD_2 key pair is generated while message_1 is processed,
 	 * inside the handshake. EDHOC4_ROTATION_POOL=<n> (opt-in) instead
@@ -506,7 +522,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
-			rc = edhoc4_db_handle_msg1(inst4->db_path, &sess->ctx, &sess->rec,
+			rc = edhoc4_db_handle_msg1(inst4->db_index, &sess->ctx, &sess->rec,
 						   msg, msg_len, out, sizeof(out), &out_len);
 			if (rc != E4_OK) {
 				REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));

@@ -8,7 +8,7 @@
 #
 #   1. installs the rebuilt rlm_eap_edhoc.so (AES-128-GCM, per-UE records)
 #   2. provisions /usr/local/etc/edhoc/edhoc_db/<record_id>/ (DN-AAA side,
-#      plus the KeyID index edhoc_db/kid/) and /usr/local/etc/edhoc/ue/
+#      indexed in memory by radiusd at start) and /usr/local/etc/edhoc/ue/
 #      <record_id>/ (UE side, owned by $SUDO_USER so e2e_radius_bench can
 #      persist the rotated keys)
 #   3. restarts radiusd with the classic TLS config (methods 0-5); switch to
@@ -19,7 +19,7 @@
 # /usr/local/etc/edhoc/ue/ue1/ue.rec.
 #
 # Protocol v4: the DN-AAA finds <db>/<record_id>/rec.bin by KeyID_B =
-# SHA-256(pk_B) from message_1 (index <db>/kid/); the outer EAP identity is
+# SHA-256(pk_B) from message_1 (in-memory index); the outer EAP identity is
 # the anonymous NAI @edhoc.internet. Key records are two-slot files (rec.bin
 # on the DN-AAA, ue.rec with CUR/NEXT on the UE). Records of earlier formats
 # are not converted (see edhoc4/migrate_v4.sh), re-run this script.

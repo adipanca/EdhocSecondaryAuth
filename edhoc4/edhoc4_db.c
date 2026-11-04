@@ -7,6 +7,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -35,7 +36,11 @@ static void rec_path(const char *dir, char *p, size_t cap)
 
 static int lock_rec(const char *dir)
 {
-    char p[1100];
+#ifdef E4_TEST_HOOKS
+    extern unsigned long edhoc4_test_rec_locks;
+    edhoc4_test_rec_locks++;
+#endif
+    char p[1400];
     snprintf(p, sizeof(p), "%s/.lock", dir);
     int fd = open(p, O_RDWR | O_CREAT, 0600);
     if (fd < 0) return -1;
@@ -50,32 +55,59 @@ static void unlock_rec(int fd)
     close(fd);
 }
 
-/* ---- KeyID index: <root>/kid/<hex(KeyID_B)> -> record id ---- */
+#ifdef E4_TEST_HOOKS
+/* dbtest only (built with -DE4_TEST_HOOKS, never in libedhoc4.a) */
+unsigned long edhoc4_test_scan_calls;   /* index rebuilds */
+unsigned long edhoc4_test_rec_locks;    /* record files touched */
+int edhoc4_test_crash_point;            /* in commit: 1 before the slot write, 4 torn write,
+                                           2 written not flushed, 3 after fdatasync */
+int edhoc4_test_in_commit;              /* edhoc4_rec_write also serves the UE */
+#define E4_TEST_CRASH(n) do { if (edhoc4_test_crash_point == (n)) raise(SIGKILL); } while (0)
+#else
+#define E4_TEST_CRASH(n) do { } while (0)
+#endif
 
-static void kid_hex(const uint8_t kid[E4_KEYID_LEN], char hex[2 * E4_KEYID_LEN + 1])
+/* ---- in-memory KeyID index: KeyID_B -> (record id, slot) ---- */
+
+typedef struct idx_entry {
+    uint8_t kid[E4_KEYID_LEN];
+    int     slot;
+    char    id[256];
+    struct idx_entry *next;
+} idx_entry;
+
+struct edhoc4_db_index {
+    char   root[1024];
+    pthread_mutex_t mu;
+    idx_entry **bucket;
+    size_t n_bucket, n_entry;
+};
+
+/* KeyIDs are SHA-256 outputs and only the DN-AAA inserts them; any bytes do */
+static size_t idx_slot(const edhoc4_db_index *x, const uint8_t kid[E4_KEYID_LEN])
 {
-    sodium_bin2hex(hex, 2 * E4_KEYID_LEN + 1, kid, E4_KEYID_LEN);
+    uint64_t h;
+    memcpy(&h, kid, sizeof(h));
+    return (size_t)h & (x->n_bucket - 1);
 }
 
-static int fsync_dir(const char *dir)
+static void idx_grow(edhoc4_db_index *x)
 {
-    int fd = open(dir, O_RDONLY | O_DIRECTORY);
-    if (fd < 0) return -1;
-    int rc = fsync(fd);
-    close(fd);
-    return rc;
-}
-
-static int lock_index(const char *root)
-{
-    char p[1200];
-    snprintf(p, sizeof(p), "%s/kid", root);
-    if (mkdir(p, 0700) != 0 && errno != EEXIST) return -1;
-    snprintf(p, sizeof(p), "%s/kid/.lock", root);
-    int fd = open(p, O_RDWR | O_CREAT, 0600);
-    if (fd < 0) return -1;
-    if (flock(fd, LOCK_EX) != 0) { close(fd); return -1; }
-    return fd;
+    size_t n = x->n_bucket * 2;
+    idx_entry **b = calloc(n, sizeof(*b));
+    if (!b) return;                     /* longer chains, still correct */
+    idx_entry **old = x->bucket;
+    size_t old_n = x->n_bucket;
+    x->bucket = b;
+    x->n_bucket = n;
+    for (size_t i = 0; i < old_n; i++)
+        for (idx_entry *e = old[i], *nx; e; e = nx) {
+            nx = e->next;
+            size_t k = idx_slot(x, e->kid);
+            e->next = b[k];
+            b[k] = e;
+        }
+    free(old);
 }
 
 /* record ids name a directory under root: no path separators, no dot files */
@@ -87,105 +119,126 @@ static int valid_id(const char *id)
     return 1;
 }
 
-static int index_get_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], char *id, size_t cap)
+int edhoc4_db_index_put(edhoc4_db_index *x, const uint8_t kid[E4_KEYID_LEN], const char *id, int slot)
 {
-    char hex[2 * E4_KEYID_LEN + 1], p[1300];
-    kid_hex(kid, hex);
-    snprintf(p, sizeof(p), "%s/kid/%s", root, hex);
-    FILE *f = fopen(p, "r");
-    if (!f) return -1;
-    size_t n = fread(id, 1, cap - 1, f);
-    fclose(f);
-    id[n] = 0;
-    return valid_id(id) ? 0 : -1;
+    if (!x || !kid || !valid_id(id)) return E4_ERR_ARG;
+    idx_entry *n = calloc(1, sizeof(*n));
+    if (!n) return E4_ERR_ARG;
+    memcpy(n->kid, kid, E4_KEYID_LEN);
+    n->slot = slot;
+    snprintf(n->id, sizeof(n->id), "%s", id);
+    pthread_mutex_lock(&x->mu);
+    size_t k = idx_slot(x, kid);
+    for (idx_entry *e = x->bucket[k]; e; e = e->next)
+        if (sodium_memcmp(e->kid, kid, E4_KEYID_LEN) == 0) {
+            e->slot = slot;
+            snprintf(e->id, sizeof(e->id), "%s", id);
+            pthread_mutex_unlock(&x->mu);
+            free(n);
+            return E4_OK;
+        }
+    n->next = x->bucket[k];
+    x->bucket[k] = n;
+    if (++x->n_entry > 2 * x->n_bucket) idx_grow(x);
+    pthread_mutex_unlock(&x->mu);
+    return E4_OK;
 }
 
-static int index_put_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
+int edhoc4_db_index_get(edhoc4_db_index *x, const uint8_t kid[E4_KEYID_LEN], char *id, size_t cap, int *slot)
 {
-    char hex[2 * E4_KEYID_LEN + 1], p[1300], tmp[1300], dir[1100];
-    kid_hex(kid, hex);
-    snprintf(dir, sizeof(dir), "%s/kid", root);
-    snprintf(p, sizeof(p), "%s/%s", dir, hex);
-    snprintf(tmp, sizeof(tmp), "%s/.tmp-%s", dir, hex);
-    int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-    if (fd < 0) return -1;
-    size_t len = strlen(id);
-    int ok = write(fd, id, len) == (ssize_t)len && fdatasync(fd) == 0;
-    close(fd);
-    if (!ok || rename(tmp, p) != 0) { unlink(tmp); return -1; }
-    return fsync_dir(dir);
-}
-
-static int index_del_locked(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
-{
-    char hex[2 * E4_KEYID_LEN + 1], p[1300], cur[256], dir[1100];
-    if (id && (index_get_locked(root, kid, cur, sizeof(cur)) != 0 || strcmp(cur, id) != 0))
-        return 0;                       /* absent, or names another record */
-    kid_hex(kid, hex);
-    snprintf(dir, sizeof(dir), "%s/kid", root);
-    snprintf(p, sizeof(p), "%s/%s", dir, hex);
-    if (unlink(p) != 0) return errno == ENOENT ? 0 : -1;
-    return fsync_dir(dir);
-}
-
-int edhoc4_db_index_put(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
-{
-    if (!root || !kid || !valid_id(id)) return E4_ERR_ARG;
-    int fd = lock_index(root);
-    if (fd < 0) return E4_ERR_ARG;
-    int rc = index_put_locked(root, kid, id) == 0 ? E4_OK : E4_ERR_ARG;
-    unlock_rec(fd);
+    int rc = E4_ERR_PEER;
+    if (!x || !kid) return E4_ERR_ARG;
+    pthread_mutex_lock(&x->mu);
+    for (idx_entry *e = x->bucket[idx_slot(x, kid)]; e; e = e->next)
+        if (sodium_memcmp(e->kid, kid, E4_KEYID_LEN) == 0) {
+            if (id && cap) snprintf(id, cap, "%s", e->id);
+            if (slot) *slot = e->slot;
+            rc = E4_OK;
+            break;
+        }
+    pthread_mutex_unlock(&x->mu);
     return rc;
 }
 
-int edhoc4_db_index_get(const char *root, const uint8_t kid[E4_KEYID_LEN], char *id, size_t cap)
+int edhoc4_db_index_del(edhoc4_db_index *x, const uint8_t kid[E4_KEYID_LEN], const char *id)
 {
-    if (!root || !kid || !id || cap < 2) return E4_ERR_ARG;
-    int fd = lock_index(root);
-    if (fd < 0) return E4_ERR_ARG;
-    int rc = index_get_locked(root, kid, id, cap) == 0 ? E4_OK : E4_ERR_PEER;
-    unlock_rec(fd);
-    return rc;
+    if (!x || !kid) return E4_ERR_ARG;
+    pthread_mutex_lock(&x->mu);
+    for (idx_entry **pp = &x->bucket[idx_slot(x, kid)]; *pp; pp = &(*pp)->next) {
+        idx_entry *e = *pp;
+        if (sodium_memcmp(e->kid, kid, E4_KEYID_LEN) != 0) continue;
+        if (!id || strcmp(e->id, id) == 0) {
+            *pp = e->next;
+            x->n_entry--;
+            free(e);
+        }
+        break;
+    }
+    pthread_mutex_unlock(&x->mu);
+    return E4_OK;
 }
 
-int edhoc4_db_index_del(const char *root, const uint8_t kid[E4_KEYID_LEN], const char *id)
+size_t edhoc4_db_index_count(edhoc4_db_index *x, const char *id)
 {
-    if (!root || !kid) return E4_ERR_ARG;
-    int fd = lock_index(root);
-    if (fd < 0) return E4_ERR_ARG;
-    int rc = index_del_locked(root, kid, id) == 0 ? E4_OK : E4_ERR_ARG;
-    unlock_rec(fd);
-    return rc;
+    size_t n = 0;
+    if (!x) return 0;
+    pthread_mutex_lock(&x->mu);
+    for (size_t i = 0; i < x->n_bucket; i++)
+        for (idx_entry *e = x->bucket[i]; e; e = e->next)
+            if (!id || strcmp(e->id, id) == 0) n++;
+    pthread_mutex_unlock(&x->mu);
+    return n;
 }
 
-int edhoc4_db_reindex(const char *root)
+void edhoc4_db_index_free(edhoc4_db_index *x)
 {
-    DIR *d = opendir(root);
-    if (!d) return E4_ERR_ARG;
+    if (!x) return;
+    for (size_t i = 0; i < x->n_bucket; i++)
+        for (idx_entry *e = x->bucket[i], *nx; e; e = nx) {
+            nx = e->next;
+            free(e);
+        }
+    free(x->bucket);
+    pthread_mutex_destroy(&x->mu);
+    free(x);
+}
+
+edhoc4_db_index *edhoc4_db_index_open(const char *root, size_t *n_records, size_t *n_keys)
+{
+    DIR *d = root ? opendir(root) : NULL;
+    if (!d) return NULL;
+    edhoc4_db_index *x = calloc(1, sizeof(*x));
+    if (x) x->bucket = calloc(1024, sizeof(*x->bucket));
+    if (!x || !x->bucket) { free(x); closedir(d); return NULL; }
+    x->n_bucket = 1024;
+    pthread_mutex_init(&x->mu, NULL);
+    snprintf(x->root, sizeof(x->root), "%s", root);
+#ifdef E4_TEST_HOOKS
+    edhoc4_test_scan_calls++;
+#endif
+    size_t nr = 0;
     struct dirent *de;
-    int n = 0, rc = E4_OK;
     while ((de = readdir(d)) != NULL) {
         char dir[1300], p[1400];
-        struct stat st;
-        if (!valid_id(de->d_name) || !strcmp(de->d_name, "kid")) continue;
+        edhoc4_rec_info info;
+        if (!valid_id(de->d_name)) continue;
         snprintf(dir, sizeof(dir), "%s/%s", root, de->d_name);
         rec_path(dir, p, sizeof(p));
-        if (stat(p, &st) != 0) continue;
-        int fd = lock_rec(dir);
-        if (fd < 0) { rc = E4_ERR_ARG; continue; }
+        if (edhoc4_rec_load(p, -1, NULL, NULL, &info) != E4_OK) continue;
+        nr++;
         for (int slot = 0; slot < 2; slot++) {
             edhoc4_creds c;
             uint8_t kid[E4_KEYID_LEN];
-            if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) continue;
+            if (!info.valid[slot] || edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) continue;
             edhoc4_keyid(c.kem_pk, kid);
             sodium_memzero(&c, sizeof(c));
-            if (edhoc4_db_index_put(root, kid, de->d_name) != E4_OK) rc = E4_ERR_ARG;
-            else n++;
+            edhoc4_db_index_put(x, kid, de->d_name, slot);
         }
-        unlock_rec(fd);
     }
     closedir(d);
-    return rc == E4_OK ? n : rc;
+    if (n_records) *n_records = nr;
+    if (n_keys) *n_keys = x->n_entry;
+    return x;
 }
 
 /* ---- DN-AAA ---- */
@@ -200,23 +253,9 @@ int edhoc4_db_lookup(const uint8_t id_cred[E4_ID_CRED], uint8_t pk_a[E4_XWING_PK
     return 0;
 }
 
-/* slot of record file p whose SHA-256(pk_B) is kid, -1 if none */
-static int slot_of_kid(const char *p, const uint8_t kid[E4_KEYID_LEN])
-{
-    for (int slot = 0; slot < 2; slot++) {
-        edhoc4_creds c;
-        uint8_t k[E4_KEYID_LEN];
-        if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) continue;
-        edhoc4_keyid(c.kem_pk, k);
-        sodium_memzero(&c, sizeof(c));
-        if (sodium_memcmp(k, kid, E4_KEYID_LEN) == 0) return slot;
-    }
-    return -1;
-}
-
-/* zero slot `slot` of a record and drop its KeyID from the index (record
+/* zero slot `slot` of a record and drop its KeyID from the table (record
  * lock held) */
-static int erase_slot(const char *root, const char *id, const char *p, int slot)
+static int erase_slot(edhoc4_db_index *idx, const char *id, const char *p, int slot)
 {
     edhoc4_creds c;
     uint8_t kid[E4_KEYID_LEN];
@@ -224,31 +263,30 @@ static int erase_slot(const char *root, const char *id, const char *p, int slot)
     edhoc4_keyid(c.kem_pk, kid);
     sodium_memzero(&c, sizeof(c));
     int rc = edhoc4_rec_zero(p, slot, 1);
-    if (rc == E4_OK) {
-        int ifd = lock_index(root);
-        if (ifd >= 0) { index_del_locked(root, kid, id); unlock_rec(ifd); }
-    }
+    if (rc == E4_OK) edhoc4_db_index_del(idx, kid, id);
     return rc;
 }
 
-int edhoc4_db_handle_msg1(const char *root, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
+int edhoc4_db_handle_msg1(edhoc4_db_index *idx, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
                           const uint8_t *in, size_t in_len,
                           uint8_t *out, size_t out_cap, size_t *out_len)
 {
     char p[1400];
-    uint8_t kid[E4_KEYID_LEN];
+    uint8_t kid[E4_KEYID_LEN], disk_kid[E4_KEYID_LEN];
     struct stat st;
     edhoc4_rec_info info;
-    if (!root || !ctx || !rec) return E4_ERR_ARG;
+    int slot = -1;
+    if (!idx || !ctx || !rec) return E4_ERR_ARG;
     memset(rec, 0, sizeof(*rec));
 
-    /* clear KeyID_B -> record id; unknown: reject before any KEM operation */
+    /* clear KeyID_B -> (record, slot); unknown: rejected from memory, without
+     * touching the disk and before any KEM operation */
     if (edhoc4_r_peek_keyid(in, in_len, kid) != E4_OK) return E4_ERR_PARSE;
-    if (edhoc4_db_index_get(root, kid, rec->id, sizeof(rec->id)) != E4_OK) return E4_ERR_PEER;
-    snprintf(rec->root, sizeof(rec->root), "%s", root);
-    snprintf(rec->dir, sizeof(rec->dir), "%s/%s", root, rec->id);
+    if (edhoc4_db_index_get(idx, kid, rec->id, sizeof(rec->id), &slot) != E4_OK) return E4_ERR_PEER;
+    rec->idx = idx;
+    snprintf(rec->dir, sizeof(rec->dir), "%s/%s", idx->root, rec->id);
     if (stat(rec->dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
-        edhoc4_db_index_del(root, kid, rec->id);          /* stale entry */
+        edhoc4_db_index_del(idx, kid, rec->id);           /* stale entry */
         edhoc4_db_rec_wipe(rec);
         return E4_ERR_PEER;
     }
@@ -257,19 +295,19 @@ int edhoc4_db_handle_msg1(const char *root, edhoc4_ctx *ctx, edhoc4_db_rec *rec,
     int fd = lock_rec(rec->dir);
     if (fd < 0) { edhoc4_db_rec_wipe(rec); return E4_ERR_ARG; }
     int rc = E4_ERR_PEER;
-    int slot = slot_of_kid(p, kid);
-    if (slot < 0) {
-        /* the index named a record without that pk_B: KeyID_B != SHA-256(pk_B);
-         * a stale entry, removed, no KEM operation */
-        int ifd = lock_index(root);
-        if (ifd >= 0) { index_del_locked(root, kid, rec->id); unlock_rec(ifd); }
+    /* the index is only a hint: the slot must hold the pk_B of this KeyID */
+    if (edhoc4_rec_load(p, slot, &rec->server, rec->ue_pub, &info) == E4_OK)
+        edhoc4_keyid(rec->server.kem_pk, disk_kid);
+    else
+        sodium_memzero(disk_kid, sizeof(disk_kid));
+    if (sodium_memcmp(disk_kid, kid, E4_KEYID_LEN) != 0) {
+        edhoc4_db_index_del(idx, kid, rec->id);
         rc = E4_ERR_KEYID;
-    } else if (edhoc4_rec_load(p, -1, NULL, NULL, &info) == E4_OK && slot == info.active &&
-               edhoc4_rec_load(p, slot, &rec->server, rec->ue_pub, NULL) == E4_OK &&
+    } else if (slot == info.active &&
                read_file(rec->dir, "ue.vk", rec->ue_vk, E4_MLDSA_PK) == 0 &&
                read_file(rec->dir, "id_cred", rec->id_cred, E4_ID_CRED) == 0) {
         /* an old sk_B whose erasure did not happen (crash): erase it now */
-        if (info.valid[1 - slot]) erase_slot(root, rec->id, p, 1 - slot);
+        if (info.valid[1 - slot]) erase_slot(idx, rec->id, p, 1 - slot);
         rec->slot = slot;
         edhoc4_init_responder(ctx, &rec->server, rec->ue_pub);
         edhoc4_set_lookup(ctx, edhoc4_db_lookup, rec);
@@ -305,19 +343,23 @@ int edhoc4_db_commit(edhoc4_ctx *ctx, edhoc4_db_rec *rec)
     }
     sodium_memzero(&disk, sizeof(disk));
 
-    /* write-ahead: (Nsk_B, Npk_B, pk_A := Npk_A) is durable (one fdatasync),
-     * then the index names the record by SHA-256(Npk_B); both before
-     * message_4. The old slot and its entry are erased later. */
+    /* write-ahead: (Nsk_B, Npk_B, pk_A := Npk_A) is durable with one
+     * fdatasync before message_4; the table entry needs no flush, a restart
+     * rebuilds it from this slot. The old slot and its entry go later. */
     edhoc4_next_state(ctx, &next, next_pk);
     edhoc4_keyid(next.kem_pk, next_kid);
+    E4_TEST_CRASH(1);
+#ifdef E4_TEST_HOOKS
+    edhoc4_test_in_commit = 1;
+#endif
     rc = edhoc4_rec_write(p, 1 - rec->slot, &next, next_pk);
+    E4_TEST_CRASH(3);
+#ifdef E4_TEST_HOOKS
+    edhoc4_test_in_commit = 0;
+#endif
     sodium_memzero(&next, sizeof(next));
     edhoc4_ctx_wipe(ctx);
-    if (rc == E4_OK) {
-        int ifd = lock_index(rec->root);
-        rc = (ifd >= 0 && index_put_locked(rec->root, next_kid, rec->id) == 0) ? E4_OK : E4_ERR_ARG;
-        if (ifd >= 0) unlock_rec(ifd);
-    }
+    if (rc == E4_OK) rc = edhoc4_db_index_put(rec->idx, next_kid, rec->id, 1 - rec->slot);
     unlock_rec(fd);
     return rc;
 }
@@ -332,7 +374,7 @@ int edhoc4_db_erase_old(const edhoc4_db_rec *rec)
     rec_path(rec->dir, p, sizeof(p));
     int rc = edhoc4_rec_load(p, -1, NULL, NULL, &info);
     if (rc == E4_OK && info.valid[1 - info.active])
-        rc = erase_slot(rec->root, rec->id, p, 1 - info.active);
+        rc = erase_slot(rec->idx, rec->id, p, 1 - info.active);
     unlock_rec(fd);
     return rc;
 }
@@ -340,7 +382,7 @@ int edhoc4_db_erase_old(const edhoc4_db_rec *rec)
 /* erase worker: one thread, started on first use, so that the fdatasync of
  * the erasure never sits on the path of a reply */
 typedef struct erase_job {
-    char root[1024];
+    edhoc4_db_index *idx;
     char id[256];
     char dir[1300];
     struct erase_job *next;
@@ -363,7 +405,7 @@ static void *erase_main(void *arg)
         pthread_mutex_unlock(&er_mu);
         edhoc4_db_rec r;
         memset(&r, 0, sizeof(r));
-        snprintf(r.root, sizeof(r.root), "%s", j->root);
+        r.idx = j->idx;
         snprintf(r.id, sizeof(r.id), "%s", j->id);
         snprintf(r.dir, sizeof(r.dir), "%s", j->dir);
         edhoc4_db_erase_old(&r);
@@ -377,7 +419,7 @@ int edhoc4_db_erase_old_async(const edhoc4_db_rec *rec)
     if (!rec || !rec->dir[0]) return E4_ERR_ARG;
     erase_job *j = calloc(1, sizeof(*j));
     if (!j) return edhoc4_db_erase_old(rec);
-    snprintf(j->root, sizeof(j->root), "%s", rec->root);
+    j->idx = rec->idx;
     snprintf(j->id, sizeof(j->id), "%s", rec->id);
     snprintf(j->dir, sizeof(j->dir), "%s", rec->dir);
     pthread_mutex_lock(&er_mu);
