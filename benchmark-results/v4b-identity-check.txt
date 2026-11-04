@@ -1,0 +1,9 @@
+# v4 identity check: logs-fullstack-v4b-20261104-191429
+RADIUS User-Name values in capture.pcap      : ['@edhoc.internet']
+EAP-Response/Identity values (all)           : ['@edhoc.internet']
+EAP-Response/Identity in NAS (UE -> SMF)     : ['@edhoc.internet']
+SUPI (imsi-999700000000001)                  in the 177 RADIUS/relay packets: absent
+old DN identity (ue1@edhoc.internet)         in the 177 RADIUS/relay packets: absent
+SUPI (imsi-999700000000001)                  in aaa-e4t.txt / radiusd.log: absent
+old DN identity (ue1@edhoc.internet)         in aaa-e4t.txt / radiusd.log: absent
+RESULT: PASS (only the anonymous NAI appears)

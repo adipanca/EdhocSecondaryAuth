@@ -351,14 +351,11 @@ def recovery_v2_table(L, rec_path, title):
     L.append("")
 
 
-def v4_section(L, by_m):
-    """## 7: protocol v4 (KeyID_B = H(pk_B) in message_1, AAD-bound, record
-    by KeyID, anonymous outer identity): sizes, harness E2E of methods 4 and 6 in one
-    session, full stack and recovery (files *-v4)."""
-    old_path = os.path.join(RESULTS, "e2e-handshake-v3.csv")
-    if not os.path.exists(old_path):
+def v4b_section(L):
+    """## 7b: protocol v4 with the in-memory KeyID index (step 27)."""
+    fs = os.path.join(RESULTS, "fullstack-handshake-v4b.csv")
+    if not os.path.exists(fs):
         return
-    old = load_rows(old_path)
     rng = random.Random(1)
 
     def ci_med(a):
@@ -370,7 +367,171 @@ def v4_section(L, by_m):
                     statistics.median(rng.choices(b, k=len(b))) for _ in range(4000))
         return statistics.median(a) - statistics.median(b), bs[100], bs[3899]
 
+    def strace_calls(name):
+        """{side: {syscall: (calls, usecs/call)}} of a storage-strace file"""
+        out, side = {}, None
+        for ln in open(os.path.join(RESULTS, name)):
+            if ln.startswith("## "):
+                side = ln.split()[1]
+                out[side] = {}
+            t = ln.split()
+            if side and len(t) >= 5 and t[-1] in ("fsync", "fdatasync", "rename"):
+                out[side][t[-1]] = (int(t[3]), int(t[2]))
+        return out
+
+    L.append("## 7b. v4 dengan indeks di memori")
+    L.append("")
+    L.append("Step 27: indeks `<db>/kid/` di disk diganti tabel hash di memori (KeyID_B → record, slot) di "
+             "dalam instance `rlm_eap_edhoc`, dibangun ulang dari slot record saat start. Slot adalah satu-satunya "
+             "sumber kebenaran. Commit = tulis slot + satu `fdatasync`, lalu entri tabel. Lookup tetap membaca "
+             "slot dan memeriksa KeyID_B = SHA-256(pk_B). KeyID tidak dikenal ditolak dari memori, tanpa akses "
+             "disk dan tanpa Decaps. Format pesan dan kriptografi sama dengan bagian 7.")
+    L.append("")
+
+    L.append("### Flush per handshake (`strace -c -w`, 20 handshake)")
+    L.append("")
+    L.append("| Versi | UE `fdatasync` | DN-AAA `fdatasync` | DN-AAA `fsync` | DN-AAA `rename` | µs/call UE; DN `fdatasync` |")
+    L.append("| --- | --- | --- | --- | --- | --- |")
+    for name, f in (("v3 (step 12)", "storage-strace.txt"), ("v4a, indeks di disk (step 26)", "storage-strace-v4.txt"),
+                    ("v4b, indeks di memori", "storage-strace-v4b.txt")):
+        st = strace_calls(f)
+        ue, dn = st.get("ue", {}), st.get("dn", {})
+        g = lambda d, k: f"{d[k][0] / 20:g}" if k in d else "0"
+        L.append(f"| {name} | {g(ue, 'fdatasync')} | {g(dn, 'fdatasync')} | {g(dn, 'fsync')} | {g(dn, 'rename')} | "
+                 f"{ue.get('fdatasync', (0, 0))[1]}; {dn.get('fdatasync', (0, 0))[1]} |")
+    L.append("")
+    L.append("- Di jalur kritis v4b: UE 1 (NEXT sebelum Message3) dan DN-AAA 1 (commit sebelum Message4), sama "
+             "dengan v3. Sisanya di luar jalur kritis: promosi UE dan erase DN-AAA. Di v4a, indeks menambah dua "
+             "flush di jalur kritis DN-AAA.")
+    L.append("")
+
+    L.append("### Harness E2E loss-free (`v4_harness.sh`, sesi yang sama per versi, kernel `"
+             + os.uname().release + "`)")
+    L.append("")
+    L.append("| Method | Versi | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    cur = {}
+    files = (("v3 (step 12)", "e2e-handshake-v3.csv"), ("v4a (step 26)", "e2e-handshake-v4a.csv"),
+             ("v4b", "e2e-handshake.csv"))
+    for m, name in ((4, "Proposal (method 4)"), (6, "EAP-TLS Hybrid PQC")):
+        for ver, f in files:
+            d = [float(r["duration_ms"]) for r in load_rows(os.path.join(RESULTS, f))
+                 if int(r["method"]) == m and r["status"] == "PASS"]
+            lo, hi = ci_med(d)
+            cur[(m, ver)] = d
+            L.append(f"| {name} | {ver} | {len(d)} | {statistics.mean(d):.3f} | {statistics.median(d):.3f} | "
+                     f"{pct(d, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+    L.append("")
+    for ver, _ in files:
+        d, lo, hi = ci_diff(cur[(6, ver)], cur[(4, ver)])
+        verdict = ("proposal lebih cepat" if lo > 0 else "proposal lebih lambat" if hi < 0
+                   else "tidak berbeda signifikan (CI memuat 0)")
+        L.append(f"- {ver}: selisih median EAP-TLS Hybrid PQC − proposal **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}]: {verdict}.")
+    L.append("")
+
+    flush = os.path.join(RESULTS, "e2e-storage-flush-v4b.csv")
+    if os.path.exists(flush):
+        fl = {}
+        for r in load_rows(flush):
+            if r["status"] == "PASS":
+                fl.setdefault(r["label"], []).append(float(r["duration_ms"]))
+        L.append("### Ablasi storage per flush (6 ronde bergantian × 100, `storage_ablation.sh 6 100 flush`)")
+        L.append("")
+        L.append("| Konfigurasi | UE | DN-AAA | N | Mean (ms) | Median (ms) | 95% CI median (ms) |")
+        L.append("| --- | --- | --- | --- | --- | --- | --- |")
+        where = {"durable": ("disk", "disk"), "tmpfs": ("tmpfs", "tmpfs"),
+                 "ue_tmpfs": ("tmpfs", "disk"), "dn_tmpfs": ("disk", "tmpfs")}
+        for lab in ("durable", "ue_tmpfs", "dn_tmpfs", "tmpfs"):
+            d = fl.get(lab, [])
+            if d:
+                lo, hi = ci_med(d)
+                L.append(f"| {lab} | {where[lab][0]} | {where[lab][1]} | {len(d)} | {statistics.mean(d):.3f} | "
+                         f"{statistics.median(d):.3f} | [{lo:.3f}, {hi:.3f}] |")
+        L.append("")
+        L.append("| Biaya | Selisih median | Nilai (ms) | 95% CI (ms) |")
+        L.append("| --- | --- | --- | --- |")
+        for name, e, a_, b_ in (("Flush UE saja", "dn_tmpfs − tmpfs", "dn_tmpfs", "tmpfs"),
+                                ("Flush DN-AAA saja", "ue_tmpfs − tmpfs", "ue_tmpfs", "tmpfs"),
+                                ("Flush UE, di atas flush DN-AAA", "durable − ue_tmpfs", "durable", "ue_tmpfs"),
+                                ("Flush DN-AAA, di atas flush UE", "durable − dn_tmpfs", "durable", "dn_tmpfs"),
+                                ("Kedua flush", "durable − tmpfs", "durable", "tmpfs")):
+            v, lo, hi = ci_diff(fl[a_], fl[b_])
+            L.append(f"| {name} | {e} | {v:.3f} | [{lo:.3f}, {hi:.3f}] |")
+        L.append("")
+
+    rows = load_rows(fs)
+
+    def vals(cfg, k):
+        return [float(r[k]) for r in rows if r["config"] == cfg and r["status"] == "PASS" and r.get(k)]
+    okA = [r for r in rows if r["config"] == "A" and r["status"] == "PASS"]
+    L.append("### Full stack v4b (A/B 3 × 100, identitas `@edhoc.internet`)")
+    L.append("")
+    L.append(f"- A: PASS {len(okA)}/{sum(1 for r in rows if r['config'] == 'A')}, msk_match "
+             f"{sum(int(r['msk_match']) for r in okA)}/{len(okA)}, rotated {sum(int(r['rotated']) for r in okA)}/{len(okA)}; "
+             f"B: PASS {sum(1 for r in rows if r['config'] == 'B' and r['status'] == 'PASS')}/"
+             f"{sum(1 for r in rows if r['config'] == 'B')}.")
+    L.append("")
+    L.append("| Metrik | Konf. | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for cfg, k in (("A", "t_pdu_ms"), ("B", "t_pdu_ms"), ("A", "t_secauth_ms"), ("A", "t_core_ms"),
+                   ("A", "t_hop_smf_upf_ms"), ("A", "t_relay_proc_ms"), ("A", "t_aaa_ms"),
+                   ("A", "ue_store_next_ms"), ("A", "ue_promote_ms"), ("A", "aaa_commit_ms")):
+        v = vals(cfg, k)
+        if v:
+            lo, hi = ci_med(v)
+            L.append(f"| `{k}` | {cfg} | {len(v)} | {statistics.mean(v):.3f} | {statistics.median(v):.3f} | "
+                     f"{pct(v, 95):.3f} | [{lo:.3f}, {hi:.3f}] |")
+    L.append("")
+    d, lo, hi = ci_diff(vals("A", "t_pdu_ms"), vals("B", "t_pdu_ms"))
+    L.append(f"- `t_pdu_ms` A − B: **{d:.3f} ms**, 95% CI [{lo:.3f}, {hi:.3f}] ms.")
+    shapes = {(r["len_m1"], r["len_m2"], r["len_m3"], r["len_m4"], r["n_nas_rounds"], r["n_radius_rt"]) for r in okA}
+    L.append(f"- Ukuran / ronde: {sorted(shapes)} (Message1..4 B, ronde NAS, RADIUS RT).")
+    L.append("")
+    recovery_v2_table(L, os.path.join(RESULTS, "fullstack-recovery-v4b.csv"), "#### Uji pemulihan v4b")
+
+    for title, name in (("### `ue_store_next_ms` di full stack", "v4b-ue-store-next.md"),
+                        ("### Waktu bangun ulang indeks", "v4b-index-rebuild.txt")):
+        path = os.path.join(RESULTS, name)
+        if os.path.exists(path):
+            L.append(title)
+            L.append("")
+            text = open(path).read().rstrip("\n").split("\n")
+            if name.endswith(".txt"):
+                L.extend(["```"] + text + ["```"])
+            else:
+                L.extend(text)
+            L.append("")
+
+
+def v4_section(L, by_m):
+    """## 7: protocol v4 (KeyID_B = H(pk_B) in message_1, AAD-bound, record
+    by KeyID, anonymous outer identity): sizes, harness E2E of methods 4 and 6 in one
+    session, full stack and recovery (files *-v4)."""
+    old_path = os.path.join(RESULTS, "e2e-handshake-v3.csv")
+    if not os.path.exists(old_path):
+        return
+    old = load_rows(old_path)
+    rng = random.Random(1)
+    # the step-26 measurement (on-disk index) once 7b has replaced e2e-handshake.csv
+    v4a_path = os.path.join(RESULTS, "e2e-handshake-v4a.csv")
+    if os.path.exists(v4a_path):
+        by_m = defaultdict(list)
+        for r in load_rows(v4a_path):
+            by_m[int(r["method"])].append(r)
+
+    def ci_med(a):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) for _ in range(4000))
+        return bs[100], bs[3899]
+
+    def ci_diff(a, b):
+        bs = sorted(statistics.median(rng.choices(a, k=len(a))) -
+                    statistics.median(rng.choices(b, k=len(b))) for _ in range(4000))
+        return statistics.median(a) - statistics.median(b), bs[100], bs[3899]
+
     L.append("## 7. Protokol v4: KeyID_B = H(pk_B) di Message1, identitas EAP anonim")
+    L.append("")
+    L.append("Bagian ini adalah hasil step 26, dengan indeks KeyID di disk (`e2e-handshake-v4a.csv`); "
+             "bagian 7b memakai indeks di memori.")
     L.append("")
     L.append("Message1 = KeyID_B ‖ ct_B ‖ AEAD(K_1, AAD_1, PT1) dengan KeyID_B = SHA-256(pk_B), "
              "AAD_1 = KeyID_B ‖ ct_B, TH_1 = SHA-256(pk_B ‖ ct_B), PT1 tidak berubah dari v3. DN-AAA "
@@ -1535,6 +1696,7 @@ def main():
     full_5g_core_section(L, by_m)
     full_5g_core_v2_section(L, by_m)
     v4_section(L, by_m)
+    v4b_section(L)
 
     with open(OUT, "w") as f:
         f.write("\n".join(L) + "\n")

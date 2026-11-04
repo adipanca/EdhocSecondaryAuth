@@ -1,0 +1,3 @@
+edhoc4_dbtest (DBTEST_KEEP10K=1) / edhoc4_keygen --scan, 10000 synthetic records (313 MB), one valid slot each:
+page cache warm  : 10000 records, 10000 KeyIDs, 455.6 ms (dbtest), 452.4 ms (--scan)
+page cache cold  : 10000 records, 10000 KeyIDs, 6595.8 ms (--scan, after sync + drop_caches)
