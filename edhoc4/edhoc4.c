@@ -103,31 +103,62 @@ static void derive_k(const uint8_t prk[32], const uint8_t th[32],
     sodium_memzero(okm, sizeof(okm));
 }
 
-/* AES-128-GCM (mbedTLS), 16-byte tag, AAD = TH_x (32 B).  ct = C || tag. */
+/* AES-128-GCM (mbedTLS), 16-byte tag; AAD = TH_x (32 B), or AAD_1 for
+ * message_1.  ct = C || tag. */
 static int gcm_seal(const uint8_t key[E4_AEAD_KEY], const uint8_t nonce[E4_AEAD_NONCE],
-                    const uint8_t aad[32], const uint8_t *pt, size_t pt_len, uint8_t *ct)
+                    const uint8_t *aad, size_t aad_len, const uint8_t *pt, size_t pt_len, uint8_t *ct)
 {
     mbedtls_gcm_context g; mbedtls_gcm_init(&g);
     int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E4_AEAD_KEY);
     if (rc == 0)
         rc = mbedtls_gcm_crypt_and_tag(&g, MBEDTLS_GCM_ENCRYPT, pt_len, nonce, E4_AEAD_NONCE,
-                                       aad, 32, pt, ct, E4_AEAD_TAG, ct + pt_len);
+                                       aad, aad_len, pt, ct, E4_AEAD_TAG, ct + pt_len);
     mbedtls_gcm_free(&g);
     return rc;
 }
 
 static int gcm_open(const uint8_t key[E4_AEAD_KEY], const uint8_t nonce[E4_AEAD_NONCE],
-                    const uint8_t aad[32], const uint8_t *ct, size_t ct_len, uint8_t *pt)
+                    const uint8_t *aad, size_t aad_len, const uint8_t *ct, size_t ct_len, uint8_t *pt)
 {
     size_t n = ct_len - E4_AEAD_TAG;
     mbedtls_gcm_context g; mbedtls_gcm_init(&g);
     int rc = mbedtls_gcm_setkey(&g, MBEDTLS_CIPHER_ID_AES, key, 8 * E4_AEAD_KEY);
     if (rc == 0)
-        rc = mbedtls_gcm_auth_decrypt(&g, n, nonce, E4_AEAD_NONCE, aad, 32,
+        rc = mbedtls_gcm_auth_decrypt(&g, n, nonce, E4_AEAD_NONCE, aad, aad_len,
                                       ct + n, E4_AEAD_TAG, ct, pt);
     mbedtls_gcm_free(&g);
     if (rc != 0) sodium_memzero(pt, n);
     return rc;
+}
+
+/* key and nonce from (PRK, TH), explicit AAD: message_1 only (AAD_1) */
+static int aead_seal_aad(const uint8_t prk[32], const uint8_t th[32],
+                         const uint8_t *aad, size_t aad_len,
+                         const uint8_t *pt, size_t pt_len,
+                         uint8_t *ct, size_t *ct_len)
+{
+    uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
+    derive_k(prk, th, key, nonce);
+    int rc = gcm_seal(key, nonce, aad, aad_len, pt, pt_len, ct);
+    sodium_memzero(key, sizeof(key));
+    if (rc != 0) return E4_ERR_AEAD;
+    *ct_len = pt_len + E4_AEAD_TAG;
+    return E4_OK;
+}
+
+static int aead_open_aad(const uint8_t prk[32], const uint8_t th[32],
+                         const uint8_t *aad, size_t aad_len,
+                         const uint8_t *ct, size_t ct_len,
+                         uint8_t *pt, size_t *pt_len)
+{
+    uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
+    derive_k(prk, th, key, nonce);
+    if (ct_len < E4_AEAD_TAG) { sodium_memzero(key, sizeof(key)); return E4_ERR_AEAD; }
+    int rc = gcm_open(key, nonce, aad, aad_len, ct, ct_len, pt);
+    sodium_memzero(key, sizeof(key));
+    if (rc != 0) return E4_ERR_AEAD;
+    *pt_len = ct_len - E4_AEAD_TAG;
+    return E4_OK;
 }
 
 static int aead_seal(const uint8_t prk[32], const uint8_t th[32],
@@ -136,7 +167,7 @@ static int aead_seal(const uint8_t prk[32], const uint8_t th[32],
 {
     uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
     derive_k(prk, th, key, nonce);
-    int rc = gcm_seal(key, nonce, th, pt, pt_len, ct);
+    int rc = gcm_seal(key, nonce, th, 32, pt, pt_len, ct);
     sodium_memzero(key, sizeof(key));
     if (rc != 0) return E4_ERR_AEAD;
     *ct_len = pt_len + E4_AEAD_TAG;
@@ -150,7 +181,7 @@ static int aead_open(const uint8_t prk[32], const uint8_t th[32],
     uint8_t key[E4_AEAD_KEY], nonce[E4_AEAD_NONCE];
     derive_k(prk, th, key, nonce);
     if (ct_len < E4_AEAD_TAG) { sodium_memzero(key, sizeof(key)); return E4_ERR_AEAD; }
-    int rc = gcm_open(key, nonce, th, ct, ct_len, pt);
+    int rc = gcm_open(key, nonce, th, 32, ct, ct_len, pt);
     sodium_memzero(key, sizeof(key));
     if (rc != 0) return E4_ERR_AEAD;
     *pt_len = ct_len - E4_AEAD_TAG;
@@ -260,7 +291,6 @@ static int xwing_encaps(uint8_t ct[E4_XWING_CT], uint8_t ss[E4_XWING_SS],
 /* sk is the expanded key, pk the party's own X-Wing public key */
 #ifdef E4_TEST_HOOKS
 /* dbtest only (built with -DE4_TEST_HOOKS, never in libedhoc4.a) */
-int edhoc4_test_flip_pt1_kid;          /* corrupt KID_B inside PT1 */
 unsigned long edhoc4_test_decaps_calls;
 #endif
 
@@ -679,8 +709,9 @@ void edhoc4_init_responder(edhoc4_ctx *ctx, const edhoc4_creds *self,
 /* ======================================================================== */
 /* Protocol v4: NO ephemeral X-Wing key pair; the next one-time keys travel */
 /* early.                                                                    */
-/*   - message_1 = KID_B || ct_B || AEAD(K1, PT1), EAD_1 = Npk_A, KID_B =    */
-/*     SHA-256(pk_B) also inside PT1 (the DN-AAA selects its record by it);  */
+/*   - message_1 = KeyID_B || ct_B || AEAD(K1, AAD_1, PT1), EAD_1 = Npk_A,   */
+/*     KeyID_B = SHA-256(pk_B) (the DN-AAA selects its record by it),        */
+/*     AAD_1 = KeyID_B || ct_B, TH_1 = H(pk_B || ct_B);                      */
 /*   - message_2 = ct_A || AEAD(K2, PT2), EAD_2 = Npk_B, covered by MAC_2    */
 /*     and sigma_R;                                                          */
 /*   - message_3 = AEAD(K3, MAC_3 || VK_I || sigma_I), no EAD (ID_CRED_I     */
@@ -705,26 +736,27 @@ static size_t ead2_build(uint8_t *out, const uint8_t npk[E4_XWING_PK])
     return E4_EAD2_LEN;
 }
 
-void edhoc4_kid(const uint8_t pk[E4_XWING_PK], uint8_t kid[E4_KID_LEN])
+void edhoc4_keyid(const uint8_t pk[E4_XWING_PK], uint8_t kid[E4_KEYID_LEN])
 {
     sha256(kid, pk, E4_XWING_PK);
 }
 
 /* ======================================================================== */
 /* Message 1  (initiator -> responder)                                       */
-/*   layout: KID_B[32] || ctB[1120] || AEAD(K1, PT1)                         */
+/*   layout: KeyID_B[32] || ctB[1120] || AEAD(K1, AAD_1, PT1)                */
 /*   PT1 = method(1) || C_I(1) || ID_CRED_I(3) || EAD_1(1 + 1216)            */
-/*         || KID_B(32)                                                      */
-/*   KID_B = SHA-256(pk_B) of the key the UE encapsulates to (CUR or NEXT)   */
+/*   KeyID_B = SHA-256(pk_B) of the key the UE encapsulates to (CUR or NEXT) */
+/*   AAD_1 = KeyID_B || ct_B (fixed length); TH_1 = SHA-256(pk_B || ct_B)    */
 /* ======================================================================== */
 
-#define E4_PT1_LEN (2 + E4_ID_CRED + E4_EAD1_LEN + E4_KID_LEN)
-#define E4_MSG1_LEN (E4_KID_LEN + E4_XWING_CT + E4_PT1_LEN + E4_AEAD_TAG)
+#define E4_PT1_LEN (2 + E4_ID_CRED + E4_EAD1_LEN)
+#define E4_AAD1_LEN (E4_KEYID_LEN + E4_XWING_CT)
+#define E4_MSG1_LEN (E4_AAD1_LEN + E4_PT1_LEN + E4_AEAD_TAG)
 
-int edhoc4_r_peek_kid(const uint8_t *in, size_t in_len, uint8_t kid[E4_KID_LEN])
+int edhoc4_r_peek_keyid(const uint8_t *in, size_t in_len, uint8_t kid[E4_KEYID_LEN])
 {
     if (!in || in_len != E4_MSG1_LEN) return E4_ERR_PARSE;
-    memcpy(kid, in, E4_KID_LEN);
+    memcpy(kid, in, E4_KEYID_LEN);
     return E4_OK;
 }
 
@@ -735,14 +767,15 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
     /* next one-time key pair, announced in EAD_1 */
     if (next_keypair(ctx->new_pk, ctx->new_sk) != E4_OK) return E4_ERR_KEM;
 
-    uint8_t kid_b[E4_KID_LEN];
-    edhoc4_kid(ctx->peer_kem_pk, kid_b);
-
-    uint8_t ct_b[E4_XWING_CT];
+    uint8_t aad1[E4_AAD1_LEN];        /* AAD_1 = KeyID_B || ct_B */
+    uint8_t *ct_b = aad1 + E4_KEYID_LEN;
+    edhoc4_keyid(ctx->peer_kem_pk, aad1);
     if (xwing_encaps(ct_b, ctx->ss_b, ctx->peer_kem_pk) != E4_OK) return E4_ERR_KEM;
 
-    /* TH1 = H(ctB) */
-    sha256(ctx->th1, ct_b, E4_XWING_CT);
+    /* TH1 = H(pk_B || ctB) */
+    const uint8_t *s1[2] = { ctx->peer_kem_pk, ct_b };
+    const size_t l1[2] = { E4_XWING_PK, E4_XWING_CT };
+    sha256_cat(ctx->th1, s1, l1, 2);
 
     /* PRK1e = HKDF-Extract(TH1, ss_b) */
     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
@@ -753,24 +786,19 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
     pt1[1] = ctx->c_i[0];
     memcpy(pt1 + 2, ctx->self.id_cred, E4_ID_CRED);
     ead1_build(pt1 + 2 + E4_ID_CRED, ctx->new_pk);
-    memcpy(pt1 + 2 + E4_ID_CRED + E4_EAD1_LEN, kid_b, E4_KID_LEN);
-#ifdef E4_TEST_HOOKS
-    if (edhoc4_test_flip_pt1_kid) pt1[2 + E4_ID_CRED + E4_EAD1_LEN] ^= 1;
-#endif
     uint8_t ct1[sizeof(pt1) + E4_AEAD_TAG];
     size_t ct1_len = 0;
-    if (aead_seal(ctx->prk1e, ctx->th1, pt1, sizeof(pt1), ct1, &ct1_len) != E4_OK)
+    if (aead_seal_aad(ctx->prk1e, ctx->th1, aad1, sizeof(aad1), pt1, sizeof(pt1), ct1, &ct1_len) != E4_OK)
         return E4_ERR_AEAD;
 
-    size_t need = E4_KID_LEN + E4_XWING_CT + ct1_len;
+    size_t need = E4_AAD1_LEN + ct1_len;
     if (need > out_cap) return E4_ERR_BUF;
     size_t off = 0;
-    memcpy(out + off, kid_b, E4_KID_LEN); off += E4_KID_LEN;
-    memcpy(out + off, ct_b, E4_XWING_CT); off += E4_XWING_CT;
+    memcpy(out + off, aad1, E4_AAD1_LEN); off += E4_AAD1_LEN;
     memcpy(out + off, ct1, ct1_len); off += ct1_len;
     *out_len = off;
 
-    /* keep H(message_1) for TH2 computation on msg2 (covers KID_B) */
+    /* keep H(message_1) for TH2 computation on msg2 (covers KeyID_B) */
     sha256(ctx->h_msg1, out, off);
     return E4_OK;
 }
@@ -791,33 +819,31 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     if (in_len != E4_MSG1_LEN) return E4_ERR_PARSE;
 
     const uint8_t *kid_b = in;
-    const uint8_t *ct_b = in + E4_KID_LEN;
-    const uint8_t *ct1  = in + E4_KID_LEN + E4_XWING_CT;
-    size_t ct1_len = in_len - E4_KID_LEN - E4_XWING_CT;
+    const uint8_t *ct_b = in + E4_KEYID_LEN;
+    const uint8_t *ct1  = in + E4_AAD1_LEN;
+    size_t ct1_len = in_len - E4_AAD1_LEN;
 
-    /* the clear KID_B must name this record's pk_B (the index is only a
+    /* the clear KeyID_B must name this record's pk_B (the index is only a
      * hint); checked before any KEM operation */
-    uint8_t own_kid[E4_KID_LEN];
-    edhoc4_kid(ctx->self.kem_pk, own_kid);
-    if (sodium_memcmp(kid_b, own_kid, E4_KID_LEN) != 0) return E4_ERR_KID;
+    uint8_t own_kid[E4_KEYID_LEN];
+    edhoc4_keyid(ctx->self.kem_pk, own_kid);
+    if (sodium_memcmp(kid_b, own_kid, E4_KEYID_LEN) != 0) return E4_ERR_KEYID;
 
     /* ss_b = Decaps(ctB, own static sk_B) */
     if (xwing_decaps(ctx->ss_b, ct_b, ctx->self.kem_sk, ctx->self.kem_pk) != E4_OK) return E4_ERR_KEM;
 
-    /* TH1 = H(ctB); PRK1e; decrypt PT1 */
-    sha256(ctx->th1, ct_b, E4_XWING_CT);
+    /* TH1 = H(pk_B || ctB); PRK1e; decrypt PT1 under AAD_1 = KeyID_B || ct_B
+     * (the first E4_AAD1_LEN bytes of message_1) */
+    const uint8_t *s1[2] = { ctx->self.kem_pk, ct_b };
+    const size_t l1[2] = { E4_XWING_PK, E4_XWING_CT };
+    sha256_cat(ctx->th1, s1, l1, 2);
     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
 
     uint8_t pt1[E4_PT1_LEN]; size_t pt1_len = 0;
-    if (aead_open(ctx->prk1e, ctx->th1, ct1, ct1_len, pt1, &pt1_len) != E4_OK)
+    if (aead_open_aad(ctx->prk1e, ctx->th1, in, E4_AAD1_LEN, ct1, ct1_len, pt1, &pt1_len) != E4_OK)
         return E4_ERR_AEAD;
     if (pt1_len != E4_PT1_LEN || pt1[0] != E4_METHOD ||
         pt1[2 + E4_ID_CRED] != E4_EAD_NEXT_PK) return E4_ERR_PARSE;
-    /* KID_B inside PT1 (authenticated by K1) == the clear KID_B */
-    if (sodium_memcmp(pt1 + 2 + E4_ID_CRED + E4_EAD1_LEN, kid_b, E4_KID_LEN) != 0) {
-        sodium_memzero(pt1, sizeof(pt1));
-        return E4_ERR_KID;
-    }
     ctx->c_i[0] = pt1[1];
     memcpy(ctx->peer_id_cred, pt1 + 2, E4_ID_CRED);
     memcpy(ctx->peer_new_pk, pt1 + 3 + E4_ID_CRED, E4_XWING_PK);   /* Npk_A */
@@ -1117,7 +1143,7 @@ const char *edhoc4_strerror(int rc)
     case E4_ERR_SIG:   return "signature verify failed";
     case E4_ERR_STATE: return "wrong role/state";
     case E4_ERR_PEER:  return "unknown or mismatching peer";
-    case E4_ERR_KID:   return "KID_B mismatch";
+    case E4_ERR_KEYID: return "KeyID_B != SHA-256(pk_B)";
     default:           return "unknown error";
     }
 }
