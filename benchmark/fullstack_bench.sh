@@ -20,9 +20,10 @@
 #   sessions until EAP-Success, then 10 normal sessions), then a sample
 #   capture on lo (one session, one message_3 drop and its recovery).
 #
-# The method-4 records of the DN-specific identity (ue.yaml
-# secondaryAuth.identity) are provisioned once at the start
-# (setup_no_eph.sh), never between series. Logs: benchmark-results/
+# Protocol v4: the UE's outer EAP identity (ue.yaml secondaryAuth.identity)
+# is the anonymous NAI @edhoc.internet; the DN-AAA finds the record (id
+# FS_REC, default ue1) by KID_B in message_1. The method-4 records are
+# provisioned once at the start (setup_no_eph.sh), never between series. Logs: benchmark-results/
 # logs-fullstack-v2-<timestamp>/<series>/ (NFs, gnb.log, ue.log, marks.txt),
 # aaa-e4t.txt (FreeRADIUS), harness-C*.csv, capture.pcap.
 # Then run fullstack_analyze.py <logdir> v2.
@@ -41,8 +42,9 @@ mkdir -p "$OUT"; chown "$OWNER" "$OUT"     # harness-C*.csv are written as $OWNE
 
 export E4_TIMING=1
 export E4_TIMING_FILE="$OUT/aaa-e4t.txt"     # rlm_eap_edhoc (radiusd -f)
-export EDHOC_UE_REC="/usr/local/etc/edhoc/ue/$IDENT/ue.rec"
-export FS_ID="$IDENT"
+REC="${FS_REC:-ue1}"                         # internal record id
+export EDHOC_UE_REC="/usr/local/etc/edhoc/ue/$REC/ue.rec"
+export FS_ID="$REC"                          # fullstack_driver.py: record paths
 DROP="$OUT/drop-once"
 
 # UE config without initial sessions: every PDU session comes from nr-cli
@@ -77,9 +79,9 @@ harness() {
     --rto-ms 40 --max-retx 6 --loss 0 --iters "$N" --csv "$csv" --label "C$1" | tail -1
 }
 
-echo "== provision $IDENT (and edhoc-ue for C), restart radiusd (E4_TIMING)"
+echo "== provision record $REC (and edhoc-ue for C), identity '$IDENT', restart radiusd (E4_TIMING)"
 stop_stack
-"$HERE/setup_no_eph.sh" "$IDENT" | tail -1
+"$HERE/setup_no_eph.sh" "$REC" | tail -1
 uptime | tee "$OUT/uptime.txt"
 vmstat -t -n 5 > "$OUT/vmstat.txt" & VMSTAT=$!
 trap 'kill $VMSTAT 2>/dev/null; stop_stack' EXIT

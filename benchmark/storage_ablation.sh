@@ -21,7 +21,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 ROUNDS="${1:-6}"; ITERS="${2:-100}"; MODE="${3:-both}"
-C=/usr/local/etc/edhoc; UE=$C/ue/edhoc-ue; ID=edhoc-ue
+C=/usr/local/etc/edhoc; UE=$C/ue/edhoc-ue; ID=@edhoc.internet
 OWNER="${SUDO_USER:-$(id -un)}"
 [[ $EUID -eq 0 ]] || { echo "run with sudo" >&2; exit 1; }
 case "$MODE" in

@@ -30,7 +30,9 @@
  * message_1 and before message_2 on NEXT (the DN-AAA never committed it),
  * the UE retries once on CUR, keeping NEXT; the run counts both attempts
  * and is logged with fallback=1. A timeout never triggers a fallback.
- * The EAP identity (g_identity) selects <db>/<identity>/ on the responder.
+ * Protocol v4: the responder finds the record by KID_B = SHA-256(pk_B) in
+ * message_1; the EAP identity (g_identity) is the anonymous NAI
+ * "@edhoc.internet" (--identity overrides it).
  *
  * --drop-msg3-once / --drop-msg4-once (method 4, recovery test): the first
  * handshake of the process loses every copy of message_3 (it never reaches
@@ -98,7 +100,7 @@ static const char *g_server   = "127.0.0.1";
 static int         g_port     = 1812;
 static const char *g_creddir  = "/usr/local/etc/edhoc";
 static const char *g_uedir    = NULL;   /* method 4 UE files, default g_creddir */
-static const char *g_identity = "edhoc-ue";
+static const char *g_identity = "@edhoc.internet";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
 static int         g_pool     = 0;      /* --pool: EAD_1 key made before the clock starts */

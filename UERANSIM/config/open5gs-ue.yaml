@@ -49,9 +49,10 @@ uacAcc:
 
 # EAP secondary authentication by the DN-AAA during PDU session
 # establishment: DN-specific identity sent in the EAP-Response/Identity
-# (TS 33.501 11.1.2). The DN-AAA selects the UE's EAP-EDHOC record with it.
+# (TS 33.501 11.1.2). Protocol v4: an anonymous NAI (RFC 7542 2.4); the
+# DN-AAA finds the UE's EAP-EDHOC record by KID_B in message_1.
 secondaryAuth:
-  identity: 'ue1@edhoc.internet'
+  identity: '@edhoc.internet'
 
 # Initial PDU sessions to be established
 sessions:

@@ -30,7 +30,7 @@ import time
 CLI = "/home/admin-vb/EdhocSecondaryAuth/UERANSIM/build/nr-cli"
 IMSI = os.environ.get("FS_IMSI", "imsi-999700000000001")
 DNN = os.environ.get("FS_DNN", "internet")
-IDENT = os.environ.get("FS_ID", IMSI)       # EAP identity = record name
+IDENT = os.environ.get("FS_ID", "ue1")      # internal record id (v4: not the EAP identity)
 UE_REC = f"/usr/local/etc/edhoc/ue/{IDENT}/ue.rec"
 DN_REC = f"/usr/local/etc/edhoc/edhoc_db/{IDENT}/rec.bin"
 WAIT_S = 5.0

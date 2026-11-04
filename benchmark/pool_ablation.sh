@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 ROUNDS="${1:-8}"; ITERS="${2:-100}"
-UE=/usr/local/etc/edhoc/ue/edhoc-ue; ID=edhoc-ue
+UE=/usr/local/etc/edhoc/ue/edhoc-ue; ID=@edhoc.internet
 OUT="$ROOT/benchmark-results/e2e-pool-ablation.csv"
 OWNER="${SUDO_USER:-$(id -un)}"
 [[ $EUID -eq 0 ]] || { echo "run with sudo" >&2; exit 1; }

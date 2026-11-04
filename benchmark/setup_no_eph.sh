@@ -4,23 +4,25 @@
 # (one-time X-Wing keys, per-UE DN-AAA records). Run with sudo before every
 # e2e benchmark series so it starts from a clean, non-rotated state:
 #
-#   sudo benchmark/setup_no_eph.sh [extra-eap-identity ...]
+#   sudo benchmark/setup_no_eph.sh [extra-record-id ...]
 #
 #   1. installs the rebuilt rlm_eap_edhoc.so (AES-128-GCM, per-UE records)
-#   2. provisions /usr/local/etc/edhoc/edhoc_db/<identity>/ (DN-AAA side) and
-#      /usr/local/etc/edhoc/ue/<identity>/ (UE side, owned by $SUDO_USER so
-#      e2e_radius_bench can persist the rotated keys)
+#   2. provisions /usr/local/etc/edhoc/edhoc_db/<record_id>/ (DN-AAA side,
+#      plus the KID index edhoc_db/kid/) and /usr/local/etc/edhoc/ue/
+#      <record_id>/ (UE side, owned by $SUDO_USER so e2e_radius_bench can
+#      persist the rotated keys)
 #   3. restarts radiusd with the classic TLS config (methods 0-5); switch to
 #      hybrid with switch_tls_config.sh for method 6
 #
-# Identity "edhoc-ue" is always provisioned (e2e_radius_bench default). Add
-# the UERANSIM SUPI (e.g. imsi-001010000000001) for the live 5G stack, and
-# point EDHOC_UE_REC at /usr/local/etc/edhoc/ue/<SUPI>/ue.rec.
+# Record "edhoc-ue" is always provisioned (e2e_radius_bench). Add e.g. "ue1"
+# for the live 5G stack and point EDHOC_UE_REC at
+# /usr/local/etc/edhoc/ue/ue1/ue.rec.
 #
-# Final v3 protocol: the DN-AAA record is <db>/<EAP identity>/rec.bin; key
-# records are two-slot files (rec.bin on the DN-AAA, ue.rec with CUR/NEXT
-# on the UE). Records of earlier formats are not converted, re-run this
-# script.
+# Protocol v4: the DN-AAA finds <db>/<record_id>/rec.bin by KID_B =
+# SHA-256(pk_B) from message_1 (index <db>/kid/); the outer EAP identity is
+# the anonymous NAI @edhoc.internet. Key records are two-slot files (rec.bin
+# on the DN-AAA, ue.rec with CUR/NEXT on the UE). Records of earlier formats
+# are not converted (see edhoc4/migrate_v4.sh), re-run this script.
 #
 set -euo pipefail
 
