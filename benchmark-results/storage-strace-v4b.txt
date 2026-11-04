@@ -1,0 +1,13 @@
+# strace -c -w -f -e trace=fsync,fdatasync,rename (wall-clock time per call), 20 method-4 handshakes, protocol v4 in-memory index, 2026-11-04
+## ue durable
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.027523         688        40           fdatasync
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.027523         688        40           total
+## dn durable
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.030358         758        40           fdatasync
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.030358         758        40           total
