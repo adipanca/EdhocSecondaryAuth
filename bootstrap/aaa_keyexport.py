@@ -10,8 +10,11 @@ Runs the steps from bootstrappingkey.md §1.1 + §1.2 on the server side:
     bearer-token HTTP hop (trust-domain assumption; see README.md).
 
 The EMSK is provided as a hex file so this tool can be driven both by the live
-FreeRADIUS module (which can dump ``emsk`` in a debug/test build) and by the
-benchmark harness.
+FreeRADIUS module and by the benchmark harness. With ``emsk_dir`` set in the
+``edhoc`` section of the eap module, rlm_eap_edhoc writes
+``<emsk_dir>/<record_id>.emsk.hex`` (protocol v4: named by the internal
+record id the DN-AAA found through KID_B, not by the outer EAP identity,
+which is anonymous).
 
 Usage:
     python3 aaa_keyexport.py --emsk-file emsk.hex --session-id S1 \

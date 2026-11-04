@@ -17,8 +17,12 @@
  *   server -> peer : EAP-Success  (+ MS-MPPE keys derived from MSK)
  *
  * Method 4 keys are per UE and rotated every session (no ephemeral X-Wing,
- * final v3 protocol): the EAP identity selects the record <db>/<identity>/
- * before message_1 is processed; an unknown identity is rejected. The next
+ * protocol v4): message_1 carries KID_B = SHA-256(pk_B) in clear, which
+ * selects the record <db>/<record_id>/ through the index <db>/kid/; an
+ * unknown KID is rejected before any KEM operation. The outer EAP identity
+ * only has to be an anonymous NAI (RFC 7542 2.4: "@<realm>" or
+ * "anonymous@<realm>", realm = anon_realm); it does not select anything.
+ * The next
  * keys travel in EAD_1 / EAD_2; the rotated record is committed after
  * message_3 (one fdatasync, before message_4) and the slot with the old
  * sk_B is erased by a worker thread after message_4 is queued. There is no
@@ -103,8 +107,9 @@ static void e4t_msk_tag(uint8_t const *msk, size_t len)
 typedef struct rlm_eap_edhoc_t {
 	char const	*creds_path;	//!< legacy server.creds, only used to locate the db
 	char const	*peer_pub_path;	//!< legacy ue.pub (unused, kept for old configs)
-	char const	*db_path;	//!< per-UE records <db>/<identity>/ (method 4)
-	char const	*emsk_dir;	//!< optional: <emsk_dir>/<identity>.emsk.hex for aaa_keyexport
+	char const	*db_path;	//!< per-UE records <db>/<record_id>/ + <db>/kid/ (method 4)
+	char const	*emsk_dir;	//!< optional: <emsk_dir>/<record_id>.emsk.hex for aaa_keyexport
+	char const	*anon_realm;	//!< realm of the anonymous outer identity (method 4)
 	char		db_buf[1024];
 	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
 	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
@@ -135,6 +140,7 @@ static CONF_PARSER module_config[] = {
 	{ "creds03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, creds03_path), NULL },
 	{ "db", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, db_path), NULL },
 	{ "emsk_dir", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, emsk_dir), NULL },
+	{ "anon_realm", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, anon_realm), "edhoc.internet" },
 	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };
@@ -382,15 +388,29 @@ static void memset_s_wipe(void *p, size_t n)
 	while (n--) *v++ = 0;
 }
 
-/* EMSK for the key-bootstrapping step (bootstrap/aaa_keyexport.py --emsk-file) */
-static void edhoc_export_emsk(rlm_eap_edhoc_t *inst, char const *identity, uint8_t const *emsk)
+/* method 4: the outer EAP identity must be an anonymous NAI of our realm,
+ * "@<realm>" or "anonymous@<realm>" (RFC 7542 2.4); it selects no record */
+static int edhoc_anonymous_nai(rlm_eap_edhoc_t const *inst, char const *identity)
+{
+	char const *realm = inst->anon_realm ? inst->anon_realm : "edhoc.internet";
+	char const *at;
+
+	if (!identity) return 0;
+	at = strchr(identity, '@');
+	if (!at || strcmp(at + 1, realm) != 0) return 0;
+	return at == identity || ((size_t)(at - identity) == 9 && strncmp(identity, "anonymous", 9) == 0);
+}
+
+/* EMSK for the key-bootstrapping step (bootstrap/aaa_keyexport.py --emsk-file),
+ * named by the internal record id */
+static void edhoc_export_emsk(rlm_eap_edhoc_t *inst, char const *record_id, uint8_t const *emsk)
 {
 	char path[1200];
 	FILE *f;
 	int fd;
 
-	if (!inst->emsk_dir || !identity || !*identity || strchr(identity, '/')) return;
-	snprintf(path, sizeof(path), "%s/%s.emsk.hex", inst->emsk_dir, identity);
+	if (!inst->emsk_dir || !record_id || !*record_id || strchr(record_id, '/')) return;
+	snprintf(path, sizeof(path), "%s/%s.emsk.hex", inst->emsk_dir, record_id);
 	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (fd < 0) return;
 	f = fdopen(fd, "w");
@@ -477,17 +497,23 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			rlm_eap_edhoc_t *inst4 = (rlm_eap_edhoc_t *) instance;
 			char const *identity = handler->identity;
 
-			/* EAP identity (== RADIUS User-Name) selects the per-UE record */
+			/* only the form of the outer identity is checked; KID_B in
+			 * message_1 selects the per-UE record */
 			if (!identity && request->username) identity = request->username->vp_strvalue;
-			rc = edhoc4_db_handle_msg1(inst4->db_path, identity, &sess->ctx, &sess->rec,
-						   msg, msg_len, out, sizeof(out), &out_len);
-			if (rc != E4_OK) {
-				REDEBUG("rlm_eap_edhoc: message_1 processing failed for '%s': %s",
-					identity ? identity : "", edhoc4_strerror(rc));
+			if (!edhoc_anonymous_nai(inst4, identity)) {
+				REDEBUG("rlm_eap_edhoc: method 4 needs an anonymous outer identity "
+					"(@%s or anonymous@%s)", inst4->anon_realm, inst4->anon_realm);
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
-			RDEBUG2("rlm_eap_edhoc: record %s", sess->rec.dir);
+			rc = edhoc4_db_handle_msg1(inst4->db_path, &sess->ctx, &sess->rec,
+						   msg, msg_len, out, sizeof(out), &out_len);
+			if (rc != E4_OK) {
+				REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));
+				eap_ds->request->code = PW_EAP_FAILURE;
+				return 0;
+			}
+			RDEBUG2("rlm_eap_edhoc: record %s (by KID)", sess->rec.id);
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
@@ -526,7 +552,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		 * other slot with one fdatasync, before message_4 */
 		memcpy(sess->msk, sess->ctx.msk, E4_MSK_LEN);
 		memcpy(sess->emsk, sess->ctx.emsk, E4_EMSK_LEN);
-		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, handler->identity, sess->emsk);
+		edhoc_export_emsk((rlm_eap_edhoc_t *) instance, sess->rec.id, sess->emsk);
 		e4t_msk_tag(sess->msk, E4_MSK_LEN);
 		{
 			uint64_t t0 = e4t_now_us();

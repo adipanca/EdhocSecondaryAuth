@@ -13,8 +13,10 @@
 # synthesize one random 64-byte EMSK and hand the SAME bytes to both the AAA and
 # UE roles (that is exactly what a real successful EAP-EDHOC run guarantees).
 #
-# To drive it from a real handshake instead, dump rlm_eap_edhoc's sess->ctx.emsk
-# (and the UE ctx->emsk) to emsk.hex and pass --emsk-file, skipping step 0.
+# To drive it from a real handshake instead, set emsk_dir in the eap edhoc
+# section: rlm_eap_edhoc writes <emsk_dir>/<record_id>.emsk.hex (the DN-AAA
+# record id, protocol v4); pass that file (and the UE's EMSK) as --emsk-file,
+# skipping step 0.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
