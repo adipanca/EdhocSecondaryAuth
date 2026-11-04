@@ -3,71 +3,71 @@ Method 4 v4 models (gen_m4v4.py), one ProVerif process per query, cap 4500000KB 
 ==================================================================
 edhoc_m4v4_classical.pv
   query     time  peakmem  result
-  q1       0.86s    248MB  not event(UE_finish(W0,a,b)) is false.
+  q1       0.89s    248MB  not event(UE_finish(W0,a,b)) is false.
   q2       0.87s    249MB  not event(DN_finish(W0,a,b)) is false.
-  q3       0.79s    219MB  not event(UE_send_M1(W0,m)) is false.
-  q4       2.12s    621MB  inj-event(UE_recv_M2(W0,x,t,a,b)) ==> inj-event(DN_send_M2(W0,x,t,a,b)) is true.
-  q5       2.63s    758MB  inj-event(DN_recv_M3(W0,x,t,a,b)) ==> inj-event(UE_send_M3(W0,x,t,a,b)) is true.
-  q6       4.02s   1258MB  inj-event(UE_recv_M4(W0,x,t,a,b)) ==> inj-event(DN_send_M4(W0,x,t,a,b)) is true.
-  q7       0.76s    220MB  not attacker_p1(ID_CREDI[]) is true.
-  q8       0.76s    220MB  not attacker_p1(ID_CREDR[]) is true.
-  q9       0.78s    220MB  not attacker_p1(app_data_UE[]) is true.
-  q10      0.79s    220MB  not attacker_p1(app_data_DN[]) is true.
-  q11      0.78s    220MB  not attacker_p1(MSK_test[]) is true.
+  q3       0.78s    219MB  not event(UE_send_M1(W0,m)) is false.
+  q4       2.24s    621MB  inj-event(UE_recv_M2(W0,x,t,a,b)) ==> inj-event(DN_send_M2(W0,x,t,a,b)) is true.
+  q5       2.79s    759MB  inj-event(DN_recv_M3(W0,x,t,a,b)) ==> inj-event(UE_send_M3(W0,x,t,a,b)) is true.
+  q6       4.10s   1258MB  inj-event(UE_recv_M4(W0,x,t,a,b)) ==> inj-event(DN_send_M4(W0,x,t,a,b)) is true.
+  q7       0.78s    220MB  not attacker_p1(ID_CREDI[]) is true.
+  q8       0.79s    220MB  not attacker_p1(ID_CREDR[]) is true.
+  q9       0.81s    220MB  not attacker_p1(app_data_UE[]) is true.
+  q10      0.77s    219MB  not attacker_p1(app_data_DN[]) is true.
+  q11      0.78s    219MB  not attacker_p1(MSK_test[]) is true.
   q12      0.79s    220MB  not attacker_p1(EMSK_test[]) is true.
 ==================================================================
 edhoc_m4v4_quantum.pv
   query     time  peakmem  result
-  q1       0.85s    249MB  not event(UE_finish(W0,a,b)) is false.
-  q2       0.85s    248MB  not event(DN_finish(W0,a,b)) is false.
-  q3       0.75s    218MB  not event(UE_send_M1(W0,m)) is false.
-  q4       2.06s    611MB  inj-event(UE_recv_M2(W0,x,t,a,b)) ==> inj-event(DN_send_M2(W0,x,t,a,b)) is true.
-  q5       2.65s    751MB  inj-event(DN_recv_M3(W0,x,t,a,b)) ==> inj-event(UE_send_M3(W0,x,t,a,b)) is true.
-  q6       4.03s   1256MB  inj-event(UE_recv_M4(W0,x,t,a,b)) ==> inj-event(DN_send_M4(W0,x,t,a,b)) is true.
-  q7       0.78s    220MB  not attacker_p1(ID_CREDI[]) is true.
-  q8       0.76s    219MB  not attacker_p1(ID_CREDR[]) is true.
-  q9       0.81s    219MB  not attacker_p1(app_data_UE[]) is true.
-  q10      0.76s    219MB  not attacker_p1(app_data_DN[]) is true.
-  q11      0.78s    220MB  not attacker_p1(MSK_test[]) is true.
-  q12      0.77s    220MB  not attacker_p1(EMSK_test[]) is true.
+  q1       0.85s    250MB  not event(UE_finish(W0,a,b)) is false.
+  q2       0.89s    248MB  not event(DN_finish(W0,a,b)) is false.
+  q3       0.81s    218MB  not event(UE_send_M1(W0,m)) is false.
+  q4       1.98s    611MB  inj-event(UE_recv_M2(W0,x,t,a,b)) ==> inj-event(DN_send_M2(W0,x,t,a,b)) is true.
+  q5       2.60s    751MB  inj-event(DN_recv_M3(W0,x,t,a,b)) ==> inj-event(UE_send_M3(W0,x,t,a,b)) is true.
+  q6       4.14s   1256MB  inj-event(UE_recv_M4(W0,x,t,a,b)) ==> inj-event(DN_send_M4(W0,x,t,a,b)) is true.
+  q7       0.80s    219MB  not attacker_p1(ID_CREDI[]) is true.
+  q8       0.68s    220MB  not attacker_p1(ID_CREDR[]) is true.
+  q9       0.66s    219MB  not attacker_p1(app_data_UE[]) is true.
+  q10      0.80s    220MB  not attacker_p1(app_data_DN[]) is true.
+  q11      0.79s    220MB  not attacker_p1(MSK_test[]) is true.
+  q12      0.79s    219MB  not attacker_p1(EMSK_test[]) is true.
 ==================================================================
 edhoc_m4v4_kci.pv
   query     time  peakmem  result
-  q1       3.08s    463MB  inj-event(UE_recv_M2(W1,x,t,a,b)) ==> inj-event(DN_send_M2(W1,x,t,a,b)) is true.
-  q2       4.77s    774MB  inj-event(UE_recv_M4(W1,x,t,a,b)) ==> inj-event(DN_send_M4(W1,x,t,a,b)) is true.
-  q3       3.01s    442MB  inj-event(DN_recv_M3(W2,x,t,a,b)) ==> inj-event(UE_send_M3(W2,x,t,a,b)) is true.
+  q1       3.20s    463MB  inj-event(UE_recv_M2(W1,x,t,a,b)) ==> inj-event(DN_send_M2(W1,x,t,a,b)) is true.
+  q2       4.85s    774MB  inj-event(UE_recv_M4(W1,x,t,a,b)) ==> inj-event(DN_send_M4(W1,x,t,a,b)) is true.
+  q3       3.02s    442MB  inj-event(DN_recv_M3(W2,x,t,a,b)) ==> inj-event(UE_send_M3(W2,x,t,a,b)) is true.
 ==================================================================
 edhoc_m4v4_pcs.pv
   query     time  peakmem  result
-  q1       0.48s    123MB  not event(UE_finish(W2,a,b)) is false.
-  q2       0.55s    162MB  inj-event(UE_recv_M2(W2,x,t,a,b)) ==> inj-event(DN_send_M2(W2,x,t,a,b)) is true.
-  q3       0.58s    161MB  inj-event(DN_recv_M3(W2,x,t,a,b)) ==> inj-event(UE_send_M3(W2,x,t,a,b)) is true.
-  q4       0.79s    230MB  inj-event(UE_recv_M4(W2,x,t,a,b)) ==> inj-event(DN_send_M4(W2,x,t,a,b)) is true.
-  q5       0.25s     93MB  not attacker(MSK_test2[]) is true.
-  q6       0.25s     93MB  not attacker(EMSK_test2[]) is true.
+  q1       0.40s    123MB  not event(UE_finish(W2,a,b)) is false.
+  q2       0.54s    162MB  inj-event(UE_recv_M2(W2,x,t,a,b)) ==> inj-event(DN_send_M2(W2,x,t,a,b)) is true.
+  q3       0.57s    161MB  inj-event(DN_recv_M3(W2,x,t,a,b)) ==> inj-event(UE_send_M3(W2,x,t,a,b)) is true.
+  q4       0.81s    230MB  inj-event(UE_recv_M4(W2,x,t,a,b)) ==> inj-event(DN_send_M4(W2,x,t,a,b)) is true.
+  q5       0.29s     93MB  not attacker(MSK_test2[]) is true.
+  q6       0.28s     93MB  not attacker(EMSK_test2[]) is true.
 ==================================================================
 edhoc_m4v4_fs_noerase.pv
   query     time  peakmem  result
-  q1       0.54s     93MB  not event(UE_finish(W0,a,b)) is false.
-  q2       0.68s    109MB  not event(DN_finish(W0,a,b)) is false.
-  q3       0.48s     85MB  not event(UE_send_M1(W0,m)) is false.
-  q4       0.48s     90MB  not attacker_p1(ID_CREDI[]) is false.
-  q5       0.52s     93MB  not attacker_p1(ID_CREDR[]) is false.
-  q6       0.62s     92MB  not attacker_p1(app_data_UE[]) is false.
-  q7       0.56s     93MB  not attacker_p1(app_data_DN[]) is false.
-  q8       0.61s     93MB  not attacker_p1(MSK_test[]) is false.
-  q9       0.55s     93MB  not attacker_p1(EMSK_test[]) is false.
+  q1       0.60s     93MB  not event(UE_finish(W0,a,b)) is false.
+  q2       0.58s    108MB  not event(DN_finish(W0,a,b)) is false.
+  q3       0.51s     85MB  not event(UE_send_M1(W0,m)) is false.
+  q4       0.53s     90MB  not attacker_p1(ID_CREDI[]) is false.
+  q5       0.53s     93MB  not attacker_p1(ID_CREDR[]) is false.
+  q6       0.57s     93MB  not attacker_p1(app_data_UE[]) is false.
+  q7       0.54s     93MB  not attacker_p1(app_data_DN[]) is false.
+  q8       0.56s     93MB  not attacker_p1(MSK_test[]) is false.
+  q9       0.54s     93MB  not attacker_p1(EMSK_test[]) is false.
 ==================================================================
 edhoc_m4v4_recovery.pv
   query     time  peakmem  result
-  q1       5.41s    442MB  not event(UE_finish(W0,a,b)) is false.
-  q2       5.39s    455MB  not event(DN_finish(W0,a,b)) is false.
-  q3       5.29s    425MB  not event(UE_send_M1(W0,m)) is false.
-  q4       5.17s    424MB  not attacker_p1(ID_CREDI[]) is true.
-  q5       5.75s    424MB  not attacker_p1(app_data_DN[]) is true.
-  q6       5.68s    424MB  not attacker_p1(MSK_test[]) is true.
-  q7       5.24s    424MB  not attacker_p1(EMSK_test[]) is true.
+  q1       5.74s    442MB  not event(UE_finish(W0,a,b)) is false.
+  q2       5.50s    455MB  not event(DN_finish(W0,a,b)) is false.
+  q3       5.40s    425MB  not event(UE_send_M1(W0,m)) is false.
+  q4       5.36s    424MB  not attacker_p1(ID_CREDI[]) is true.
+  q5       5.31s    424MB  not attacker_p1(app_data_DN[]) is true.
+  q6       5.30s    424MB  not attacker_p1(MSK_test[]) is true.
+  q7       5.05s    424MB  not attacker_p1(EMSK_test[]) is true.
 ==================================================================
 edhoc_m4v4_unlink.pv (diff-equivalence: same UE twice on rotated keys ~ two different UEs)
-  equiv   23.95s   4136MB  -- Observational equivalence in biprocess 1 (that is, biprocess 0, with let moved downwards):
+  equiv   23.70s   4136MB  NOT CONCLUDED (exit 134, allocation failure)
 DONE

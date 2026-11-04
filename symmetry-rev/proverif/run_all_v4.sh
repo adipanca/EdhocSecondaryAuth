@@ -75,8 +75,8 @@ ls "$W"/*_q*.pv | xargs -P "$JOBS" -I{} bash -c 'run_one {}'
     o="$W/${UNL%.pv}.out"; read -r t m < <(tail -1 "$o.time" 2>/dev/null) || { t=?; m=0; }
     echo "=================================================================="
     echo "$UNL (diff-equivalence: same UE twice on rotated keys ~ two different UEs)"
-    r=$(grep -E "Observational equivalence|RESULT" "$o" | tail -1)
-    [ -z "$r" ] && r="NOT CONCLUDED (exit $(cat "$o.rc" 2>/dev/null))"
+    r=$(grep -E "^RESULT" "$o" | tail -1)
+    [ -z "$r" ] && r="NOT CONCLUDED (exit $(cat "$o.rc" 2>/dev/null)$(grep -m1 -ioE 'allocation failure|out of memory' "$o" | sed 's/^/, /'))"
     printf "  %-6s %6ss %6dMB  %s\n" equiv "$t" $((m / 1024)) "$r"
   fi
   echo DONE
