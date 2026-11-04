@@ -30,7 +30,7 @@
  * message_1 and before message_2 on NEXT (the DN-AAA never committed it),
  * the UE retries once on CUR, keeping NEXT; the run counts both attempts
  * and is logged with fallback=1. A timeout never triggers a fallback.
- * Protocol v4: the responder finds the record by KID_B = SHA-256(pk_B) in
+ * Protocol v4: the responder finds the record by KeyID_B = SHA-256(pk_B) in
  * message_1; the EAP identity (g_identity) is the anonymous NAI
  * "@edhoc.internet" (--identity overrides it).
  *

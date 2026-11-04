@@ -31,7 +31,7 @@ RTO_MS="${RTO_MS:-40}"
 MAX_RETX="${MAX_RETX:-6}"
 # Method 4 rotates its one-time keys every handshake: the UE side lives in a
 # user-writable dir (see setup_no_eph.sh); the DN-AAA picks its record by
-# KID_B in message_1, the outer identity is the anonymous NAI.
+# KeyID_B in message_1, the outer identity is the anonymous NAI.
 UE_DIR="${EDHOC_UE_DIR:-/usr/local/etc/edhoc/ue/edhoc-ue}"
 IDENTITY="${EDHOC_IDENTITY:-@edhoc.internet}"
 LOSS_RATES=(0 1 5 10 20 30)

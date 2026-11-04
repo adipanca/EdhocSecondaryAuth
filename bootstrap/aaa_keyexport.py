@@ -13,7 +13,7 @@ The EMSK is provided as a hex file so this tool can be driven both by the live
 FreeRADIUS module and by the benchmark harness. With ``emsk_dir`` set in the
 ``edhoc`` section of the eap module, rlm_eap_edhoc writes
 ``<emsk_dir>/<record_id>.emsk.hex`` (protocol v4: named by the internal
-record id the DN-AAA found through KID_B, not by the outer EAP identity,
+record id the DN-AAA found through KeyID_B, not by the outer EAP identity,
 which is anonymous).
 
 Usage:

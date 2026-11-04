@@ -22,7 +22,7 @@
 #
 # Protocol v4: the UE's outer EAP identity (ue.yaml secondaryAuth.identity)
 # is the anonymous NAI @edhoc.internet; the DN-AAA finds the record (id
-# FS_REC, default ue1) by KID_B in message_1. The method-4 records are
+# FS_REC, default ue1) by KeyID_B in message_1. The method-4 records are
 # provisioned once at the start (setup_no_eph.sh), never between series. Logs: benchmark-results/
 # logs-fullstack-v2-<timestamp>/<series>/ (NFs, gnb.log, ue.log, marks.txt),
 # aaa-e4t.txt (FreeRADIUS), harness-C*.csv, capture.pcap.

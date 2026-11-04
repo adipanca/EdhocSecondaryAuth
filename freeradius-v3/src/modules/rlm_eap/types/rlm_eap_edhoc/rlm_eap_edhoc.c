@@ -17,9 +17,9 @@
  *   server -> peer : EAP-Success  (+ MS-MPPE keys derived from MSK)
  *
  * Method 4 keys are per UE and rotated every session (no ephemeral X-Wing,
- * protocol v4): message_1 carries KID_B = SHA-256(pk_B) in clear, which
+ * protocol v4): message_1 carries KeyID_B = SHA-256(pk_B) in clear, which
  * selects the record <db>/<record_id>/ through the index <db>/kid/; an
- * unknown KID is rejected before any KEM operation. The outer EAP identity
+ * unknown KeyID is rejected before any KEM operation. The outer EAP identity
  * only has to be an anonymous NAI (RFC 7542 2.4: "@<realm>" or
  * "anonymous@<realm>", realm = anon_realm); it does not select anything.
  * The next
@@ -497,7 +497,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 			rlm_eap_edhoc_t *inst4 = (rlm_eap_edhoc_t *) instance;
 			char const *identity = handler->identity;
 
-			/* only the form of the outer identity is checked; KID_B in
+			/* only the form of the outer identity is checked; KeyID_B in
 			 * message_1 selects the per-UE record */
 			if (!identity && request->username) identity = request->username->vp_strvalue;
 			if (!edhoc_anonymous_nai(inst4, identity)) {
@@ -513,7 +513,7 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
-			RDEBUG2("rlm_eap_edhoc: record %s (by KID)", sess->rec.id);
+			RDEBUG2("rlm_eap_edhoc: record %s (by KeyID)", sess->rec.id);
 		}
 		if (!edhoc_queue_outgoing(eap_ds, sess, PW_EAP_REQUEST, out, out_len)) return 0;
 		sess->round = 1;
