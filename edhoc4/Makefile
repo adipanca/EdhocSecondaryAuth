@@ -64,8 +64,10 @@ edhoc4_selftest: selftest.c libedhoc4.a
 edhoc4_keygen: keygen.c libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ keygen.c libedhoc4.a $(LDLIBS)
 
-edhoc4_dbtest: dbtest.c libedhoc4.a
-	$(CC) $(CFLAGS) -o $@ dbtest.c libedhoc4.a $(LDLIBS)
+# dbtest builds the core itself with the test hooks (E4_TEST_HOOKS: flip
+# KID_B inside PT1, count X-Wing decapsulations); libedhoc4.a has none
+edhoc4_dbtest: dbtest.c edhoc4.c edhoc4_db.c edhoc4.h edhoc4_db.h $(PQ_OBJS)
+	$(CC) $(CFLAGS) -DE4_TEST_HOOKS -o $@ dbtest.c edhoc4.c edhoc4_db.c $(PQ_OBJS) $(LDLIBS)
 
 edhoc4_xwing_kat: xwing_kat.c xwing_kat_vectors.h libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ xwing_kat.c libedhoc4.a $(LDLIBS)

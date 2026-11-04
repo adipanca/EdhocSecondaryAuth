@@ -1,28 +1,41 @@
 /*
- * dbtest.c — file-level tests of the method-4 key records (final v3
- * protocol): the DN-AAA store (edhoc4_db_*) and the UE's CUR/NEXT record
- * (edhoc4_ue_*), with failure injection, without radiusd.
+ * dbtest.c — file-level tests of the method-4 key records (protocol v4):
+ * the DN-AAA store with its KID index (edhoc4_db_*) and the UE's CUR/NEXT
+ * record (edhoc4_ue_*), with failure injection, without radiusd. Built
+ * with -DE4_TEST_HOOKS (see Makefile).
  *
- *   1. 2 UEs x 5 sessions: MSK/EMSK match; after the commit + erasure the
- *      DN-AAA file holds one sk_B only, after the promotion the UE file
- *      holds no old sk_A (the old key bytes are absent from the files).
- *   2. failure injection, each followed by a normal session that must
+ *   1. 2 UEs x 5 sessions: MSK/EMSK match, the DN-AAA picks the UE's own
+ *      record by KID_B; after commit + erasure the DN-AAA file holds one
+ *      sk_B and the index exactly the KID of the new pk_B, after the
+ *      promotion the UE file holds no old sk_A.
+ *   2. KID checks:
+ *        clear KID_B != KID_B in PT1              E4_ERR_KID
+ *        KID_B != SHA-256(pk_B) of the record     E4_ERR_KID (edhoc4 core),
+ *        index pointing to another record         E4_ERR_PEER, entry removed
+ *        unknown KID_B                            E4_ERR_PEER, no decaps
+ *   3. failure injection, each followed by a normal session that must
  *      complete without re-provisioning:
- *        message_3 dropped          NEXT rejected -> fallback to CUR, NEXT replaced
- *        message_4 dropped          NEXT succeeds
+ *        message_3 dropped          NEXT (H(Npk_B)) unknown -> EAP-Failure ->
+ *                                   fallback to CUR (H(pk_B)) -> success
+ *        message_4 dropped          H(Npk_B) already indexed -> NEXT succeeds
  *        EAP-Success dropped        normal (the UE promoted after message_4)
  *        UE stopped after message_3 NEXT succeeds, or fallback if not committed
- *        DN-AAA stopped after commit, before message_4: NEXT succeeds
+ *        DN-AAA stopped after commit, before erase_old: both KIDs found;
+ *                                   the next message_1 cleans the older one
  *        forged EAP-Failure after message_1 while the DN-AAA committed NEXT:
  *                                   fallback to CUR is rejected, NEXT is kept,
  *                                   the next session on NEXT succeeds
  *        timeout after message_1    no fallback; the next session uses NEXT
- *   3. an unknown identity is rejected.
+ *   4. 100 UEs, all with the anonymous identity: two interleaved rounds and
+ *      one parallel round (one thread per UE); every session must select
+ *      the UE's own record (0 mix-ups) and end with matching keys.
  */
 #define _DEFAULT_SOURCE
 #include "edhoc4.h"
 #include "edhoc4_db.h"
 
+#include <dirent.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,12 +44,16 @@
 
 #define ROOT "dbtest.tmp"
 #define DB   ROOT "/edhoc_db"
+#define N_MANY 100
+
+extern int edhoc4_test_flip_pt1_kid;
+extern unsigned long edhoc4_test_decaps_calls;
 
 static int fails;
 
 static void check(int ok, const char *what)
 {
-    printf("  %-66s %s\n", what, ok ? "ok" : "FAIL");
+    printf("  %-70s %s\n", what, ok ? "ok" : "FAIL");
     if (!ok) fails++;
 }
 
@@ -60,10 +77,12 @@ static void write_raw(const char *dir, const char *name, const void *b, size_t n
 static void ue_path(const char *id, char *p, size_t cap) { snprintf(p, cap, ROOT "/ue/%s/ue.rec", id); }
 static void dn_path(const char *id, char *p, size_t cap) { snprintf(p, cap, DB "/%s/rec.bin", id); }
 
-static void provision(const char *id, uint8_t idx, const edhoc4_creds *dn_sig)
+static void provision(const char *id, unsigned idx, const edhoc4_creds *dn_sig)
 {
     edhoc4_creds srv, ue;
-    uint8_t id_srv[E4_ID_CRED] = { 0, 0, 2 }, id_ue[E4_ID_CRED] = { 0, 0, idx };
+    uint8_t id_srv[E4_ID_CRED] = { 0, 0, 2 };
+    uint8_t id_ue[E4_ID_CRED] = { 0, (uint8_t)(idx >> 8), (uint8_t)idx };
+    uint8_t kid[E4_KID_LEN];
     char d[512], p[512];
     edhoc4_gen_creds(&srv, id_srv);
     memcpy(srv.sig_sk, dn_sig->sig_sk, E4_MLDSA_SK);
@@ -74,15 +93,19 @@ static void provision(const char *id, uint8_t idx, const edhoc4_creds *dn_sig)
     edhoc4_rec_create(p, &srv, ue.kem_pk);
     write_raw(d, "ue.vk", ue.sig_vk, E4_MLDSA_PK);
     write_raw(d, "id_cred", ue.id_cred, E4_ID_CRED);
+    edhoc4_kid(srv.kem_pk, kid);
+    edhoc4_db_index_put(DB, kid, id);
     snprintf(d, sizeof(d), ROOT "/ue/%s", id); mkdirs(d);
     ue_path(id, p, sizeof(p));
     edhoc4_rec_create(p, &ue, srv.kem_pk);
+    sodium_memzero(&srv, sizeof(srv));
+    sodium_memzero(&ue, sizeof(ue));
 }
 
 /* does the file contain these bytes anywhere? */
 static int file_has(const char *path, const uint8_t *needle, size_t n)
 {
-    static uint8_t buf[1 << 16];
+    static __thread uint8_t buf[1 << 16];
     FILE *f = fopen(path, "rb");
     if (!f) return 0;
     size_t len = fread(buf, 1, sizeof(buf), f);
@@ -94,10 +117,50 @@ static int file_has(const char *path, const uint8_t *needle, size_t n)
 
 static int valid_slots(const char *path)
 {
-    edhoc4_creds c; edhoc4_rec_info info;
-    if (edhoc4_rec_load(path, -1, &c, NULL, &info) != E4_OK) return 0;
-    sodium_memzero(&c, sizeof(c));
+    edhoc4_rec_info info;
+    if (edhoc4_rec_load(path, -1, NULL, NULL, &info) != E4_OK) return 0;
     return info.valid[0] + info.valid[1];
+}
+
+/* KID of slot `slot` (-1: newest) of the DN-AAA record of `id` */
+static int dn_kid(const char *id, int slot, uint8_t kid[E4_KID_LEN])
+{
+    char p[512];
+    edhoc4_creds c;
+    dn_path(id, p, sizeof(p));
+    if (edhoc4_rec_load(p, slot, &c, NULL, NULL) != E4_OK) return -1;
+    edhoc4_kid(c.kem_pk, kid);
+    sodium_memzero(&c, sizeof(c));
+    return 0;
+}
+
+/* number of index entries that name `id` */
+static int index_entries(const char *id)
+{
+    DIR *d = opendir(DB "/kid");
+    struct dirent *de;
+    int n = 0;
+    if (!d) return -1;
+    while ((de = readdir(d)) != NULL) {
+        char p[700], buf[256];
+        if (de->d_name[0] == '.') continue;
+        snprintf(p, sizeof(p), DB "/kid/%s", de->d_name);
+        FILE *f = fopen(p, "r");
+        if (!f) continue;
+        size_t k = fread(buf, 1, sizeof(buf) - 1, f);
+        fclose(f);
+        buf[k] = 0;
+        n += strcmp(buf, id) == 0;
+    }
+    closedir(d);
+    return n;
+}
+
+/* the index names `id` for `kid` */
+static int indexed(const uint8_t kid[E4_KID_LEN], const char *id)
+{
+    char got[256];
+    return edhoc4_db_index_get(DB, kid, got, sizeof(got)) == E4_OK && strcmp(got, id) == 0;
 }
 
 enum fault { F_NONE, F_DROP_M3, F_DROP_M4, F_DROP_SUCCESS, F_UE_STOP_M3_LOST,
@@ -108,90 +171,102 @@ typedef struct {
     int fallback;      /* retried on CUR after an explicit EAP-Failure */
     int rejected;      /* every attempt got an explicit EAP-Failure */
     int used_next;
+    int first_rc;      /* DN-AAA result of the first message_1 */
+    char rec_id[256];  /* record the DN-AAA selected by KID_B */
 } result;
 
 /* One session of UE `id`; `fault` disturbs it at the given point. An
  * explicit EAP-Failure before message_2 on NEXT triggers one retry on CUR
- * (NEXT kept); a timeout does not. */
+ * (NEXT kept); a timeout does not. The DN-AAA sees no identity: it finds
+ * the record by KID_B. */
 static int session(const char *id, enum fault fault, result *res)
 {
     char up[512];
     edhoc4_ue_state st;
     edhoc4_ctx I, R;
     edhoc4_db_rec rec;
-    static uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG], m3[E4_MAX_MSG], m4[E4_MAX_MSG];
+    uint8_t *m = malloc(4 * E4_MAX_MSG);
     size_t n1, n2, n3, n4;
     int rc, attempt = 0;
 
     memset(res, 0, sizeof(*res));
+    if (!m) return E4_ERR_BUF;
+    uint8_t *m1 = m, *m2 = m + E4_MAX_MSG, *m3 = m + 2 * E4_MAX_MSG, *m4 = m + 3 * E4_MAX_MSG;
     ue_path(id, up, sizeof(up));
-    if ((rc = edhoc4_ue_load(up, &st)) != E4_OK) return rc;
+    if ((rc = edhoc4_ue_load(up, &st)) != E4_OK) goto out;
     res->used_next = st.using_next;
     for (;;) {
         edhoc4_init_initiator(&I, &st.self, st.peer_pk);
-        if ((rc = edhoc4_i_make_msg1(&I, m1, sizeof(m1), &n1)) != E4_OK) return rc;
+        if ((rc = edhoc4_i_make_msg1(&I, m1, E4_MAX_MSG, &n1)) != E4_OK) goto out;
         if (attempt == 0 && fault == F_TIMEOUT) {          /* no answer at all */
             edhoc4_ctx_wipe(&I); edhoc4_ue_state_wipe(&st);
-            return E4_OK;
+            rc = E4_OK; goto out;
         }
         if (attempt == 0 && fault == F_FORGED_FAILURE)
             rc = E4_ERR_AEAD;                              /* attacker's EAP-Failure */
         else
-            rc = edhoc4_db_handle_msg1(DB, id, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
+            rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, E4_MAX_MSG, &n2);
+        if (attempt == 0) res->first_rc = rc;
         if (rc == E4_OK) break;
         edhoc4_ctx_wipe(&I);
         if (st.using_next && attempt == 0) {               /* explicit EAP-Failure on NEXT */
-            if ((rc = edhoc4_ue_fallback(up, &st)) != E4_OK) return rc;
+            if ((rc = edhoc4_ue_fallback(up, &st)) != E4_OK) goto out;
             res->fallback = 1;
             attempt++;
             continue;
         }
         res->rejected = 1;                                 /* keep both slots */
         edhoc4_ue_state_wipe(&st);
-        return E4_OK;
+        rc = E4_OK; goto out;
     }
+    snprintf(res->rec_id, sizeof(res->rec_id), "%s", rec.id);
 
-    if ((rc = edhoc4_i_handle_msg2(&I, m2, n2, m3, sizeof(m3), &n3)) != E4_OK) return rc;
+    if ((rc = edhoc4_i_handle_msg2(&I, m2, n2, m3, E4_MAX_MSG, &n3)) != E4_OK) goto out;
     /* write-ahead: NEXT is durable before message_3 leaves */
-    if ((rc = edhoc4_ue_store_next(up, &st, &I)) != E4_OK) return rc;
+    if ((rc = edhoc4_ue_store_next(up, &st, &I)) != E4_OK) goto out;
     if (fault == F_DROP_M3 || fault == F_UE_STOP_M3_LOST) {
         edhoc4_ctx_wipe(&I); edhoc4_ctx_wipe(&R); edhoc4_db_rec_wipe(&rec); edhoc4_ue_state_wipe(&st);
-        return E4_OK;
+        rc = E4_OK; goto out;
     }
 
-    if ((rc = edhoc4_r_handle_msg3(&R, m3, n3, m4, sizeof(m4), &n4)) != E4_OK) return rc;
+    if ((rc = edhoc4_r_handle_msg3(&R, m3, n3, m4, E4_MAX_MSG, &n4)) != E4_OK) goto out;
     int keys_match = memcmp(I.msk, R.msk, E4_MSK_LEN) == 0 &&
                      memcmp(I.emsk, R.emsk, E4_EMSK_LEN) == 0;
-    if ((rc = edhoc4_db_commit(&R, &rec)) != E4_OK) return rc;
+    if ((rc = edhoc4_db_commit(&R, &rec)) != E4_OK) goto out;
     if (fault == F_DN_STOP_COMMIT) {
-        /* DN-AAA dies before message_4 and before the erasure; its next
-         * message_1 for this UE erases the old sk_B */
+        /* DN-AAA dies before message_4 and before the erasure; the next
+         * message_1 naming the new key erases the old sk_B and its KID */
         edhoc4_ctx_wipe(&I); edhoc4_db_rec_wipe(&rec); edhoc4_ue_state_wipe(&st);
-        return E4_OK;
+        rc = E4_OK; goto out;
     }
     edhoc4_db_erase_old(&rec);                    /* after message_4 is sent */
     edhoc4_db_rec_wipe(&rec);
     if (fault == F_DROP_M4 || fault == F_UE_STOP_M3_DONE) {
         edhoc4_ctx_wipe(&I); edhoc4_ue_state_wipe(&st);
-        return E4_OK;
+        rc = E4_OK; goto out;
     }
 
-    if ((rc = edhoc4_i_handle_msg4(&I, m4, n4)) != E4_OK) return rc;
-    if ((rc = edhoc4_ue_promote(up, &st)) != E4_OK) return rc;   /* after message_4 */
+    if ((rc = edhoc4_i_handle_msg4(&I, m4, n4)) != E4_OK) goto out;
+    if ((rc = edhoc4_ue_promote(up, &st)) != E4_OK) goto out;   /* after message_4 */
     edhoc4_ctx_wipe(&I);
     edhoc4_ue_state_wipe(&st);
     /* F_DROP_SUCCESS: the UE verified message_4 and promoted; losing the
      * EAP-Success afterwards changes no key state */
     res->ok = keys_match;
-    return E4_OK;
+    rc = E4_OK;
+out:
+    free(m);
+    return rc;
 }
 
-/* a normal session that checks the erasure of the keys it replaced */
+/* a normal session that checks the record choice, the erasure of the keys
+ * it replaced and the index (exactly the KID of the new pk_B) */
 static int normal_session(const char *id, int *fallback)
 {
     char up[512], dp[512];
     edhoc4_creds dn_old, ue_cur, ue_other;
     edhoc4_rec_info info;
+    uint8_t new_kid[E4_KID_LEN];
     result r;
     ue_path(id, up, sizeof(up));
     dn_path(id, dp, sizeof(dp));
@@ -202,11 +277,12 @@ static int normal_session(const char *id, int *fallback)
     if (two) edhoc4_rec_load(up, 1 - info.active, &ue_other, NULL, NULL);
     int rc = session(id, F_NONE, &r);
     if (fallback) *fallback = r.fallback;
-    int ok = rc == E4_OK && r.ok &&
+    int ok = rc == E4_OK && r.ok && strcmp(r.rec_id, id) == 0 &&
              valid_slots(dp) == 1 && valid_slots(up) == 1 &&
              !file_has(dp, dn_old.kem_sk, 64) &&
              !file_has(up, ue_cur.kem_sk, 64) &&
-             (!two || !file_has(up, ue_other.kem_sk, 64));
+             (!two || !file_has(up, ue_other.kem_sk, 64)) &&
+             dn_kid(id, -1, new_kid) == 0 && indexed(new_kid, id) && index_entries(id) == 1;
     sodium_memzero(&dn_old, sizeof(dn_old));
     sodium_memzero(&ue_cur, sizeof(ue_cur));
     sodium_memzero(&ue_other, sizeof(ue_other));
@@ -224,8 +300,39 @@ static int ue_has_next(const char *id)
     return n;
 }
 
+/* message_1 of UE `id` on its current slot */
+static int make_msg1(const char *id, uint8_t *m1, size_t *n1)
+{
+    char up[512];
+    edhoc4_ue_state st;
+    edhoc4_ctx I;
+    ue_path(id, up, sizeof(up));
+    if (edhoc4_ue_load(up, &st) != E4_OK) return -1;
+    edhoc4_init_initiator(&I, &st.self, st.peer_pk);
+    int rc = edhoc4_i_make_msg1(&I, m1, E4_MAX_MSG, n1);
+    edhoc4_ctx_wipe(&I);
+    edhoc4_ue_state_wipe(&st);
+    return rc;
+}
+
+/* ---- 100 anonymous UEs ---- */
+typedef struct { char id[32]; int ok; } many_arg;
+
+static void *many_main(void *arg)
+{
+    many_arg *a = arg;
+    result r;
+    a->ok = session(a->id, F_NONE, &r) == E4_OK && r.ok && strcmp(r.rec_id, a->id) == 0;
+    return NULL;
+}
+
 int main(void)
 {
+    static uint8_t m1[E4_MAX_MSG], m2[E4_MAX_MSG];
+    size_t n1, n2;
+    edhoc4_ctx R;
+    edhoc4_db_rec rec;
+
     if (sodium_init() < 0) return 1;
     if (system("rm -rf " ROOT) != 0) return 1;
     edhoc4_creds dn_sig;
@@ -233,16 +340,64 @@ int main(void)
     edhoc4_gen_creds(&dn_sig, id_srv);
     provision("ue-a", 1, &dn_sig);
     provision("ue-b", 2, &dn_sig);
-    printf("[edhoc4 dbtest v3 final] record by EAP identity, CUR/NEXT, no grace key\n");
+    printf("[edhoc4 dbtest v4] record by KID_B = H(pk_B), anonymous identity, CUR/NEXT, no grace key\n");
 
     /* ---- 1. 2 UEs x 5 sessions ---- */
     int ok_all = 1;
     for (int n = 0; n < 5; n++)
         for (int u = 0; u < 2; u++)
             ok_all &= normal_session(u ? "ue-b" : "ue-a", NULL);
-    check(ok_all, "2 UEs x 5 sessions: keys match, one sk_B / no old sk_A on file");
+    check(ok_all, "2 UEs x 5 sessions: own record by KID, keys match, index = new KID only");
 
-    /* ---- 2. failure injection: fault, then one normal session ---- */
+    /* ---- 2. KID checks ---- */
+    {
+        /* clear KID_B != KID_B inside PT1 */
+        edhoc4_test_flip_pt1_kid = 1;
+        int rc0 = make_msg1("ue-a", m1, &n1);
+        edhoc4_test_flip_pt1_kid = 0;
+        int rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
+        check(rc0 == E4_OK && rc == E4_ERR_KID, "clear KID_B != KID_B in PT1: E4_ERR_KID");
+
+        /* the record's pk_B does not hash to KID_B (core check, no KEM) */
+        char p[512];
+        edhoc4_creds b_srv;
+        uint8_t b_ue_pk[E4_XWING_PK];
+        dn_path("ue-b", p, sizeof(p));
+        edhoc4_rec_load(p, -1, &b_srv, b_ue_pk, NULL);
+        make_msg1("ue-a", m1, &n1);
+        unsigned long d0 = edhoc4_test_decaps_calls;
+        edhoc4_init_responder(&R, &b_srv, b_ue_pk);
+        rc = edhoc4_r_handle_msg1(&R, m1, n1, m2, sizeof(m2), &n2);
+        edhoc4_ctx_wipe(&R);
+        sodium_memzero(&b_srv, sizeof(b_srv));
+        check(rc == E4_ERR_KID && edhoc4_test_decaps_calls == d0,
+              "KID_B != SHA-256(pk_B) of the record: E4_ERR_KID, no decaps");
+
+        /* index redirected to another record: stale, rejected and removed */
+        uint8_t kid_a[E4_KID_LEN];
+        dn_kid("ue-a", -1, kid_a);
+        edhoc4_db_index_put(DB, kid_a, "ue-b");
+        d0 = edhoc4_test_decaps_calls;
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
+        char got[256];
+        int removed = edhoc4_db_index_get(DB, kid_a, got, sizeof(got)) == E4_ERR_PEER;
+        check(rc == E4_ERR_PEER && edhoc4_test_decaps_calls == d0 && removed,
+              "index points to another record: rejected, no decaps, entry removed");
+        edhoc4_db_index_put(DB, kid_a, "ue-a");            /* restore */
+
+        /* unknown KID */
+        make_msg1("ue-a", m1, &n1);
+        m1[0] ^= 0xff;
+        d0 = edhoc4_test_decaps_calls;
+        rc = edhoc4_db_handle_msg1(DB, &R, &rec, m1, n1, m2, sizeof(m2), &n2);
+        check(rc == E4_ERR_PEER && edhoc4_test_decaps_calls == d0, "unknown KID_B: E4_ERR_PEER, no decaps");
+        uint8_t junk[64] = { 0 };
+        check(edhoc4_db_handle_msg1(DB, &R, &rec, junk, sizeof(junk), m2, sizeof(m2), &n2) == E4_ERR_PARSE,
+              "short message_1: rejected before the index");
+        check(normal_session("ue-a", NULL), "ue-a still works after the KID checks");
+    }
+
+    /* ---- 3. failure injection: fault, then one normal session ---- */
     static const struct { enum fault f; const char *name; int want_next, want_fb; } cases[] = {
         { F_DROP_M3,         "message_3 dropped",                 1, 1 },
         { F_DROP_M4,         "message_4 dropped",                 1, 0 },
@@ -253,13 +408,26 @@ int main(void)
     };
     for (size_t k = 0; k < sizeof(cases) / sizeof(cases[0]); k++) {
         result r;
-        char what[128];
+        char what[160];
+        uint8_t kid_old[E4_KID_LEN], kid_new[E4_KID_LEN];
+        dn_kid("ue-a", -1, kid_old);
         int rc = session("ue-a", cases[k].f, &r);
         int next_ok = ue_has_next("ue-a") == cases[k].want_next;
+        int extra = 1;
+        if (cases[k].f == F_DN_STOP_COMMIT) {
+            /* both slots and both KIDs present until the next message_1 */
+            char dp[512];
+            dn_path("ue-a", dp, sizeof(dp));
+            extra = valid_slots(dp) == 2 && dn_kid("ue-a", -1, kid_new) == 0 &&
+                    indexed(kid_old, "ue-a") && indexed(kid_new, "ue-a");
+        }
+        if (cases[k].f == F_DROP_M3)        /* the UE's NEXT KID is unknown */
+            extra = index_entries("ue-a") == 1 && indexed(kid_old, "ue-a");
         int fb = -1;
         int next = normal_session("ue-a", &fb);
+        if (cases[k].f == F_DN_STOP_COMMIT) extra &= !indexed(kid_old, "ue-a");
         snprintf(what, sizeof(what), "%s: next session ok, fallback=%d", cases[k].name, fb);
-        check(rc == E4_OK && next_ok && next && fb == cases[k].want_fb, what);
+        check(rc == E4_OK && next_ok && next && extra && fb == cases[k].want_fb, what);
     }
 
     /* forged EAP-Failure: bring the UE to NEXT with the DN-AAA committed
@@ -286,14 +454,28 @@ int main(void)
               "timeout after message_1: no fallback, then NEXT ok");
     }
 
-    /* ---- 3. unknown identity ---- */
-    edhoc4_ctx R; edhoc4_db_rec rec;
-    uint8_t m2[E4_MAX_MSG], junk[64] = { 0 };
-    size_t n2;
-    check(edhoc4_db_handle_msg1(DB, "nobody", &R, &rec, junk, sizeof(junk), m2, sizeof(m2), &n2) == E4_ERR_PEER,
-          "unknown identity rejected (before any KEM)");
-    check(edhoc4_db_handle_msg1(DB, "../ue-a", &R, &rec, junk, sizeof(junk), m2, sizeof(m2), &n2) == E4_ERR_PEER,
-          "path-like identity rejected");
+    /* ---- 4. 100 anonymous UEs ---- */
+    {
+        static many_arg args[N_MANY];
+        pthread_t th[N_MANY];
+        for (int i = 0; i < N_MANY; i++) {
+            snprintf(args[i].id, sizeof(args[i].id), "u%03d", i);
+            provision(args[i].id, 100 + i, &dn_sig);
+        }
+        int ok = 1;
+        for (int round = 0; round < 2; round++)
+            for (int i = 0; i < N_MANY; i++) {
+                many_main(&args[i]);
+                ok &= args[i].ok;
+            }
+        check(ok, "100 anonymous UEs, 2 interleaved rounds: own record, keys match");
+        for (int i = 0; i < N_MANY; i++) pthread_create(&th[i], NULL, many_main, &args[i]);
+        ok = 1;
+        for (int i = 0; i < N_MANY; i++) { pthread_join(th[i], NULL); ok &= args[i].ok; }
+        int idx_ok = 1;
+        for (int i = 0; i < N_MANY; i++) idx_ok &= index_entries(args[i].id) == 1;
+        check(ok && idx_ok, "100 anonymous UEs in parallel: 0 mix-ups, one index entry each");
+    }
 
     sodium_memzero(&dn_sig, sizeof(dn_sig));
     printf("\nRESULT: %s\n", fails ? "FAIL" : "PASS");

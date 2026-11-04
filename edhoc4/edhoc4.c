@@ -258,9 +258,18 @@ static int xwing_encaps(uint8_t ct[E4_XWING_CT], uint8_t ss[E4_XWING_SS],
 }
 
 /* sk is the expanded key, pk the party's own X-Wing public key */
+#ifdef E4_TEST_HOOKS
+/* dbtest only (built with -DE4_TEST_HOOKS, never in libedhoc4.a) */
+int edhoc4_test_flip_pt1_kid;          /* corrupt KID_B inside PT1 */
+unsigned long edhoc4_test_decaps_calls;
+#endif
+
 static int xwing_decaps(uint8_t ss[E4_XWING_SS], const uint8_t ct[E4_XWING_CT],
                         const uint8_t sk[E4_XWING_SK], const uint8_t pk[E4_XWING_PK])
 {
+#ifdef E4_TEST_HOOKS
+    edhoc4_test_decaps_calls++;
+#endif
     uint8_t ss_m[32], ss_x[32];
     const uint8_t *ct_x = ct + E4_MLKEM_CT;
     int rc = E4_ERR_KEM;
@@ -745,6 +754,9 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
     memcpy(pt1 + 2, ctx->self.id_cred, E4_ID_CRED);
     ead1_build(pt1 + 2 + E4_ID_CRED, ctx->new_pk);
     memcpy(pt1 + 2 + E4_ID_CRED + E4_EAD1_LEN, kid_b, E4_KID_LEN);
+#ifdef E4_TEST_HOOKS
+    if (edhoc4_test_flip_pt1_kid) pt1[2 + E4_ID_CRED + E4_EAD1_LEN] ^= 1;
+#endif
     uint8_t ct1[sizeof(pt1) + E4_AEAD_TAG];
     size_t ct1_len = 0;
     if (aead_seal(ctx->prk1e, ctx->th1, pt1, sizeof(pt1), ct1, &ct1_len) != E4_OK)
