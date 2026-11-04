@@ -180,8 +180,8 @@ typedef struct {
 /* provisioning: allocate and zero the file, write slot 0 (seq 1), fsync */
 int edhoc4_rec_create(const char *path, const edhoc4_creds *self,
                       const uint8_t peer_pk[E4_XWING_PK]);
-/* read slot `slot` (0/1), or the newest valid slot if slot < 0; peer_pk
- * and info may be NULL */
+/* read slot `slot` (0/1), or the newest valid slot if slot < 0; self,
+ * peer_pk and info may be NULL */
 int edhoc4_rec_load(const char *path, int slot, edhoc4_creds *self,
                     uint8_t peer_pk[E4_XWING_PK], edhoc4_rec_info *info);
 /* write (self, peer_pk) into slot `slot` with seq = newest + 1, then

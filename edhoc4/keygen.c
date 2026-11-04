@@ -1,12 +1,15 @@
 /*
- * keygen.c — provisioning tool for EAP-EDHOC method 4 (final v3 protocol).
+ * keygen.c — provisioning tool for EAP-EDHOC method 4 (protocol v4).
  *
- *   edhoc4_keygen <dir> [eap_identity ...]      (default identity: edhoc-ue)
+ *   edhoc4_keygen <dir> [record_id ...]         (default record id: edhoc-ue)
+ *   edhoc4_keygen --reindex <db_root>           rebuild <db_root>/kid/
  *
  * pk_B is per UE and rotated every session, so the DN-AAA keeps one record
- * per UE, selected by the EAP identity (RADIUS User-Name). For each identity:
+ * per UE under an internal record id, found by KID_B = SHA-256(pk_B) from
+ * message_1 through the index <dir>/edhoc_db/kid/ (written here for the
+ * initial pk_B). For each record id:
  *
- *   DN-AAA side  <dir>/edhoc_db/<identity>/
+ *   DN-AAA side  <dir>/edhoc_db/<record_id>/
  *       rec.bin       two-slot record: sk_B/pk_B for this UE + DN-AAA
  *                     ML-DSA key, and pk_A (UE one-time X-Wing key)  [secret]
  *       ue.vk         VK_I  (UE ML-DSA-44 verification key)
@@ -23,6 +26,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 #include "edhoc4.h"
+#include "edhoc4_db.h"
 
 #include <dirent.h>
 #include <errno.h>
@@ -81,6 +85,14 @@ static int save_record(const char *dn_dir, const char *ue_dir, const edhoc4_cred
 
 int main(int argc, char **argv)
 {
+    if (argc == 3 && !strcmp(argv[1], "--reindex")) {
+        if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
+        int n = edhoc4_db_reindex(argv[2]);
+        if (n < 0) { fprintf(stderr, "reindex %s failed\n", argv[2]); return 1; }
+        printf("indexed %d KID(s) in %s/kid/\n", n, argv[2]);
+        return 0;
+    }
+
     const char *dir = (argc > 1) ? argv[1] : ".";
     static const char *def_ids[] = { "edhoc-ue" };
     const char **ids = (argc > 2) ? (const char **)&argv[2] : def_ids;
@@ -122,6 +134,10 @@ int main(int argc, char **argv)
         sodium_memzero(&ue, sizeof(ue));
     }
     sodium_memzero(&dn_sig, sizeof(dn_sig));
+
+    /* KID index of the initial pk_B of every record */
+    snprintf(dn_dir, sizeof(dn_dir), "%s/edhoc_db", dir);
+    if (edhoc4_db_reindex(dn_dir) < 0) { fprintf(stderr, "index %s failed\n", dn_dir); return 1; }
 
     printf("provisioned %d EDHOC method-4 record(s) in %s/\n", nids, dir);
     return 0;

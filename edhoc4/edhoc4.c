@@ -591,7 +591,7 @@ int edhoc4_rec_load(const char *path, int slot, edhoc4_creds *self,
 {
     static __thread uint8_t slots[2][REC_SLOT];
     edhoc4_rec_info tmp;
-    if (!path || !self || slot > 1) return E4_ERR_ARG;
+    if (!path || slot > 1) return E4_ERR_ARG;
     if (!info) info = &tmp;
     int fd = rec_open(path, O_RDONLY, slots, info);
     if (fd < 0) return E4_ERR_ARG;
@@ -599,7 +599,7 @@ int edhoc4_rec_load(const char *path, int slot, edhoc4_creds *self,
     int rc = E4_ERR_PARSE;
     int i = slot < 0 ? info->active : slot;
     if (i >= 0 && info->valid[i]) {
-        memcpy(self, slots[i] + REC_SLOT_HDR, sizeof(*self));
+        if (self) memcpy(self, slots[i] + REC_SLOT_HDR, sizeof(*self));
         if (peer_pk) memcpy(peer_pk, slots[i] + REC_SLOT_HDR + sizeof(*self), E4_XWING_PK);
         rc = E4_OK;
     }
