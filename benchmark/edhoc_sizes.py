@@ -106,6 +106,7 @@ _TLS_HYBRID_SIZES = {"message_1": 1589, "message_2": 12600, "message_3": 10983, 
 E4_AEAD_TAG = 16
 E4_METHOD_F = 1
 E4_EAD_ITEM = 1 + XWING_PK                  # label 0x60 + Npk
+E4_KID = 32                                 # v4: KID_B = SHA-256(pk_B)
 
 # EAP-EDHOC fragmentation (edhoc4.h, transport.cpp, e2e_radius_bench.c): an
 # EAP-EDHOC payload is at most 1000 bytes = 1 flags byte + data; the first
@@ -125,20 +126,21 @@ def edhoc4_eap_fragments(n: int) -> int:
 
 
 def _message_sizes_sigma_xwing() -> dict:
-    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), final v3 protocol: no
-    ephemeral X-Wing; the next one-time keys travel in EAD_1 / EAD_2.
+    """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), protocol v4: no ephemeral
+    X-Wing; the next one-time keys travel in EAD_1 / EAD_2; message_1 carries
+    KID_B = SHA-256(pk_B) in clear (record lookup) and inside PT1.
     Byte-exact with edhoc4.c:
 
-    message_1 = ctB || AEAD(K1, PT1)
-        PT1 = METHOD || C_I || ID_CRED_I || EAD_1 (= 0x60 || NpkA)
+    message_1 = KID_B || ctB || AEAD(K1, PT1)
+        PT1 = METHOD || C_I || ID_CRED_I || EAD_1 (= 0x60 || NpkA) || KID_B
     message_2 = ctA || AEAD(K2, PT2)
         PT2 = C_R || ID_CRED_R || VK_R || EAD_2 (= 0x60 || NpkB) || MAC2 || sigma_R
     message_3 = AEAD(K3, PT3)
         PT3 = MAC3 || VK_I || sigma_I               (no EAD_3)
     message_4 = AEAD(K4, empty)                     (tag only, mandatory)
     """
-    pt1 = E4_METHOD_F + CONN_ID + ID_CRED + E4_EAD_ITEM
-    m1 = XWING_CT + pt1 + E4_AEAD_TAG
+    pt1 = E4_METHOD_F + CONN_ID + ID_CRED + E4_EAD_ITEM + E4_KID
+    m1 = E4_KID + XWING_CT + pt1 + E4_AEAD_TAG
 
     pt2 = CONN_ID + ID_CRED + MLDSA44_PK + E4_EAD_ITEM + MAC_LEN + MLDSA44_SIG
     m2 = XWING_CT + pt2 + E4_AEAD_TAG

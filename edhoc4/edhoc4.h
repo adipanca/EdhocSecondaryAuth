@@ -63,6 +63,11 @@ extern "C" {
 #define E4_EAD1_LEN (1 + E4_XWING_PK)
 #define E4_EAD2_LEN (1 + E4_XWING_PK)
 
+/* v4: KID_B = SHA-256(pk_B), sent in clear at the start of message_1 and
+ * inside PT1; the DN-AAA finds the record by KID_B, so the outer EAP
+ * identity can be anonymous. pk_B rotates every run, so KID_B does too. */
+#define E4_KID_LEN    32
+
 #define E4_MSK_LEN    64
 #define E4_EMSK_LEN   64
 
@@ -225,8 +230,15 @@ int edhoc4_i_handle_msg4(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len);
 void edhoc4_init_responder(edhoc4_ctx *ctx, const edhoc4_creds *self,
                            const uint8_t peer_kem_pk[E4_XWING_PK]);
 
+/* KID = SHA-256(pk) of an X-Wing public key */
+void edhoc4_kid(const uint8_t pk[E4_XWING_PK], uint8_t kid[E4_KID_LEN]);
+/* responder: the clear KID_B of message_1, before any record is chosen;
+ * no cryptographic operation. E4_ERR_PARSE on a wrong length. */
+int edhoc4_r_peek_kid(const uint8_t *in, size_t in_len, uint8_t kid[E4_KID_LEN]);
+
 /* consume message_1 (EAD_1 = Npk_A), generate (Nsk_B, Npk_B), build
- * message_2 (EAD_2 = Npk_B) */
+ * message_2 (EAD_2 = Npk_B). E4_ERR_KID if the clear KID_B differs from
+ * SHA-256(own pk_B) or from the KID_B inside PT1. */
 int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
                          uint8_t *out, size_t out_cap, size_t *out_len);
 /* consume message_3, derive MSK/EMSK, build message_4 = AEAD(K_4, empty) */
@@ -235,7 +247,7 @@ int edhoc4_r_handle_msg3(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
 
 /* responder: resolve (pk_A, VK_I) from ID_CRED_I carried in message_1.
  * The caller selects the per-UE record (own one-time sk_B) BEFORE
- * edhoc4_init_responder, from the EAP identity of the session. */
+ * edhoc4_init_responder, from KID_B (edhoc4_r_peek_kid). */
 void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg);
 
 /* after success: install next-session keys, erase the old one-time sk and the
@@ -262,6 +274,7 @@ const char *edhoc4_strerror(int rc);
 #define E4_ERR_SIG          -7
 #define E4_ERR_STATE        -8
 #define E4_ERR_PEER         -9
+#define E4_ERR_KID          -10
 
 #ifdef __cplusplus
 }
