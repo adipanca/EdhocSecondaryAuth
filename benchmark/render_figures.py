@@ -4,7 +4,7 @@ render_figures.py — run the code cells of the v2 notebook in a scratch
 directory (headless matplotlib) and copy the figures the paper uses to
 symmetry-rev/paper/img_<name>.png.
 
-usage: render_figures.py [workdir]
+usage: render_figures.py [workdir] [paper-image ...]    (default: all figures)
 """
 import json
 import os
@@ -43,6 +43,11 @@ for i, c in enumerate(cells):
                             stdout=log, stderr=subprocess.STDOUT).returncode
     if rc != 0:
         sys.exit(f"cell {i} failed, see {path}.log")
+only = sys.argv[2:]
+assert all(o in FIGS.values() for o in only), only
+copied = 0
 for src, dst in FIGS.items():
-    shutil.copy(os.path.join(work, src), os.path.join(PAPER, dst))
-print(f"rendered {len(cells)} cells in {work}; copied {len(FIGS)} figures to {PAPER}")
+    if not only or dst in only:
+        shutil.copy(os.path.join(work, src), os.path.join(PAPER, dst))
+        copied += 1
+print(f"rendered {len(cells)} cells in {work}; copied {copied} figures to {PAPER}")
