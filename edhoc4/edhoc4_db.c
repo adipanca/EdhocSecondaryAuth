@@ -295,12 +295,16 @@ int edhoc4_db_handle_msg1(edhoc4_db_index *idx, edhoc4_ctx *ctx, edhoc4_db_rec *
     int fd = lock_rec(rec->dir);
     if (fd < 0) { edhoc4_db_rec_wipe(rec); return E4_ERR_ARG; }
     int rc = E4_ERR_PEER;
-    /* the index is only a hint: the slot must hold the pk_B of this KeyID */
-    if (edhoc4_rec_load(p, slot, &rec->server, rec->ue_pub, &info) == E4_OK)
+    /* the index is only a hint: the slot must hold the pk_B of this KeyID
+     * (v4s, v4s+chk: not checked, the record is taken as the index gives it) */
+    int v = edhoc4_get_variant();
+    int no_kid_check = v == E4_VARIANT_V4S || v == E4_VARIANT_V4S_CHK;
+    int loaded = edhoc4_rec_load(p, slot, &rec->server, rec->ue_pub, &info) == E4_OK;
+    if (loaded && !no_kid_check)
         edhoc4_keyid(rec->server.kem_pk, disk_kid);
     else
         sodium_memzero(disk_kid, sizeof(disk_kid));
-    if (sodium_memcmp(disk_kid, kid, E4_KEYID_LEN) != 0) {
+    if (!loaded || (!no_kid_check && sodium_memcmp(disk_kid, kid, E4_KEYID_LEN) != 0)) {
         edhoc4_db_index_del(idx, kid, rec->id);
         rc = E4_ERR_KEYID;
     } else if (slot == info.active &&

@@ -295,7 +295,16 @@ static int xwing_encaps(uint8_t ct[E4_XWING_CT], uint8_t ss[E4_XWING_SS],
 #ifdef E4_TEST_HOOKS
 /* dbtest only (built with -DE4_TEST_HOOKS, never in libedhoc4.a) */
 unsigned long edhoc4_test_decaps_calls;
+/* tamper test T7 only: KeyID_B written into PT1 instead of the real one */
+const uint8_t *edhoc4_test_inner_kid;
 #endif
+
+static _Thread_local unsigned long tls_decaps;
+
+unsigned long edhoc4_decaps_count(void)
+{
+    return tls_decaps;
+}
 
 static int xwing_decaps(uint8_t ss[E4_XWING_SS], const uint8_t ct[E4_XWING_CT],
                         const uint8_t sk[E4_XWING_SK], const uint8_t pk[E4_XWING_PK])
@@ -303,6 +312,7 @@ static int xwing_decaps(uint8_t ss[E4_XWING_SS], const uint8_t ct[E4_XWING_CT],
 #ifdef E4_TEST_HOOKS
     edhoc4_test_decaps_calls++;
 #endif
+    tls_decaps++;
     uint8_t ss_m[32], ss_x[32];
     const uint8_t *ct_x = ct + E4_MLKEM_CT;
     int rc = E4_ERR_KEM;
@@ -760,15 +770,71 @@ void edhoc4_keyid(const uint8_t pk[E4_XWING_PK], uint8_t kid[E4_KEYID_LEN])
 /*   PT1 = method(1) || C_I(1) || ID_CRED_I(3) || EAD_1(1 + 1216)            */
 /*   KeyID_B = SHA-256(pk_B) of the key the UE encapsulates to (CUR or NEXT) */
 /*   AAD_1 = KeyID_B || ct_B (fixed length); TH_1 = SHA-256(pk_B || ct_B)    */
+/*   v4s, v4s+chk: PT1 = method(1) || bstr(KeyID_B)(2 + 32) || C_I(1)        */
+/*   || ID_CRED_I(3) || EAD_1(1 + 1216). v4s, v4s+chk, v4t: TH_1 = SHA-256(  */
+/*   bstr(KeyID_B) bstr(ct_B)), a CBOR sequence; AD = TH_1 (aead_seal, the   */
+/*   convention of message_2..4)                                             */
 /* ======================================================================== */
 
 #define E4_PT1_LEN (2 + E4_ID_CRED + E4_EAD1_LEN)
+#define E4_PT1_INNER (2 + E4_KEYID_LEN)         /* v4s: bstr(KeyID_B) in PT1 */
+#define E4_PT1_MAX (E4_PT1_LEN + E4_PT1_INNER)
 #define E4_AAD1_LEN (E4_KEYID_LEN + E4_XWING_CT)
-#define E4_MSG1_LEN (E4_AAD1_LEN + E4_PT1_LEN + E4_AEAD_TAG)
+
+static int e4_variant = E4_VARIANT_V4;
+
+void edhoc4_set_variant(int variant) { e4_variant = variant; }
+int  edhoc4_get_variant(void) { return e4_variant; }
+
+static const char *const e4_variant_names[] = { "v4", "v4s", "v4s+chk", "v4t" };
+
+int edhoc4_variant_parse(const char *name)
+{
+    for (int i = 0; name && i < 4; i++)
+        if (strcmp(name, e4_variant_names[i]) == 0) return i;
+    return -1;
+}
+
+const char *edhoc4_variant_name(int variant)
+{
+    return (variant >= 0 && variant < 4) ? e4_variant_names[variant] : "?";
+}
+
+static int variant_inner_kid(void)
+{
+    return e4_variant == E4_VARIANT_V4S || e4_variant == E4_VARIANT_V4S_CHK;
+}
+
+static size_t pt1_len(void)
+{
+    return E4_PT1_LEN + (variant_inner_kid() ? E4_PT1_INNER : 0);
+}
+
+size_t edhoc4_msg1_len(void)
+{
+    return E4_AAD1_LEN + pt1_len() + E4_AEAD_TAG;
+}
+
+/* TH_1 of the current variant; pk_B is not used by v4s, v4s+chk, v4t */
+static void msg1_th1(uint8_t th1[32], const uint8_t pk_b[E4_XWING_PK],
+                     const uint8_t kid[E4_KEYID_LEN], const uint8_t ct_b[E4_XWING_CT])
+{
+    if (e4_variant == E4_VARIANT_V4) {
+        const uint8_t *s[2] = { pk_b, ct_b };
+        const size_t l[2] = { E4_XWING_PK, E4_XWING_CT };
+        sha256_cat(th1, s, l, 2);
+    } else {
+        static const uint8_t h_kid[2] = { 0x58, E4_KEYID_LEN };
+        static const uint8_t h_ct[3] = { 0x59, E4_XWING_CT >> 8, E4_XWING_CT & 0xff };
+        const uint8_t *s[4] = { h_kid, kid, h_ct, ct_b };
+        const size_t l[4] = { sizeof(h_kid), E4_KEYID_LEN, sizeof(h_ct), E4_XWING_CT };
+        sha256_cat(th1, s, l, 4);
+    }
+}
 
 int edhoc4_r_peek_keyid(const uint8_t *in, size_t in_len, uint8_t kid[E4_KEYID_LEN])
 {
-    if (!in || in_len != E4_MSG1_LEN) return E4_ERR_PARSE;
+    if (!in || in_len != edhoc4_msg1_len()) return E4_ERR_PARSE;
     memcpy(kid, in, E4_KEYID_LEN);
     return E4_OK;
 }
@@ -785,24 +851,33 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
     edhoc4_keyid(ctx->peer_kem_pk, aad1);
     if (xwing_encaps(ct_b, ctx->ss_b, ctx->peer_kem_pk) != E4_OK) return E4_ERR_KEM;
 
-    /* TH1 = H(pk_B || ctB) */
-    const uint8_t *s1[2] = { ctx->peer_kem_pk, ct_b };
-    const size_t l1[2] = { E4_XWING_PK, E4_XWING_CT };
-    sha256_cat(ctx->th1, s1, l1, 2);
+    msg1_th1(ctx->th1, ctx->peer_kem_pk, aad1, ct_b);
 
     /* PRK1e = HKDF-Extract(TH1, ss_b) */
     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
 
     /* ID_CRED_I is needed by the responder to look up pk_A before message_2 */
-    uint8_t pt1[E4_PT1_LEN];
-    pt1[0] = E4_METHOD;
-    pt1[1] = ctx->c_i[0];
-    memcpy(pt1 + 2, ctx->self.id_cred, E4_ID_CRED);
-    ead1_build(pt1 + 2 + E4_ID_CRED, ctx->new_pk);
+    uint8_t pt1[E4_PT1_MAX];
+    size_t p = 0;
+    pt1[p++] = E4_METHOD;
+    if (variant_inner_kid()) {
+        pt1[p++] = 0x58;
+        pt1[p++] = E4_KEYID_LEN;
+        memcpy(pt1 + p, aad1, E4_KEYID_LEN);
+#ifdef E4_TEST_HOOKS
+        if (edhoc4_test_inner_kid) memcpy(pt1 + p, edhoc4_test_inner_kid, E4_KEYID_LEN);
+#endif
+        p += E4_KEYID_LEN;
+    }
+    pt1[p++] = ctx->c_i[0];
+    memcpy(pt1 + p, ctx->self.id_cred, E4_ID_CRED); p += E4_ID_CRED;
+    p += ead1_build(pt1 + p, ctx->new_pk);
     uint8_t ct1[sizeof(pt1) + E4_AEAD_TAG];
     size_t ct1_len = 0;
-    if (aead_seal_aad(ctx->prk1e, ctx->th1, aad1, sizeof(aad1), pt1, sizeof(pt1), ct1, &ct1_len) != E4_OK)
-        return E4_ERR_AEAD;
+    int arc = e4_variant == E4_VARIANT_V4
+        ? aead_seal_aad(ctx->prk1e, ctx->th1, aad1, sizeof(aad1), pt1, p, ct1, &ct1_len)
+        : aead_seal(ctx->prk1e, ctx->th1, pt1, p, ct1, &ct1_len);
+    if (arc != E4_OK) return E4_ERR_AEAD;
 
     size_t need = E4_AAD1_LEN + ct1_len;
     if (need > out_cap) return E4_ERR_BUF;
@@ -825,11 +900,10 @@ int edhoc4_i_make_msg1(edhoc4_ctx *ctx, uint8_t *out, size_t out_cap, size_t *ou
 
 #define E4_PT2_LEN (E4_CONN_ID + E4_ID_CRED + E4_MLDSA_PK + E4_EAD2_LEN + E4_MAC_LEN + E4_MLDSA_SIG)
 
-int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
-                         uint8_t *out, size_t out_cap, size_t *out_len)
+int edhoc4_r_open_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len)
 {
     if (ctx->role != 0) return E4_ERR_STATE;
-    if (in_len != E4_MSG1_LEN) return E4_ERR_PARSE;
+    if (in_len != edhoc4_msg1_len()) return E4_ERR_PARSE;
 
     const uint8_t *kid_b = in;
     const uint8_t *ct_b = in + E4_KEYID_LEN;
@@ -837,29 +911,46 @@ int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
     size_t ct1_len = in_len - E4_AAD1_LEN;
 
     /* the clear KeyID_B must name this record's pk_B (the index is only a
-     * hint); checked before any KEM operation */
-    uint8_t own_kid[E4_KEYID_LEN];
-    edhoc4_keyid(ctx->self.kem_pk, own_kid);
-    if (sodium_memcmp(kid_b, own_kid, E4_KEYID_LEN) != 0) return E4_ERR_KEYID;
+     * hint); checked before any KEM operation; not in v4s, v4s+chk */
+    if (!variant_inner_kid()) {
+        uint8_t own_kid[E4_KEYID_LEN];
+        edhoc4_keyid(ctx->self.kem_pk, own_kid);
+        if (sodium_memcmp(kid_b, own_kid, E4_KEYID_LEN) != 0) return E4_ERR_KEYID;
+    }
 
     /* ss_b = Decaps(ctB, own static sk_B) */
     if (xwing_decaps(ctx->ss_b, ct_b, ctx->self.kem_sk, ctx->self.kem_pk) != E4_OK) return E4_ERR_KEM;
 
-    /* TH1 = H(pk_B || ctB); PRK1e; decrypt PT1 under AAD_1 = KeyID_B || ct_B
-     * (the first E4_AAD1_LEN bytes of message_1) */
-    const uint8_t *s1[2] = { ctx->self.kem_pk, ct_b };
-    const size_t l1[2] = { E4_XWING_PK, E4_XWING_CT };
-    sha256_cat(ctx->th1, s1, l1, 2);
+    /* TH1; PRK1e; decrypt PT1 under AAD_1 = KeyID_B || ct_B (the first
+     * E4_AAD1_LEN bytes of message_1), or TH_1 in v4s, v4s+chk, v4t */
+    msg1_th1(ctx->th1, ctx->self.kem_pk, kid_b, ct_b);
     hkdf_extract(ctx->th1, 32, ctx->ss_b, E4_XWING_SS, ctx->prk1e);
 
-    uint8_t pt1[E4_PT1_LEN]; size_t pt1_len = 0;
-    if (aead_open_aad(ctx->prk1e, ctx->th1, in, E4_AAD1_LEN, ct1, ct1_len, pt1, &pt1_len) != E4_OK)
-        return E4_ERR_AEAD;
-    if (pt1_len != E4_PT1_LEN || pt1[0] != E4_METHOD ||
-        pt1[2 + E4_ID_CRED] != E4_EAD_NEXT_PK) return E4_ERR_PARSE;
-    ctx->c_i[0] = pt1[1];
-    memcpy(ctx->peer_id_cred, pt1 + 2, E4_ID_CRED);
-    memcpy(ctx->peer_new_pk, pt1 + 3 + E4_ID_CRED, E4_XWING_PK);   /* Npk_A */
+    uint8_t pt1[E4_PT1_MAX]; size_t pt1_got = 0;
+    int arc = e4_variant == E4_VARIANT_V4
+        ? aead_open_aad(ctx->prk1e, ctx->th1, in, E4_AAD1_LEN, ct1, ct1_len, pt1, &pt1_got)
+        : aead_open(ctx->prk1e, ctx->th1, ct1, ct1_len, pt1, &pt1_got);
+    if (arc != E4_OK) return E4_ERR_AEAD;
+    size_t p = 1;
+    if (pt1_got != pt1_len() || pt1[0] != E4_METHOD) return E4_ERR_PARSE;
+    if (variant_inner_kid()) {
+        if (pt1[1] != 0x58 || pt1[2] != E4_KEYID_LEN) return E4_ERR_PARSE;
+        if (e4_variant == E4_VARIANT_V4S_CHK &&
+            sodium_memcmp(pt1 + 3, kid_b, E4_KEYID_LEN) != 0) return E4_ERR_KEYID_INNER;
+        p += E4_PT1_INNER;
+    }
+    if (pt1[p + 1 + E4_ID_CRED] != E4_EAD_NEXT_PK) return E4_ERR_PARSE;
+    ctx->c_i[0] = pt1[p];
+    memcpy(ctx->peer_id_cred, pt1 + p + 1, E4_ID_CRED);
+    memcpy(ctx->peer_new_pk, pt1 + p + 2 + E4_ID_CRED, E4_XWING_PK);   /* Npk_A */
+    return E4_OK;
+}
+
+int edhoc4_r_handle_msg1(edhoc4_ctx *ctx, const uint8_t *in, size_t in_len,
+                         uint8_t *out, size_t out_cap, size_t *out_len)
+{
+    int orc = edhoc4_r_open_msg1(ctx, in, in_len);
+    if (orc != E4_OK) return orc;
 
     /* (pk_A, VK_I) = Lookup(ID_CRED_I); falls back to the preloaded key */
     if (ctx->lookup &&
@@ -1145,6 +1236,7 @@ void edhoc4_set_lookup(edhoc4_ctx *ctx, edhoc4_lookup_fn fn, void *arg)
 
 const char *edhoc4_strerror(int rc)
 {
+    if (rc == E4_ERR_KEYID_INNER) return "KeyID_B in PT1 differs from the header";
     switch (rc) {
     case E4_OK:        return "ok";
     case E4_ERR_ARG:   return "invalid argument";

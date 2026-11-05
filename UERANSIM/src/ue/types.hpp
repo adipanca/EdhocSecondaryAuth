@@ -116,6 +116,7 @@ struct UeConfig
     /* secondaryAuth.identity: DN-specific identity of the EAP secondary
      * authentication (EAP-Response/Identity, TS 33.501 11.1.2) */
     std::optional<std::string> secondaryAuthIdentity{};
+    std::optional<std::string> secondaryAuthVariant{};
 
     struct
     {

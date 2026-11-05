@@ -485,6 +485,21 @@ bool NasSm::ensureEdhocProvisioned()
     if (m_edhocProvisioned)
         return true;
 
+    // Message1 variant (default v4): ue.yaml secondaryAuth.edhocVariant, or
+    // the EDHOC_VARIANT environment variable, which overrides it
+    std::string variant = "v4";
+    if (m_base && m_base->config && m_base->config->secondaryAuthVariant.has_value())
+        variant = *m_base->config->secondaryAuthVariant;
+    if (const char *env = std::getenv("EDHOC_VARIANT"))
+        variant = env;
+    int v = edhoc4_variant_parse(variant.c_str());
+    if (v < 0)
+    {
+        m_logger->err("EAP-EDHOC: unknown variant %s", variant.c_str());
+        return false;
+    }
+    edhoc4_set_variant(v);
+
     const char *recPath = std::getenv("EDHOC_UE_REC");
     if (!recPath)
         recPath = "/usr/local/etc/edhoc/ue.rec";

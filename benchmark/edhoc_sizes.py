@@ -125,7 +125,7 @@ def edhoc4_eap_fragments(n: int) -> int:
     return 1 + -(-(n - E4_FRAG_FIRST_CAP) // E4_FRAG_NEXT_CAP)
 
 
-def _message_sizes_sigma_xwing() -> dict:
+def _message_sizes_sigma_xwing(variant: str = "v4") -> dict:
     """Method 4: EAP-EDHOC Hybrid PQC (X-Wing), protocol v4: no ephemeral
     X-Wing; the next one-time keys travel in EAD_1 / EAD_2; message_1 carries
     KeyID_B = SHA-256(pk_B) in clear (record lookup), bound by AAD_1.
@@ -149,6 +149,9 @@ def _message_sizes_sigma_xwing() -> dict:
     m3 = pt3 + E4_AEAD_TAG
 
     m4 = E4_AEAD_TAG
+    # v4s, v4s+chk: bstr(KeyID_B) inside PT1; v4t: same size as v4
+    if variant in ("v4s", "v4s+chk"):
+        m1 += 2 + 32
 
     return {"message_1": m1, "message_2": m2, "message_3": m3, "message_4": m4}
 

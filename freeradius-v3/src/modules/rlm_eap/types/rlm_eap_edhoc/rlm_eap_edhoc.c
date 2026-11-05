@@ -94,6 +94,18 @@ static void e4t_commit(uint64_t t0)
 	e4t_line(line);
 }
 
+/* message_1 at the DN-AAA: result, time, X-Wing decapsulations run */
+static void e4t_msg1(uint64_t t0, unsigned long d0, int rc)
+{
+	char line[160];
+	uint64_t t1;
+	if (!e4t_on()) return;
+	t1 = e4t_now_us();
+	snprintf(line, sizeof(line), "[E4T] aaa_msg1 t_us=%llu sess=0 len=0 dur_us=%llu rc=%d decaps=%lu\n",
+		 (unsigned long long)t1, (unsigned long long)(t1 - t0), rc, edhoc4_decaps_count() - d0);
+	e4t_line(line);
+}
+
 static void e4t_msk_tag(uint8_t const *msk, size_t len)
 {
 	char line[128];
@@ -112,6 +124,7 @@ typedef struct rlm_eap_edhoc_t {
 	edhoc4_db_index	*db_index;	//!< KeyID_B -> (record, slot), in memory
 	char const	*emsk_dir;	//!< optional: <emsk_dir>/<record_id>.emsk.hex for aaa_keyexport
 	char const	*anon_realm;	//!< realm of the anonymous outer identity (method 4)
+	char const	*edhoc_variant;	//!< Message1 variant: v4, v4s, v4s+chk, v4t
 	char		db_buf[1024];
 	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
 	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
@@ -143,6 +156,7 @@ static CONF_PARSER module_config[] = {
 	{ "db", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, db_path), NULL },
 	{ "emsk_dir", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, emsk_dir), NULL },
 	{ "anon_realm", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, anon_realm), "edhoc.internet" },
+	{ "edhoc_variant", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, edhoc_variant), "v4" },
 	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };
@@ -171,6 +185,17 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 	if (access(inst->db_path, R_OK | W_OK | X_OK) != 0) {
 		ERROR("rlm_eap_edhoc: per-UE record db %s is not accessible", inst->db_path);
 		return -1;
+	}
+
+	{
+		int v = edhoc4_variant_parse(inst->edhoc_variant);
+
+		if (v < 0) {
+			ERROR("rlm_eap_edhoc: unknown edhoc_variant %s", inst->edhoc_variant);
+			return -1;
+		}
+		edhoc4_set_variant(v);
+		INFO("rlm_eap_edhoc: Message1 variant %s", edhoc4_variant_name(v));
 	}
 
 	{
@@ -522,8 +547,14 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 				eap_ds->request->code = PW_EAP_FAILURE;
 				return 0;
 			}
-			rc = edhoc4_db_handle_msg1(inst4->db_index, &sess->ctx, &sess->rec,
-						   msg, msg_len, out, sizeof(out), &out_len);
+			{
+				uint64_t t0 = e4t_on() ? e4t_now_us() : 0;
+				unsigned long d0 = edhoc4_decaps_count();
+
+				rc = edhoc4_db_handle_msg1(inst4->db_index, &sess->ctx, &sess->rec,
+							   msg, msg_len, out, sizeof(out), &out_len);
+				e4t_msg1(t0, d0, rc);
+			}
 			if (rc != E4_OK) {
 				REDEBUG("rlm_eap_edhoc: message_1 processing failed: %s", edhoc4_strerror(rc));
 				eap_ds->request->code = PW_EAP_FAILURE;

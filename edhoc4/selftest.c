@@ -156,6 +156,34 @@ int main(void)
     sodium_memzero(&ue0_before, sizeof(ue0_before));
     if (rc == E4_OK) { printf("\nRESULT: FAIL\n"); return 1; }
 
-    printf("\nRESULT: PASS — 2 UEs x 5 runs, identical MSK/EMSK and next keys, per-UE keys rotated every run\n");
+    /* Message1 variants: both peers on the same variant complete, message_1
+     * has the expected size, a peer on another variant is refused */
+    for (int v = E4_VARIANT_V4; v <= E4_VARIANT_V4T; v++) {
+        edhoc4_set_variant(v);
+        size_t want = (v == E4_VARIANT_V4S || v == E4_VARIANT_V4S_CHK) ? 2424 : 2390;
+        for (int i = 0; i < NUE; i++) {
+            rc = run_session(1, &ue[i], ue_peer_pk[i], 0);
+            if (rc != E4_OK || edhoc4_msg1_len() != want) {
+                printf("\nRESULT: FAIL variant %s: %s\n", edhoc4_variant_name(v), edhoc4_strerror(rc));
+                return 1;
+            }
+        }
+        printf("  variant %-7s: message_1 %zu B, 2 UEs complete\n", edhoc4_variant_name(v), edhoc4_msg1_len());
+    }
+    static const int mix[][2] = { { E4_VARIANT_V4, E4_VARIANT_V4T }, { E4_VARIANT_V4T, E4_VARIANT_V4 } };
+    for (size_t k = 0; k < 2; k++) {
+        edhoc4_set_variant(mix[k][0]);
+        edhoc4_init_initiator(&I, &ue[0], ue_peer_pk[0]);
+        rc = edhoc4_i_make_msg1(&I, m1, sizeof(m1), &n1);
+        edhoc4_set_variant(mix[k][1]);
+        edhoc4_init_responder(&R, &db[0].server, db[0].pk_a);
+        edhoc4_set_lookup(&R, lookup, &db[0]);
+        if (rc == E4_OK) rc = edhoc4_r_open_msg1(&R, m1, n1);
+        if (rc != E4_ERR_AEAD) { printf("\nRESULT: FAIL mixed variants: %s\n", edhoc4_strerror(rc)); return 1; }
+    }
+    printf("  mixed v4 / v4t: refused at the AEAD\n");
+    edhoc4_set_variant(E4_VARIANT_V4);
+
+    printf("\nRESULT: PASS — 2 UEs x 5 runs + 4 variants, identical MSK/EMSK and next keys, per-UE keys rotated every run\n");
     return 0;
 }
