@@ -14,12 +14,29 @@ one session without replication (see its header).
 Same compact X-Wing abstraction as gen_v3.py / edhoc_m4_hybrid_*.pv
 (xwpk / xw_ct / xw_ss / xw_decaps, quantum oracle QXW).
 
-usage: gen_m4v4.py <path/to/edhoc_m4_hybrid_classical.pv> <outdir>
+usage: gen_m4v4.py <path/to/edhoc_m4_hybrid_classical.pv> <outdir> [--variant v4|v4s|v4s_chk|v4t]
+
+--variant (step 30) writes edhoc_m4<var>_*.pv with Message1 of that variant, the
+ID_CRED_I check against the record that the implementation has and that the
+models above leave out (claimedI), and the Message1 header-integrity query;
+<var>_noid_* drop the ID_CRED_I check again, for that query alone.
+  v4      as above
+  v4s     TH_1 = H(KeyID_B, ct_B), AEAD_enc without AD for Message1 (like
+          Message2 in these models, where TH_x is bound through the key), KeyID_B
+          in PT1, no KeyID_B = H(pk_B) check. The implementation passes AD = TH_1
+          (the convention of message_2); AD adds nothing here: K_1 depends on TH_1.
+  v4s_chk v4s + DN checks KeyID_B in PT1 = header
+  v4t     TH_1 as v4s, AEAD_enc_aad(K_1, TH_1, PT1), PT1 and KeyID check as v4
+Without --variant the output is the plain v4 set, unchanged.
 """
 import os
 import sys
 
 SRC, OUT = sys.argv[1], sys.argv[2]
+VARIANT = None
+if len(sys.argv) > 3:
+    assert sys.argv[3] == "--variant" and sys.argv[4] in ("v4", "v4s", "v4s_chk", "v4t")
+    VARIANT = sys.argv[4]
 os.makedirs(OUT, exist_ok=True)
 old = open(SRC).read()
 pre = old[old.index("(* ---------------- Channel, types"):old.index("(* ============================ QUERIES")]
@@ -34,6 +51,12 @@ for e in ("DN_send_M2", "UE_recv_M2", "UE_send_M3", "DN_recv_M3", "DN_send_M4", 
     a = f"event {e}(bitstring, bitstring, bitstring)."
     assert a in pre2, a
     pre2 = pre2.replace(a, f"event {e}(bitstring, bitstring, bitstring, bitstring, bitstring).")
+if VARIANT:
+    a = "event UE_send_M1(bitstring, bitstring)."
+    assert a in pre2, a
+    pre2 = pre2.replace(a, a + "\nevent UE_send_M1hdr(bitstring, bitstring, bitstring)."
+                               "\nevent DN_acc_M1(bitstring, bitstring, bitstring)."
+                               "\nevent DN_acc_inner(bitstring, bitstring, bitstring).")
 # AEAD with associated data, Message1 only; DN-AAA record table
 # (KeyID_B, sk_B halves, pk_A)
 a = "reduc forall k:bitstring, m:bitstring; AEAD_dec(k, AEAD_enc(k, m)) = m.\n"
@@ -70,8 +93,52 @@ def header(fname, setting, expect):
 """
 
 
+NOID = False   # set for the <var>_noid_* models
+
+
+def rep(text, a, b):
+    assert text.count(a) == 1, a
+    return text.replace(a, b)
+
+
+def ue_variant(b):
+    """Message1 of the variant, UE side (the text is the v4 process above)"""
+    if VARIANT is None:
+        return b
+    b = rep(b, "  event UE_send_M1(w, Message1);\n",
+            "  event UE_send_M1(w, Message1);\n  event UE_send_M1hdr(w, kidB, ctB);\n")
+    if VARIANT == "v4":
+        return b
+    b = rep(b, "let TH1 = H((xpk2b(pkB), ctB)) in", "let TH1 = H((kidB, ctB)) in")
+    if VARIANT == "v4t":
+        return rep(b, "AEAD_enc_aad(K1, (kidB, ctB), PT1)", "AEAD_enc_aad(K1, TH1, PT1)")
+    b = rep(b, "let PT1 = (M_4, SuitesI, ID_CREDI, CI, EAD1) in", "let PT1 = (M_4, SuitesI, kidB, ID_CREDI, CI, EAD1) in")
+    return rep(b, "AEAD_enc_aad(K1, (kidB, ctB), PT1)", "AEAD_enc(K1, PT1)")
+
+
+def dn_variant(b):
+    """Message1 of the variant, DN-AAA side"""
+    if VARIANT is None:
+        return b
+    OLD = ("  let (=M_4, =SuitesI, claimedI:bitstring, =CI, EAD1:bitstring)\n"
+           "      = AEAD_dec_aad(K1, (kidB, ctB), encP1) in\n")
+    CHK = "" if NOID else "  if claimedI = ID_CREDI then\n"
+    ACC = "  event DN_acc_M1(w, kidB, ctB);\n"
+    if VARIANT == "v4":
+        return rep(b, OLD, OLD + CHK + ACC)
+    b = rep(b, "let TH1 = H((xpk2b(pkB), ctB)) in", "let TH1 = H((kidB, ctB)) in")
+    if VARIANT == "v4t":
+        return rep(b, OLD, OLD.replace("(kidB, ctB), encP1", "TH1, encP1") + CHK + ACC)
+    b = rep(b, "  if kidB = H(xpk2b(pkB)) then\n", "  (* v4s: KeyID_B = H(pk_B) not verified *)\n")
+    new = ("  let (=M_4, =SuitesI, kidP:bitstring, claimedI:bitstring, =CI, EAD1:bitstring)\n"
+           "      = AEAD_dec(K1, encP1) in\n" + CHK)
+    if VARIANT == "v4s_chk":
+        new += "  if kidP = kidB then\n"
+    return rep(b, OLD, new + ACC + "  event DN_acc_inner(w, kidB, kidP);\n")
+
+
 def ue_body(tail):
-    return """  (* next one-time key pair, announced in EAD_1 *)
+    return ue_variant("""  (* next one-time key pair, announced in EAD_1 *)
   new NA_pq:kemsk; new NA_x:exponent;
   let EAD1 = xpk2b(xwpk(NA_pq, NA_x)) in
   (* KeyID_B = H(pk_B): selects the DN-AAA record; anonymous outer identity *)
@@ -118,13 +185,13 @@ def ue_body(tail):
   let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
   let MSK = expands(PRKout, lbl_MSK) in
   let EMSK = expands(PRKout, lbl_EMSK) in
-""" + tail
+""") + tail
 
 
 def dn_body(tail, commit_insert=False):
     ins = ("  (* commit: the record of the next key, found by H(Npk_B) *)\n"
            "  insert recs(H(xpk2b(xwpk(NB_pq, NB_x))), NB_pq, NB_x, NpkA);\n") if commit_insert else ""
-    return """  in(c, Message1:bitstring);
+    return dn_variant("""  in(c, Message1:bitstring);
   let (kidB:bitstring, ctB:bitstring, encP1:bitstring) = Message1 in
   (* (sk_B, pk_A): per-UE record found by KeyID_B in the DN-AAA's table *)
   get recs(=kidB, B_pq:kemsk, B_x:exponent, pkA:xpk) in
@@ -171,7 +238,7 @@ def dn_body(tail, commit_insert=False):
   let PRKout = expands(PRK4e3m, (lbl_out, TH4)) in
   let MSK = expands(PRKout, lbl_MSK) in
   let EMSK = expands(PRKout, lbl_EMSK) in
-""" + tail
+""") + tail
 
 
 def procs(ue_tail, dn_tail, commit_insert=False):
@@ -241,6 +308,13 @@ SECRECY = ("query attacker(ID_CREDI).        (* Q5: identity concealment (initia
            "query attacker(EMSK_test).       (* Q9: EMSK secrecy + FS through rotation *)\n")
 QUERIES = SANITY + auth("W0") + SECRECY
 QUERIES_NOERASE = SANITY + SECRECY
+# non-injective: replay to another DN session is possible in the model
+HDR_Q = ("query kid:bitstring, ct:bitstring; event(DN_acc_M1(W0, kid, ct)) ==> event(UE_send_M1hdr(W0, kid, ct)).   (* Message1 header integrity *)\n")
+T7_Q = ("query h:bitstring, p:bitstring; event(DN_acc_inner(W0, h, p)) ==> h = p.   (* T7: KeyID_B in PT1 = header *)\n")
+if VARIANT:
+    extra = HDR_Q + (T7_Q if VARIANT in ("v4s", "v4s_chk") else "")
+    QUERIES += extra
+    QUERIES_NOERASE += extra
 
 
 def one_time_main(quantum):
@@ -282,6 +356,8 @@ def single_session_main():
 
 
 def write(fname, setting, expect, queries, body, main, settings=""):
+    if VARIANT:
+        fname = fname.replace("edhoc_m4v4_", f"edhoc_m4{VARIANT}_")
     text = (header(fname, setting, expect) + settings + pre2 +
             "(* ============================ QUERIES ============================ *)\n" + queries +
             "\n(* ============================ PROCESSES ========================== *)\n" + body +
@@ -326,10 +402,11 @@ files.append(write("edhoc_m4v4_recovery.pv",
     ue_recovery(), one_time_main(False)))
 
 # ---- recovery: MSK_test must come from the DN side, since the UE may not accept
-rec = open(os.path.join(OUT, "edhoc_m4v4_recovery.pv")).read()
+REC_F = f"edhoc_m4{VARIANT or 'v4'}_recovery.pv"
+rec = open(os.path.join(OUT, REC_F)).read()
 rec = rec.replace("  out(c, AEAD_enc(MSK, app_data_DN));\n  out(c, AEAD_enc(EMSK, EMSK_test))",
                   "  out(c, AEAD_enc(MSK, app_data_DN));\n  out(c, AEAD_enc(MSK, MSK_test));\n  out(c, AEAD_enc(EMSK, EMSK_test))")
-open(os.path.join(OUT, "edhoc_m4v4_recovery.pv"), "w").write(rec)
+open(os.path.join(OUT, REC_F), "w").write(rec)
 
 
 # ---- KCI (same structure as edhoc_m4v2_kci.pv)
@@ -400,6 +477,46 @@ files.append(write("edhoc_m4v4_pcs.pv",
     " *           Q2/Q3/Q8/Q9 of edhoc_m4v4_classical.pv, which authenticate and protect EAD_1/EAD_2)",
     "sanity query false (reachable); Q2-Q4 (W2), Q10, Q11 true", pcs_q,
     procs(pcs_ue_t, pcs_dn_t, commit_insert=True), pcs_main))
+if VARIANT:
+    # recovery: the extra queries are in QUERIES; here the same two queries
+    q = HDR_Q + (T7_Q if VARIANT in ("v4s", "v4s_chk") else "")
+    rec = open(os.path.join(OUT, REC_F)).read()
+    rec = rep(rec, "\n(* ============================ PROCESSES", q + "\n(* ============================ PROCESSES")
+    open(os.path.join(OUT, REC_F), "w").write(rec)
+    # header integrity alone, when the DN does not check ID_CRED_I
+    NOID = True
+    files.append(write(f"edhoc_m4{VARIANT}_noid_classical.pv",
+        "as classical, but the DN-AAA does not check ID_CRED_I against the record",
+        "header integrity false: pk_B is public in this model, anyone can build a Message1",
+        HDR_Q, procs(UE_T_ERASE, DN_T_ERASE), one_time_main(False)))
+    NOID = False
+    # T7: a UE that deviates. ID_CRED_I public, so the attacker can build a
+    # Message1 with any KeyID_B in PT1
+    if VARIANT in ("v4s", "v4s_chk"):
+        files.append(write(f"edhoc_m4{VARIANT}_t7_classical.pv",
+            "T7: ID_CRED_I given to the attacker (a UE that deviates writes any KeyID_B into PT1)",
+            "v4s false, v4s_chk true",
+            T7_Q, procs(UE_T_ERASE, DN_T_ERASE),
+            one_time_main(False).replace("  out(c, (pkSigI, pkSigR));\n", "  out(c, (pkSigI, pkSigR));\n  out(c, ID_CREDI);\n", 1)))
+
+    # nextkey (step 29), with the DN-AAA as above
+    nk = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "edhoc_m4v4_nextkey.pv")).read()
+    if VARIANT != "v4":
+        OLD_DEC = "  let (=M_4, =SuitesI, =idc, =CI, EAD1:bitstring) = AEAD_dec_aad(K1, (kidB, ctB), encP1) in\n"
+        nk = rep(nk, "  let TH1 = H((xpk2b(pkB), ctB)) in\n", "  let TH1 = H((kidB, ctB)) in\n")
+        nk = rep(nk, "  let TH11 = H((xpk2b(pkB1), ctB1)) in\n", "  let TH11 = H((kidB1, ctB1)) in\n")
+        if VARIANT == "v4t":
+            nk = rep(nk, OLD_DEC, OLD_DEC.replace("(kidB, ctB), encP1", "TH1, encP1"))
+            nk = rep(nk, "AEAD_enc_aad(K11, (kidB1, ctB1), PT11)", "AEAD_enc_aad(K11, TH11, PT11)")
+        else:
+            nk = rep(nk, "  if kidB = H(xpk2b(pkB)) then\n", "")
+            nk = rep(nk, OLD_DEC, "  let (=M_4, =SuitesI, kidP:bitstring, =idc, =CI, EAD1:bitstring) = AEAD_dec(K1, encP1) in\n"
+                     + ("  if kidP = kidB then\n" if VARIANT == "v4s_chk" else ""))
+            nk = rep(nk, "let PT11 = (M_4, SuitesI, ID_CREDI, CI, EAD11) in", "let PT11 = (M_4, SuitesI, kidB1, ID_CREDI, CI, EAD11) in")
+            nk = rep(nk, "AEAD_enc_aad(K11, (kidB1, ctB1), PT11)", "AEAD_enc(K11, PT11)")
+    fname = f"edhoc_m4{VARIANT}_nextkey.pv"
+    open(os.path.join(OUT, fname), "w").write(nk.replace("edhoc_m4v4_nextkey.pv", fname))
+    files.append(fname)
 print("\n".join(files))
 
 
@@ -522,4 +639,5 @@ def write_unlink():
     return fname
 
 
-print(write_unlink())
+if not VARIANT:
+    print(write_unlink())
