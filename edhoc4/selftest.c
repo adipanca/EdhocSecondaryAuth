@@ -182,7 +182,7 @@ int main(void)
         if (rc != E4_ERR_AEAD) { printf("\nRESULT: FAIL mixed variants: %s\n", edhoc4_strerror(rc)); return 1; }
     }
     printf("  mixed v4 / v4t: refused at the AEAD\n");
-    edhoc4_set_variant(E4_VARIANT_V4);
+    edhoc4_set_variant(E4_VARIANT_V5);
 
     printf("\nRESULT: PASS — 2 UEs x 5 runs + 4 variants, identical MSK/EMSK and next keys, per-UE keys rotated every run\n");
     return 0;

@@ -485,9 +485,9 @@ bool NasSm::ensureEdhocProvisioned()
     if (m_edhocProvisioned)
         return true;
 
-    // Message1 variant (default v4): ue.yaml secondaryAuth.edhocVariant, or
+    // Message1 variant (default v5): ue.yaml secondaryAuth.edhocVariant, or
     // the EDHOC_VARIANT environment variable, which overrides it
-    std::string variant = "v4";
+    std::string variant = "v5";
     if (m_base && m_base->config && m_base->config->secondaryAuthVariant.has_value())
         variant = *m_base->config->secondaryAuthVariant;
     if (const char *env = std::getenv("EDHOC_VARIANT"))

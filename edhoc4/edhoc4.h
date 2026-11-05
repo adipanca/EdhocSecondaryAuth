@@ -69,18 +69,19 @@ extern "C" {
  * KeyID_B does too. */
 #define E4_KEYID_LEN    32
 
-/* Message1 variants (one process runs one; default v4; message_2..4 are the
- * same in all):
+/* Message1 variants (one process runs one; default v5 = v4s+chk, the final
+ * protocol; the others reproduce step 30; message_2..4 are the same in all):
  *   v4      TH_1 = H(pk_B || ct_B), AD = KeyID_B || ct_B; DN-AAA checks
  *           KeyID_B = H(pk_B)
  *   v4s     TH_1 = H(bstr(KeyID_B) bstr(ct_B)), AD = TH_1 as for message_2,
  *           KeyID_B also in PT1; no KeyID_B = H(pk_B) check
  *   v4s+chk v4s + DN-AAA checks KeyID_B in PT1 = KeyID_B in the header
  *   v4t     TH_1 and AD as v4s, PT1 and the KeyID_B = H(pk_B) check as v4 */
-enum { E4_VARIANT_V4 = 0, E4_VARIANT_V4S, E4_VARIANT_V4S_CHK, E4_VARIANT_V4T };
+enum { E4_VARIANT_V4 = 0, E4_VARIANT_V4S, E4_VARIANT_V4S_CHK, E4_VARIANT_V4T,
+       E4_VARIANT_V5 = E4_VARIANT_V4S_CHK };
 void edhoc4_set_variant(int variant);
 int  edhoc4_get_variant(void);
-/* "v4", "v4s", "v4s+chk", "v4t" -> E4_VARIANT_*, -1 if unknown */
+/* "v5", "v4", "v4s", "v4s+chk", "v4t" -> E4_VARIANT_*, -1 if unknown */
 int  edhoc4_variant_parse(const char *name);
 const char *edhoc4_variant_name(int variant);
 /* size of message_1 in the current variant */

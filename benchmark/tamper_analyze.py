@@ -4,7 +4,8 @@ tamper_analyze.py — table of the message_1 tamper tests T1-T7, from the UE
 results and the [E4T] aaa_msg1 lines of the DN-AAA (tamper_tests.sh):
 final result at the UE, DN-AAA step that refused, time to refuse, Decaps run.
 
-  tamper_analyze.py     writes benchmark-results/tamper-variants.csv and .md
+  tamper_analyze.py ["v4 v4s ..."] [suffix=variants]
+      writes benchmark-results/tamper-<suffix>.csv and .md
 
 T5 alternates a completed run (not counted) and the replay of its message_1.
 T6 has two sessions per iteration: the first one continues, the second
@@ -14,11 +15,13 @@ import csv
 import os
 import re
 import statistics
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "..", "benchmark-results")
-RAW = os.path.join(R, "tamper-variants-raw")
-VARIANTS = ["v4", "v4s", "v4s+chk", "v4t"]
+VARIANTS = (sys.argv[1] if len(sys.argv) > 1 else "v4 v4s v4s+chk v4t").split()
+SFX = sys.argv[2] if len(sys.argv) > 2 else "variants"
+RAW = os.path.join(R, f"tamper-{SFX}-raw")
 LINE = re.compile(r"aaa_msg1 .*dur_us=(\d+) rc=(-?\d+) decaps=(\d+)")
 DESC = {1: "KeyID_B header: 1 bit", 2: "KeyID_B header: of another UE", 3: "ct_B: 1 bit",
         4: "AEAD ciphertext: 1 bit", 5: "old Message1 replayed", 6: "current Message1 in a second EAP session",
@@ -74,15 +77,15 @@ def main():
             s, d, c = summarize(rows)
             out.append([f"T{t}", DESC[t], v, final, s, f"{d:.3f}", c])
     hdr = ["test", "manipulation", "variant", "result at the UE", "DN-AAA step", "DN-AAA median ms", "Decaps run"]
-    with open(os.path.join(R, "tamper-variants.csv"), "w", newline="") as f:
+    with open(os.path.join(R, f"tamper-{SFX}.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(hdr)
         w.writerows(out)
-    with open(os.path.join(R, "tamper-variants.md"), "w") as f:
+    with open(os.path.join(R, f"tamper-{SFX}.md"), "w") as f:
         f.write("| " + " | ".join(hdr) + " |\n|" + "---|" * len(hdr) + "\n")
         for r in out:
             f.write("| " + " | ".join(r) + " |\n")
-    print(open(os.path.join(R, "tamper-variants.md")).read())
+    print(open(os.path.join(R, f"tamper-{SFX}.md")).read())
 
 
 if __name__ == "__main__":

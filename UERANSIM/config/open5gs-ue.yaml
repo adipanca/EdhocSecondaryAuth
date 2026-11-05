@@ -53,6 +53,7 @@ uacAcc:
 # DN-AAA finds the UE's EAP-EDHOC record by KeyID_B in message_1.
 secondaryAuth:
   identity: '@edhoc.internet'
+  edhocVariant: 'v5'
 
 # Initial PDU sessions to be established
 sessions:

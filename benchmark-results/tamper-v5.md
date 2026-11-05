@@ -1,0 +1,9 @@
+| test | manipulation | variant | result at the UE | DN-AAA step | DN-AAA median ms | Decaps run |
+|---|---|---|---|---|---|---|
+| T1 | KeyID_B header: 1 bit | v5 | eap-failure 20/20 | lookup | 0.002 | no |
+| T2 | KeyID_B header: of another UE | v5 | eap-failure 20/20 | AEAD tag | 0.154 | yes |
+| T3 | ct_B: 1 bit | v5 | eap-failure 20/20 | AEAD tag | 0.193 | yes |
+| T4 | AEAD ciphertext: 1 bit | v5 | eap-failure 20/20 | AEAD tag | 0.149 | yes |
+| T5 | old Message1 replayed | v5 | eap-failure 20/20 | lookup | 0.001 | no |
+| T6 | current Message1 in a second EAP session | v5 | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.522 | yes |
+| T7 | KeyID_B in PT1 != header | v5 | eap-failure 20/20 | inner KeyID check | 0.153 | yes |

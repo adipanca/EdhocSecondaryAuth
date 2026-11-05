@@ -781,7 +781,7 @@ void edhoc4_keyid(const uint8_t pk[E4_XWING_PK], uint8_t kid[E4_KEYID_LEN])
 #define E4_PT1_MAX (E4_PT1_LEN + E4_PT1_INNER)
 #define E4_AAD1_LEN (E4_KEYID_LEN + E4_XWING_CT)
 
-static int e4_variant = E4_VARIANT_V4;
+static int e4_variant = E4_VARIANT_V5;
 
 void edhoc4_set_variant(int variant) { e4_variant = variant; }
 int  edhoc4_get_variant(void) { return e4_variant; }
@@ -790,6 +790,7 @@ static const char *const e4_variant_names[] = { "v4", "v4s", "v4s+chk", "v4t" };
 
 int edhoc4_variant_parse(const char *name)
 {
+    if (name && strcmp(name, "v5") == 0) return E4_VARIANT_V5;
     for (int i = 0; name && i < 4; i++)
         if (strcmp(name, e4_variant_names[i]) == 0) return i;
     return -1;

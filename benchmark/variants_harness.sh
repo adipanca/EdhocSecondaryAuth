@@ -8,7 +8,7 @@
 #   sudo benchmark/variants_harness.sh           (benchmarks run as $SUDO_USER)
 #
 # Writes benchmark-results/e2e-handshake-variants.csv, labels
-# handshake-run<r>-<variant> and handshake-run<r>-tls; ends on edhoc_variant v4.
+# handshake-run<r>-<variant> and handshake-run<r>-tls; ends on edhoc_variant v5.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -43,7 +43,7 @@ for r in 1 2; do
   tls6 --iters $T --loss 0 --csv "$OUT" --label "handshake-run$r-tls"
   "$HERE/switch_tls_config.sh" classic | tail -1
 done
-"$HERE/set_edhoc_variant.sh" v4
+"$HERE/set_edhoc_variant.sh" v5
 "$HERE/setup_no_eph.sh" | tail -1
 chown "$OWNER" "$OUT"
 stamp "done: $OUT"

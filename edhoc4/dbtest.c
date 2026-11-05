@@ -10,8 +10,8 @@
  *      promotion the UE file holds no old sk_A.
  *   2. KeyID / message_1 checks:
  *        KeyID_B with one bit flipped, a forged index entry pointing to the
- *        same record                              E4_ERR_KEYID, no decaps
- *        KeyID_B != SHA-256(pk_B) (edhoc4 core)   E4_ERR_KEYID, no decaps
+ *        same record, v5: E4_ERR_AEAD after Decaps; v4: E4_ERR_KEYID, no decaps
+ *        KeyID_B != SHA-256(pk_B) (edhoc4 core)   v4: E4_ERR_KEYID, no decaps
  *        ct_B with one bit flipped                E4_ERR_AEAD (AAD_1, TH_1)
  *        KeyID_B and ct_B of another session      rejected
  *        ciphertext with one bit flipped          E4_ERR_AEAD
@@ -373,8 +373,8 @@ int main(void)
         long model = -1;
         FILE *mf = popen("python3 ../benchmark/edhoc_sizes.py | sed -n 's/^method 4 .*msg1=\\([0-9]*\\).*/\\1/p'", "r");
         if (mf) { if (fscanf(mf, "%ld", &model) != 1) model = -1; pclose(mf); }
-        check(n1 == 2390 && (long)n1 == model && memcmp(m1, kid_a, E4_KEYID_LEN) == 0,
-              "message_1 vector: KeyID_B first, 2390 B == edhoc_sizes.py");
+        check(n1 == 2424 && (long)n1 == model && memcmp(m1, kid_a, E4_KEYID_LEN) == 0,
+              "message_1 vector: KeyID_B first, 2424 B == edhoc_sizes.py");
 
         /* KeyID_B with one bit flipped; a forged index entry names the record */
         uint8_t forged[E4_KEYID_LEN];
@@ -389,8 +389,23 @@ int main(void)
         d0 = edhoc4_test_decaps_calls;
         rc = edhoc4_db_handle_msg1(idx, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
         int removed = edhoc4_db_index_get(idx, forged, got, sizeof(got), NULL) == E4_ERR_PEER;
+        check(rc == E4_ERR_AEAD && edhoc4_test_decaps_calls == d0 + 1 && !removed,
+              "v5, KeyID_B 1 bit flipped, forged index: Decaps, then E4_ERR_AEAD; entry stays");
+
+        /* v4 only: its KeyID_B = H(pk_B) checks run before any KEM operation */
+        edhoc4_set_variant(E4_VARIANT_V4);
+        make_msg1("ue-a", m1, &n1);
+        memcpy(forged, m1, E4_KEYID_LEN);
+        forged[0] ^= 1;
+        edhoc4_db_index_del(idx, forged, "ue-a");
+        edhoc4_db_index_put(idx, forged, "ue-a", fi.active);
+        memcpy(m3_buf, m1, n1);
+        m3_buf[0] ^= 1;
+        d0 = edhoc4_test_decaps_calls;
+        rc = edhoc4_db_handle_msg1(idx, &R, &rec, m3_buf, n1, m2, sizeof(m2), &n2);
+        removed = edhoc4_db_index_get(idx, forged, got, sizeof(got), NULL) == E4_ERR_PEER;
         check(rc == E4_ERR_KEYID && edhoc4_test_decaps_calls == d0 && removed,
-              "KeyID_B 1 bit flipped, forged index: E4_ERR_KEYID, no decaps, removed");
+              "v4, KeyID_B 1 bit flipped, forged index: E4_ERR_KEYID, no decaps, removed");
 
         /* the record's pk_B does not hash to KeyID_B (core check, no KEM) */
         edhoc4_creds b_srv;
@@ -403,7 +418,9 @@ int main(void)
         edhoc4_ctx_wipe(&R);
         sodium_memzero(&b_srv, sizeof(b_srv));
         check(rc == E4_ERR_KEYID && edhoc4_test_decaps_calls == d0,
-              "KeyID_B != SHA-256(pk_B) of the record: E4_ERR_KEYID, no decaps");
+              "v4, KeyID_B != SHA-256(pk_B) of the record: E4_ERR_KEYID, no decaps");
+        edhoc4_set_variant(E4_VARIANT_V5);
+        make_msg1("ue-a", m1, &n1);
 
         /* ct_B with one bit flipped */
         memcpy(m3_buf, m1, n1);

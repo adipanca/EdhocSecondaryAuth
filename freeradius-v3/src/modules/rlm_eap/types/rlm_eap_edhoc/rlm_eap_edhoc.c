@@ -124,7 +124,7 @@ typedef struct rlm_eap_edhoc_t {
 	edhoc4_db_index	*db_index;	//!< KeyID_B -> (record, slot), in memory
 	char const	*emsk_dir;	//!< optional: <emsk_dir>/<record_id>.emsk.hex for aaa_keyexport
 	char const	*anon_realm;	//!< realm of the anonymous outer identity (method 4)
-	char const	*edhoc_variant;	//!< Message1 variant: v4, v4s, v4s+chk, v4t
+	char const	*edhoc_variant;	//!< Message1 variant: v5 (default), v4, v4s, v4s+chk, v4t
 	char		db_buf[1024];
 	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
 	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
@@ -156,7 +156,7 @@ static CONF_PARSER module_config[] = {
 	{ "db", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, db_path), NULL },
 	{ "emsk_dir", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, emsk_dir), NULL },
 	{ "anon_realm", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, anon_realm), "edhoc.internet" },
-	{ "edhoc_variant", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, edhoc_variant), "v4" },
+	{ "edhoc_variant", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, edhoc_variant), "v5" },
 	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };

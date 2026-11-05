@@ -20,7 +20,7 @@
 #   sessions until EAP-Success, then 10 normal sessions), then a sample
 #   capture on lo (one session, one message_3 drop and its recovery).
 #
-# Message1 variant: EDHOC_VARIANT for nr-ue and the harness; radiusd takes
+# Message1 variant (default v5): EDHOC_VARIANT for nr-ue and the harness; radiusd takes
 # edhoc_variant from its config (set_edhoc_variant.sh).
 #
 # Protocol v4: the UE's outer EAP identity (ue.yaml secondaryAuth.identity)
@@ -76,9 +76,9 @@ start_stack() {
 # configuration C: harness straight to radiusd, stack idle
 harness() {
   local csv="$OUT/harness-C$1.csv"
-  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v4}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
+  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v5}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
     --rto-ms 40 --max-retx 6 --loss 0 --iters 5 --csv /dev/null --label warmup | tail -1
-  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v4}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
+  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v5}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
     --rto-ms 40 --max-retx 6 --loss 0 --iters "$N" --csv "$csv" --label "C$1" | tail -1
 }
 

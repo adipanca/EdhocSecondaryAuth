@@ -4,17 +4,18 @@
 # variant, 20 times each; the harness (e2e_radius_tamper) changes message_1.
 # T7 only for v4s and v4s+chk: only they carry KeyID_B in PT1.
 #
-#   sudo benchmark/tamper_tests.sh [iters=20]     then tamper_analyze.py
+#   sudo benchmark/tamper_tests.sh [iters=20] [variants="v4 v4s v4s+chk v4t"] [suffix=variants]
+#   then tamper_analyze.py [variants] [suffix]
 #
 # Per variant the records are provisioned anew. UE results:
-# benchmark-results/tamper-variants-raw/ue.csv; per test the [E4T] aaa_msg1
-# lines of the DN-AAA: <variant>-T<n>.e4t. Ends on edhoc_variant v4.
+# benchmark-results/tamper-<suffix>-raw/ue.csv; per test the [E4T] aaa_msg1
+# lines of the DN-AAA: <variant>-T<n>.e4t. Ends on edhoc_variant v5.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
-N="${1:-20}"
+N="${1:-20}"; VARIANTS="${2:-v4 v4s v4s+chk v4t}"; SFX="${3:-variants}"
 OWNER="${SUDO_USER:-$(id -un)}"
-OUT="$ROOT/benchmark-results/tamper-variants-raw"
+OUT="$ROOT/benchmark-results/tamper-$SFX-raw"
 UE=/usr/local/etc/edhoc/ue
 [[ $EUID -eq 0 ]] || { echo "run with sudo" >&2; exit 1; }
 rm -rf "$OUT"; mkdir -p "$OUT"
@@ -23,11 +24,11 @@ export E4_TIMING_FILE="$OUT/current.e4t"
 : > "$E4_TIMING_FILE"; chmod 0666 "$E4_TIMING_FILE"
 chown -R "$OWNER" "$OUT"
 
-for v in v4 v4s v4s+chk v4t; do
+for v in $VARIANTS; do
   "$HERE/set_edhoc_variant.sh" "$v"
   "$HERE/setup_no_eph.sh" ue2 | tail -1
   sleep 2
-  case $v in v4s|v4s+chk) tests="1 2 3 4 5 6 7" ;; *) tests="1 2 3 4 5 6" ;; esac
+  case $v in v5|v4s|v4s+chk) tests="1 2 3 4 5 6 7" ;; *) tests="1 2 3 4 5 6" ;; esac
   for t in $tests; do
     sudo -u "$OWNER" "$HERE/e2e_radius_tamper" --method 4 --variant "$v" --ue-dir "$UE/edhoc-ue" \
       --other-ue-dir "$UE/ue2" --rto-ms 40 --max-retx 6 --tamper "$t" --iters "$N" \
@@ -39,6 +40,6 @@ for v in v4 v4s v4s+chk v4t; do
   done
 done
 rm -f "$E4_TIMING_FILE"
-"$HERE/set_edhoc_variant.sh" v4
+"$HERE/set_edhoc_variant.sh" v5
 "$HERE/setup_no_eph.sh" | tail -1
 chown -R "$OWNER" "$OUT"
