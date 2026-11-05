@@ -1051,7 +1051,9 @@ Step 30. Ketiga varian ada dalam satu build; `edhoc_variant` di blok `edhoc` con
 
 ### Penyesuaian terhadap step file
 
-- `Symmetry_Journal_Shin.drawio` tidak ditemukan di sistem, jadi definisi v4s diambil dari tabel step file dan tidak dicocokkan dengan diagramnya. File itu belum disimpan di `symmetry-rev/paper/drawio/`.
+- **Dicocokkan dengan `Symmetry_Journal_Shin.drawio` halaman 1** (coretan dan teks merah di markup; tersimpan di `symmetry-rev/paper/drawio/`). Sesuai dengan v4s: AAD_1 dicoret di UE dan DN-AAA, `Verify KeyID_B = H(pk_B)` dicoret, TH_1 = H(KeyID_B, ct_B), KeyID_B ditambahkan di posisi ke-3 Plaintext1, `Check ID_CRED_I` tetap, dan tidak ada perbandingan KeyID_B dalam dengan header.
+- **Satu coretan di luar Message1:** baris `Store NEXT = (Nsk_A, Npk_A, Npk_B = EAD_2)` di kotak Message2 UE. Step file menyatakan NEXT write-ahead tidak berubah, jadi write-ahead tetap ada di semua varian. Baris itu juga tidak ada di halaman 1 `Symmetry_Journal.drawio`; maksud coretannya perlu dikonfirmasi ke Dr. Shin.
+- Di diagram, urutan PT1 adalah `..., KeyID_B, ID_CRED_I, C_I, EAD_1`; implementasi v4 sudah memakai urutan C_I lalu ID_CRED_I, dan v4s mengikutinya. Ukurannya sama.
 - Tabel step menulis cek v4t "sama dengan v4s", sedangkan bagian DN-AAA menulis pemeriksaan KeyID_B = H(pk_B) "tetap ada". Yang diikuti bagian DN-AAA.
 - PT1 v4s memakai profil biner yang sudah ada: `method ‖ 0x58 0x20 KeyID_B ‖ C_I ‖ ID_CRED_I ‖ EAD_1`. Implementasi v4 tidak membawa Suites_I di PT1, jadi di sini juga tidak; urutan C_I dan ID_CRED_I mengikuti v4. TH_1 v4s dan v4t memakai CBOR sequence `bstr(KeyID_B) bstr(ct_B)` seperti diminta.
 - Di v4s, pemeriksaan KeyID terhadap slot record di `edhoc4_db_handle_msg1` juga dilewati, bukan hanya di inti protokol.
