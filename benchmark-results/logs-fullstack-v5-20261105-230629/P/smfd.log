@@ -1,0 +1,194 @@
+Open5GS daemon v2.7.2
+
+[32m11/05 23:13:59.572[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/smf.yaml' (../lib/app/ogs-init.c:144)
+[32m11/05 23:13:59.572[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/smf.log' (../lib/app/ogs-init.c:147)
+[32m11/05 23:13:59.599[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.200:7777] (../lib/sbi/context.c:507)
+[32m11/05 23:13:59.600[0m: [[33mmetrics[0m] [1;32mINFO[0m: metrics_server() [http://127.0.0.4]:9090 (../lib/metrics/prometheus/context.c:300)
+[32m11/05 23:13:59.620[0m: [[33mapp[0m] [1;32mINFO[0m: Polling freeDiameter stats every 60000000 usecs (../lib/diameter/common/stats.c:77)
+[32m11/05 23:13:59.620[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_server() [127.0.0.4]:2123 (../lib/gtp/path.c:30)
+[32m11/05 23:13:59.620[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_server() [127.0.0.4]:2152 (../lib/gtp/path.c:30)
+[32m11/05 23:13:59.620[0m: [[33mpfcp[0m] [1;32mINFO[0m: pfcp_server() [127.0.0.4]:8805 (../lib/pfcp/path.c:30)
+[32m11/05 23:13:59.620[0m: [[33msbi[0m] [1;32mINFO[0m: NF Service [nsmf-pdusession] (../lib/sbi/context.c:1994)
+[32m11/05 23:13:59.621[0m: [[33msbi[0m] [1;32mINFO[0m: nghttp2_server() [http://127.0.0.4]:7777 (../lib/sbi/nghttp2-server.c:439)
+[32m11/05 23:13:59.621[0m: [[33mapp[0m] [1;32mINFO[0m: SMF initialize...done (../src/smf/app.c:31)
+[32m11/05 23:13:59.622[0m: [[33msmf[0m] [1;32mINFO[0m: PFCP associated [127.0.0.7]:8805 (../src/smf/pfcp-sm.c:188)
+[32m11/05 23:13:59.623[0m: [[33msbi[0m] [1;32mINFO[0m: [252cafdc-d923-41f1-9ea0-6b459a2ee3d1] NF registered [Heartbeat:10s] (../lib/sbi/nf-sm.c:295)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: [2530d6a2-d923-41f1-93ea-f148441ba945] Subscription created until 2026-11-06T23:13:59.623689+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: [2530d9a4-d923-41f1-93ea-f148441ba945] Subscription created until 2026-11-06T23:13:59.623728+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: [2530dfd0-d923-41f1-93ea-f148441ba945] Subscription created until 2026-11-06T23:13:59.623885+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: [2530ddaa-d923-41f1-93ea-f148441ba945] Subscription created until 2026-11-06T23:13:59.623857+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.10:7777] (../lib/sbi/nnrf-handler.c:955)
+[32m11/05 23:13:59.624[0m: [[33msbi[0m] [1;32mINFO[0m: [2530e0ac-d923-41f1-93ea-f148441ba945] Subscription created until 2026-11-06T23:13:59.623906+09:00 [duration:86400000000,validity:86400.000000,patch:43200.000000] (../lib/sbi/nnrf-handler.c:874)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:80] (../lib/sbi/context.c:2374)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: [248f755a-d923-41f1-9d64-57a7ef2be803] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:81)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:2374)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:13:59.625[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:14:00.581[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] (NRF-notify) NF registered (../lib/sbi/nnrf-handler.c:1140)
+[32m11/05 23:14:00.581[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] (NRF-notify) NF Profile updated [type:AMF] (../lib/sbi/nnrf-handler.c:1154)
+[32m11/05 23:14:00.581[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:80] (../lib/sbi/context.c:2374)
+[32m11/05 23:14:00.581[0m: [[33msbi[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:7777] (../lib/sbi/context.c:2113)
+[32m11/05 23:14:08.860[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-UEs is now 1 (../src/smf/context.c:1079)
+[32m11/05 23:14:08.860[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-Sessions is now 1 (../src/smf/context.c:3250)
+[32m11/05 23:14:08.860[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:7777] (../src/smf/nsmf-handler.c:270)
+[32m11/05 23:14:08.860[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:08.863[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/smf/nudm-handler.c:461)
+[32m11/05 23:14:08.863[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication: EAP-Request/Identity (../src/smf/gsm-sm.c:139)
+[32m11/05 23:14:08.863[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] Setup NF Instance [type:AMF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:08.878[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication identity [@edhoc.internet] (../src/smf/gsm-sm.c:245)
+[32m11/05 23:14:08.878[0m: [[33msmf[0m] [1;32mINFO[0m: EAP relay: persistent socket to 127.0.0.1:3870 (../src/smf/radius-client.c:176)
+[E4T] smf_relay_tx t_us=105487885163 sess=1 len=54
+[E4T] smf_relay_rx t_us=105487886021 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487892517 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105487893175 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487896175 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105487896744 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487899189 sess=1 len=484
+[E4T] smf_relay_rx t_us=105487900323 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487904665 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487905116 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487909129 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487909534 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487913746 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487914257 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487917274 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487917751 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487921189 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487921526 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105487924238 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487924540 sess=1 len=145
+[E4T] smf_relay_tx t_us=105487933043 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105487933672 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487938017 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105487938381 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487944186 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105487944606 sess=1 len=40
+[E4T] smf_relay_tx t_us=105487947591 sess=1 len=817
+[E4T] smf_relay_rx t_us=105487948840 sess=1 len=56
+[E4T] smf_relay_tx t_us=105487953380 sess=1 len=56
+[E4T] smf_relay_rx t_us=105487953820 sess=1 len=22
+[32m11/05 23:14:08.947[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication succeeded (../src/smf/gsm-sm.c:286)
+[32m11/05 23:14:08.947[0m: [[33msbi[0m] [1;32mINFO[0m: [248f755a-d923-41f1-9d64-57a7ef2be803] Setup NF Instance [type:PCF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:08.950[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:7777] (../src/smf/npcf-handler.c:367)
+[32m11/05 23:14:08.950[0m: [[33msmf[0m] [1;32mINFO[0m: UE SUPI[imsi-999700000000001] DNN[internet] IPv4[10.45.0.2] IPv6[] (../src/smf/npcf-handler.c:580)
+[32m11/05 23:14:08.951[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_connect() [127.0.0.7]:2152 (../lib/gtp/path.c:60)
+[32m11/05 23:14:08.953[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:09.094[0m: [[33msmf[0m] [1;32mINFO[0m: Removed Session: UE IMSI:[imsi-999700000000001] DNN:[internet:1] IPv4:[10.45.0.2] IPv6:[] (../src/smf/context.c:1744)
+[32m11/05 23:14:09.094[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-Sessions is now 0 (../src/smf/context.c:3258)
+[32m11/05 23:14:09.094[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-UEs is now 0 (../src/smf/context.c:1140)
+[32m11/05 23:14:09.286[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-UEs is now 1 (../src/smf/context.c:1079)
+[32m11/05 23:14:09.286[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-Sessions is now 1 (../src/smf/context.c:3250)
+[32m11/05 23:14:09.286[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:7777] (../src/smf/nsmf-handler.c:270)
+[32m11/05 23:14:09.286[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:09.289[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/smf/nudm-handler.c:461)
+[32m11/05 23:14:09.289[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication: EAP-Request/Identity (../src/smf/gsm-sm.c:139)
+[32m11/05 23:14:09.289[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] Setup NF Instance [type:AMF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:09.311[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication identity [@edhoc.internet] (../src/smf/gsm-sm.c:245)
+[E4T] smf_relay_tx t_us=105488317802 sess=1 len=54
+[E4T] smf_relay_rx t_us=105488321175 sess=1 len=40
+[E4T] smf_relay_tx t_us=105488324392 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105488324904 sess=1 len=40
+[E4T] smf_relay_tx t_us=105488329310 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105488329856 sess=1 len=40
+[E4T] smf_relay_tx t_us=105488332748 sess=1 len=484
+[E4T] smf_relay_rx t_us=105488333788 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488337537 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488338203 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488341666 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488342315 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488346956 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488347533 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488351395 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488352084 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488356637 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488357402 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105488360862 sess=1 len=56
+[E4T] smf_relay_rx t_us=105488361472 sess=1 len=145
+[E4T] smf_relay_tx t_us=105488367643 sess=1 len=1055
+[32m11/05 23:14:11.896[0m: [[33msmf[0m] [1;36mWARNING[0m: [imsi-999700000000001:1] No reply from the DN-AAA relay (../src/smf/gsm-sm.c:320)
+[32m11/05 23:14:11.898[0m: [[33msmf[0m] [1;32mINFO[0m: Removed Session: UE IMSI:[imsi-999700000000001] DNN:[internet:1] IPv4:[10.45.0.3] IPv6:[] (../src/smf/context.c:1744)
+[32m11/05 23:14:11.898[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-Sessions is now 0 (../src/smf/context.c:3258)
+[32m11/05 23:14:11.898[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-UEs is now 0 (../src/smf/context.c:1140)
+[32m11/05 23:14:12.157[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-UEs is now 1 (../src/smf/context.c:1079)
+[32m11/05 23:14:12.157[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-Sessions is now 1 (../src/smf/context.c:3250)
+[32m11/05 23:14:12.157[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:7777] (../src/smf/nsmf-handler.c:270)
+[32m11/05 23:14:12.157[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:12.160[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/smf/nudm-handler.c:461)
+[32m11/05 23:14:12.160[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication: EAP-Request/Identity (../src/smf/gsm-sm.c:139)
+[32m11/05 23:14:12.160[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] Setup NF Instance [type:AMF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:12.181[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication identity [@edhoc.internet] (../src/smf/gsm-sm.c:245)
+[E4T] smf_relay_tx t_us=105491187856 sess=1 len=54
+[E4T] smf_relay_rx t_us=105491188456 sess=1 len=40
+[E4T] smf_relay_tx t_us=105491192560 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105491192984 sess=1 len=40
+[E4T] smf_relay_tx t_us=105491195529 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105491196140 sess=1 len=40
+[E4T] smf_relay_tx t_us=105491201849 sess=1 len=484
+[E4T] smf_relay_rx t_us=105492234547 sess=1 len=22
+[32m11/05 23:14:13.228[0m: [[33msmf[0m] [1;36mWARNING[0m: [imsi-999700000000001:1] Secondary authentication rejected (../src/smf/gsm-sm.c:305)
+[32m11/05 23:14:13.229[0m: [[33msmf[0m] [1;32mINFO[0m: Removed Session: UE IMSI:[imsi-999700000000001] DNN:[internet:1] IPv4:[10.45.0.4] IPv6:[] (../src/smf/context.c:1744)
+[32m11/05 23:14:13.229[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-Sessions is now 0 (../src/smf/context.c:3258)
+[32m11/05 23:14:13.229[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-UEs is now 0 (../src/smf/context.c:1140)
+[32m11/05 23:14:13.513[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-UEs is now 1 (../src/smf/context.c:1079)
+[32m11/05 23:14:13.513[0m: [[33msmf[0m] [1;32mINFO[0m: [Added] Number of SMF-Sessions is now 1 (../src/smf/context.c:3250)
+[32m11/05 23:14:13.513[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.5:7777] (../src/smf/nsmf-handler.c:270)
+[32m11/05 23:14:13.513[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:13.515[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.12:7777] (../src/smf/nudm-handler.c:461)
+[32m11/05 23:14:13.515[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication: EAP-Request/Identity (../src/smf/gsm-sm.c:139)
+[32m11/05 23:14:13.516[0m: [[33msbi[0m] [1;32mINFO[0m: [25c28afc-d923-41f1-97cc-a98d988b819a] Setup NF Instance [type:AMF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:13.521[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication identity [@edhoc.internet] (../src/smf/gsm-sm.c:245)
+[E4T] smf_relay_tx t_us=105492527572 sess=1 len=54
+[E4T] smf_relay_rx t_us=105492528083 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492532479 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105492533019 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492535597 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105492536397 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492539444 sess=1 len=484
+[E4T] smf_relay_rx t_us=105492540322 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492543187 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492543649 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492547315 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492547719 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492550395 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492550901 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492553792 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492554073 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492562422 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492562629 sess=1 len=1039
+[E4T] smf_relay_tx t_us=105492566195 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492566474 sess=1 len=145
+[E4T] smf_relay_tx t_us=105492572716 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105492573180 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492575871 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105492576183 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492582597 sess=1 len=1055
+[E4T] smf_relay_rx t_us=105492584355 sess=1 len=40
+[E4T] smf_relay_tx t_us=105492588504 sess=1 len=817
+[E4T] smf_relay_rx t_us=105492589956 sess=1 len=56
+[E4T] smf_relay_tx t_us=105492592543 sess=1 len=56
+[E4T] smf_relay_rx t_us=105492593159 sess=1 len=22
+[32m11/05 23:14:13.586[0m: [[33msmf[0m] [1;32mINFO[0m: [imsi-999700000000001:1] Secondary authentication succeeded (../src/smf/gsm-sm.c:286)
+[32m11/05 23:14:13.586[0m: [[33msbi[0m] [1;32mINFO[0m: [248f755a-d923-41f1-9d64-57a7ef2be803] Setup NF Instance [type:PCF] (../lib/sbi/path.c:307)
+[32m11/05 23:14:13.589[0m: [[33msmf[0m] [1;32mINFO[0m: Setup NF EndPoint(addr) [127.0.0.13:7777] (../src/smf/npcf-handler.c:367)
+[32m11/05 23:14:13.589[0m: [[33msmf[0m] [1;32mINFO[0m: UE SUPI[imsi-999700000000001] DNN[internet] IPv4[10.45.0.5] IPv6[] (../src/smf/npcf-handler.c:580)
+[32m11/05 23:14:13.592[0m: [[33msbi[0m] [1;32mINFO[0m: [248f2b4a-d923-41f1-8348-875e21cf9015] Setup NF Instance [type:UDM] (../lib/sbi/path.c:307)
+[32m11/05 23:14:13.711[0m: [[33msmf[0m] [1;32mINFO[0m: Removed Session: UE IMSI:[imsi-999700000000001] DNN:[internet:1] IPv4:[10.45.0.5] IPv6:[] (../src/smf/context.c:1744)
+[32m11/05 23:14:13.713[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-Sessions is now 0 (../src/smf/context.c:3258)
+[32m11/05 23:14:13.713[0m: [[33msmf[0m] [1;32mINFO[0m: [Removed] Number of SMF-UEs is now 0 (../src/smf/context.c:1140)
+[32m11/05 23:14:47.863[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m11/05 23:14:47.863[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m11/05 23:14:47.863[0m: [[33msbi[0m] [1;32mINFO[0m: [252cafdc-d923-41f1-9ea0-6b459a2ee3d1] NF de-registered (../lib/sbi/nf-sm.c:324)
+[32m11/05 23:14:47.865[0m: [[33msmf[0m] [1;32mINFO[0m: PFCP de-associated [127.0.0.7]:8805 (../src/smf/pfcp-sm.c:204)
+[32m11/05 23:14:47.996[0m: [[33mapp[0m] [1;32mINFO[0m: SMF terminate...done (../src/smf/app.c:39)
+[32m11/05 23:14:47.996[0m: [[33mcore[0m] [1;33mERROR[0m: 1 in '&pollset->pool[16384]' were not released. (../lib/core/ogs-poll.c:69)
+full talloc report on 'core' (total     17 bytes in   2 blocks)
+    ../lib/core/ogs-epoll.c:119    contains     16 bytes in   1 blocks (ref 0) 0x745ed40104e0

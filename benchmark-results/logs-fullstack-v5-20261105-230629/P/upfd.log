@@ -1,0 +1,203 @@
+Open5GS daemon v2.7.2
+
+[32m11/05 23:13:59.570[0m: [[33mapp[0m] [1;32mINFO[0m: Configuration: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/etc/open5gs/upf.yaml' (../lib/app/ogs-init.c:144)
+[32m11/05 23:13:59.570[0m: [[33mapp[0m] [1;32mINFO[0m: File Logging: '/home/admin-vb/EdhocSecondaryAuth/open5gs/install-ws/var/log/open5gs/upf.log' (../lib/app/ogs-init.c:147)
+[32m11/05 23:13:59.594[0m: [[33mmetrics[0m] [1;32mINFO[0m: metrics_server() [http://127.0.0.7]:9090 (../lib/metrics/prometheus/context.c:300)
+[32m11/05 23:13:59.594[0m: [[33mpfcp[0m] [1;32mINFO[0m: pfcp_server() [127.0.0.7]:8805 (../lib/pfcp/path.c:30)
+[32m11/05 23:13:59.594[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_server() [127.0.0.7]:2152 (../lib/gtp/path.c:30)
+[32m11/05 23:13:59.595[0m: [[33mupf[0m] [1;32mINFO[0m: UPF EAP relay: RADIUS socket to 127.0.0.1:1812 (../src/upf/eap-relay.c:721)
+[32m11/05 23:13:59.595[0m: [[33mupf[0m] [1;32mINFO[0m: UPF EAP relay started on 127.0.0.1:3870 (../src/upf/eap-relay.c:1032)
+[32m11/05 23:13:59.596[0m: [[33mapp[0m] [1;32mINFO[0m: UPF initialize...done (../src/upf/app.c:31)
+[32m11/05 23:13:59.621[0m: [[33mupf[0m] [1;32mINFO[0m: PFCP associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:168)
+[E4T] upf_req_rx t_us=105487885215 sess=0 len=54 code=0
+[E4T] upf_rad_tx t_us=105487885262 sess=0 len=85 code=1
+[E4T] upf_rad_rx t_us=105487885607 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487885774 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487892601 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105487892614 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105487893040 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487893047 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487896389 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105487896410 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105487896675 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487896682 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487899262 sess=0 len=484 code=0
+[E4T] upf_rad_tx t_us=105487899273 sess=0 len=519 code=1
+[E4T] upf_rad_rx t_us=105487900199 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487900205 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487904733 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487904743 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487905047 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487905054 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487909197 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487909207 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487909444 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487909470 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487913881 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487913891 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487914182 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487914190 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487917362 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487917370 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487917680 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487917688 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487921271 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487921278 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487921481 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105487921509 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105487924310 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487924318 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487924510 sess=0 len=169 code=11
+[E4T] upf_resp_tx t_us=105487924526 sess=0 len=145 code=2
+[E4T] upf_req_rx t_us=105487933122 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105487933152 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105487933629 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487933656 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487938088 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105487938118 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105487938339 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487938365 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487944225 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105487944235 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105487944582 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105487944591 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105487947632 sess=0 len=817 code=0
+[E4T] upf_rad_tx t_us=105487947642 sess=0 len=856 code=1
+[E4T] upf_rad_rx t_us=105487948792 sess=0 len=80 code=11
+[E4T] upf_resp_tx t_us=105487948822 sess=0 len=56 code=2
+[E4T] upf_req_rx t_us=105487953452 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105487953480 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105487953782 sess=0 len=177 code=2
+[E4T] upf_resp_tx t_us=105487953804 sess=0 len=22 code=0
+[32m11/05 23:14:08.951[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m11/05 23:14:08.951[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_connect() [127.0.0.4]:2152 (../lib/gtp/path.c:60)
+[32m11/05 23:14:08.951[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0x404 CP:0xf7c] APN[internet] PDN-Type[1] IPv4[10.45.0.2] IPv6[] (../src/upf/context.c:495)
+[32m11/05 23:14:08.953[0m: [[33mgtp[0m] [1;32mINFO[0m: gtp_connect() [127.0.0.1]:2152 (../lib/gtp/path.c:60)
+[32m11/05 23:14:09.040[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[E4T] upf_req_rx t_us=105488317885 sess=0 len=54 code=0
+[E4T] upf_rad_tx t_us=105488317983 sess=0 len=85 code=1
+[E4T] upf_rad_rx t_us=105488320984 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105488320994 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105488324496 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105488324526 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105488324818 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105488324843 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105488329413 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105488329448 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105488329770 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105488329795 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105488332855 sess=0 len=484 code=0
+[E4T] upf_rad_tx t_us=105488332865 sess=0 len=519 code=1
+[E4T] upf_rad_rx t_us=105488333702 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488333726 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488337647 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488337677 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488338096 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488338125 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488341781 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488341812 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488342217 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488342240 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488347127 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488347137 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488347448 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488347471 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488351514 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488351545 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488351881 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488351956 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488356773 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488356850 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488357313 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105488357340 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105488360981 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105488361043 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105488361343 sess=0 len=169 code=11
+[E4T] upf_resp_tx t_us=105488361369 sess=0 len=145 code=2
+[E4T] upf_req_rx t_us=105488367766 sess=0 len=1055 code=0
+[32m11/05 23:14:09.361[0m: [[33mupf[0m] [1;36mWARNING[0m: E4_DROP_ONCE: message_3 dropped before the DN-AAA (../src/upf/eap-relay.c:921)
+[E4T] upf_drop t_us=105488367879 sess=0 len=1005 code=3
+[E4T] upf_req_rx t_us=105491187997 sess=0 len=54 code=0
+[E4T] upf_rad_tx t_us=105491188043 sess=0 len=85 code=1
+[E4T] upf_rad_rx t_us=105491188356 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105491188389 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105491192651 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105491192687 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105491192911 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105491192919 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105491195671 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105491195683 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105491195920 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105491196060 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105491201934 sess=0 len=484 code=0
+[E4T] upf_rad_tx t_us=105491201946 sess=0 len=519 code=1
+[E4T] upf_rad_rx t_us=105492234415 sess=0 len=44 code=3
+[E4T] upf_resp_tx t_us=105492234460 sess=0 len=22 code=1
+[E4T] upf_req_rx t_us=105492527635 sess=0 len=54 code=0
+[E4T] upf_rad_tx t_us=105492527671 sess=0 len=85 code=1
+[E4T] upf_rad_rx t_us=105492527993 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492528023 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492532566 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105492532580 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105492532925 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492532957 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492535990 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105492536025 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105492536309 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492536339 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492539535 sess=0 len=484 code=0
+[E4T] upf_rad_tx t_us=105492539564 sess=0 len=519 code=1
+[E4T] upf_rad_rx t_us=105492540239 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492540263 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492543314 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492543323 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492543578 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492543584 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492547388 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492547399 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492547627 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492547654 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492550477 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492550507 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492550826 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492550833 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492553874 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492553883 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492554024 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492554057 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492562497 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492562505 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492562589 sess=0 len=1069 code=11
+[E4T] upf_resp_tx t_us=105492562619 sess=0 len=1039 code=2
+[E4T] upf_req_rx t_us=105492566215 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492566221 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492566434 sess=0 len=169 code=11
+[E4T] upf_resp_tx t_us=105492566461 sess=0 len=145 code=2
+[E4T] upf_req_rx t_us=105492572791 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105492572802 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105492573134 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492573161 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492575946 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105492575956 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105492576088 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492576121 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492583451 sess=0 len=1055 code=0
+[E4T] upf_rad_tx t_us=105492583464 sess=0 len=1094 code=1
+[E4T] upf_rad_rx t_us=105492584285 sess=0 len=64 code=11
+[E4T] upf_resp_tx t_us=105492584293 sess=0 len=40 code=2
+[E4T] upf_req_rx t_us=105492588607 sess=0 len=817 code=0
+[E4T] upf_rad_tx t_us=105492588639 sess=0 len=856 code=1
+[E4T] upf_rad_rx t_us=105492589837 sess=0 len=80 code=11
+[E4T] upf_resp_tx t_us=105492589862 sess=0 len=56 code=2
+[E4T] upf_req_rx t_us=105492592631 sess=0 len=56 code=0
+[E4T] upf_rad_tx t_us=105492592657 sess=0 len=89 code=1
+[E4T] upf_rad_rx t_us=105492593030 sess=0 len=177 code=2
+[E4T] upf_resp_tx t_us=105492593091 sess=0 len=22 code=0
+[32m11/05 23:14:13.590[0m: [[33mupf[0m] [1;32mINFO[0m: [Added] Number of UPF-Sessions is now 1 (../src/upf/context.c:209)
+[32m11/05 23:14:13.590[0m: [[33mupf[0m] [1;32mINFO[0m: UE F-SEID[UP:0xc9b CP:0xd44] APN[internet] PDN-Type[1] IPv4[10.45.0.5] IPv6[] (../src/upf/context.c:495)
+[32m11/05 23:14:13.681[0m: [[33mupf[0m] [1;32mINFO[0m: [Removed] Number of UPF-sessions is now 0 (../src/upf/context.c:253)
+[32m11/05 23:14:47.863[0m: [[33mapp[0m] [1;32mINFO[0m: SIGTERM received (../src/main.c:54)
+[32m11/05 23:14:47.863[0m: [[33mapp[0m] [1;32mINFO[0m: Open5GS daemon terminating... (../src/main.c:235)
+[32m11/05 23:14:47.866[0m: [[33mupf[0m] [1;32mINFO[0m: PFCP de-associated [127.0.0.4]:8805 (../src/upf/pfcp-sm.c:184)
+[32m11/05 23:14:47.880[0m: [[33mupf[0m] [1;32mINFO[0m: UPF EAP relay stopped (../src/upf/eap-relay.c:1058)
+[32m11/05 23:14:47.881[0m: [[33mapp[0m] [1;32mINFO[0m: UPF terminate...done (../src/upf/app.c:39)

@@ -1,0 +1,410 @@
+UERANSIM v3.2.7
+[2026-11-05 23:14:06.588] [nas] [info] UE switches to state [MM-DEREGISTERED/PLMN-SEARCH]
+[2026-11-05 23:14:06.589] [rrc] [debug] New signal detected for cell[1], total [1] cells in coverage
+[2026-11-05 23:14:06.589] [nas] [info] Selected plmn[999/70]
+[2026-11-05 23:14:06.589] [rrc] [info] Selected cell plmn[999/70] tac[1] category[SUITABLE]
+[2026-11-05 23:14:06.589] [nas] [info] UE switches to state [MM-DEREGISTERED/PS]
+[2026-11-05 23:14:06.589] [nas] [info] UE switches to state [MM-DEREGISTERED/NORMAL-SERVICE]
+[2026-11-05 23:14:06.589] [nas] [debug] Initial registration required due to [MM-DEREG-NORMAL-SERVICE]
+[2026-11-05 23:14:06.589] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[2026-11-05 23:14:06.589] [nas] [debug] Sending Initial Registration
+[E4T] ue_nas_tx t_us=105485596297 sess=0 len=65
+[2026-11-05 23:14:06.589] [nas] [info] UE switches to state [MM-REGISTER-INITIATED]
+[2026-11-05 23:14:06.589] [rrc] [debug] Sending RRC Setup Request
+[2026-11-05 23:14:06.590] [rrc] [info] RRC connection established
+[2026-11-05 23:14:06.590] [rrc] [info] UE switches to state [RRC-CONNECTED]
+[2026-11-05 23:14:06.591] [nas] [info] UE switches to state [CM-CONNECTED]
+[2026-11-05 23:14:06.596] [nas] [debug] Authentication Request received
+[2026-11-05 23:14:06.596] [nas] [debug] Received SQN [000000000EE1]
+[2026-11-05 23:14:06.596] [nas] [debug] SQN-MS [000000000000]
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6b
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: 66D03568AF30FA267EDE7FD3B5166B3A
+[KDF] Parameter[1] len: 16 (appended as 2 bytes)
+[KDF] Parameter[2]: 1F5451FE59D9AA36
+[KDF] Parameter[2] len: 8 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002066D03568AF30FA267EDE7FD3B5166B3A00101F5451FE59D9AA360008
+[HMAC] Key   : E0CE296D397D747F1A1F99B55C7F7C6D413B38801F586EFF33760C1DB9547B74
+[HMAC] Key Length : 32
+[HMAC] Input   : 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267002066D03568AF30FA267EDE7FD3B5166B3A00101F5451FE59D9AA360008
+[HMAC] Input Length : 63
+[KDF] Output HMAC-SHA256: B2E891F2316FDF797DACC885E3235B517A01B27110AA274B170CFA20463DF57B
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6a
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: E97DF05D7344
+[KDF] Parameter[1] len: 6 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020E97DF05D73440006
+[HMAC] Key   : E0CE296D397D747F1A1F99B55C7F7C6D413B38801F586EFF33760C1DB9547B74
+[HMAC] Key Length : 32
+[HMAC] Input   : 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020E97DF05D73440006
+[HMAC] Input Length : 43
+[KDF] Output HMAC-SHA256: F714EE392FA57DEB711B8FAC797F0794BDAC7A09A4EF68C6C4E04E3E55BD3A73
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF-Encode] SNN (raw string): 999700000000001
+[KDF-Encode] SNN (hex): 393939373030303030303030303031
+[KDF] FC: 6c
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Key   : F714EE392FA57DEB711B8FAC797F0794BDAC7A09A4EF68C6C4E04E3E55BD3A73
+[HMAC] Key Length : 32
+[HMAC] Input   : 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Input Length : 35
+[KDF] Output HMAC-SHA256: D7006B57B0FE0CD0683AD31165A455C81CAED0B6FEC9E4F2F1C9E2B76729A6E7
+[KDF] FC: 6d
+[KDF] Parameter[0]: 393939373030303030303030303031
+[KDF] Parameter[0] len: 15 (appended as 2 bytes)
+[KDF] Parameter[1]: 0000
+[KDF] Parameter[1] len: 2 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6D393939373030303030303030303031000F00000002
+[HMAC] Key   : D7006B57B0FE0CD0683AD31165A455C81CAED0B6FEC9E4F2F1C9E2B76729A6E7
+[HMAC] Key Length : 32
+[HMAC] Input   : 6D393939373030303030303030303031000F00000002
+[HMAC] Input Length : 22
+[KDF] Output HMAC-SHA256: 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+===========================DEBUG PARAMETER KDF================================ 
+[KDF DEBUG] SNN           = 5G:mnc070.mcc999.3gppnetwork.org
+[KDF DEBUG] SUPI          = 999700000000001
+[KDF DEBUG] ABBA len      = 2
+[KDF DEBUG] ABBA value    = 0000
+[KDF DEBUG] KAUSF         = F714EE392FA57DEB711B8FAC797F0794BDAC7A09A4EF68C6C4E04E3E55BD3A73
+[KDF DEBUG] KSEAF         = D7006B57B0FE0CD0683AD31165A455C81CAED0B6FEC9E4F2F1C9E2B76729A6E7
+[KDF DEBUG] KAMF          = 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+===========================DEBUG PARAMETER KDF================================ 
+[E4T] ue_nas_tx t_us=105485602811 sess=0 len=87
+[2026-11-05 23:14:06.601] [nas] [debug] Security Mode Command received
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 268EEE0E064985EA48AB18EBAD0598D8FF388F47530E04C02716B19DF5F8354F
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 897C46445082F39A5EB07450BC7ECB33B7798D225353CA1C1005C6EE8D2E4C14
+[KDF DEBUG] KNASenc = FF388F47530E04C02716B19DF5F8354F
+[KDF DEBUG] KNASint = B7798D225353CA1C1005C6EE8D2E4C14
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 268EEE0E064985EA48AB18EBAD0598D8FF388F47530E04C02716B19DF5F8354F
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 69AF0CE192839F343777937B452A40DE3084305E2FA29A4648BB8FCEF0E957A2
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 897C46445082F39A5EB07450BC7ECB33B7798D225353CA1C1005C6EE8D2E4C14
+[KDF DEBUG] KNASenc = FF388F47530E04C02716B19DF5F8354F
+[KDF DEBUG] KNASint = B7798D225353CA1C1005C6EE8D2E4C14
+[2026-11-05 23:14:06.601] [nas] [debug] Selected integrity[2] ciphering[0]
+[E4T] ue_nas_tx t_us=105485607690 sess=0 len=94
+[2026-11-05 23:14:06.611] [nas] [debug] Registration accept received
+[2026-11-05 23:14:06.611] [nas] [info] UE switches to state [MM-REGISTERED/NORMAL-SERVICE]
+[2026-11-05 23:14:06.611] [nas] [debug] Sending Registration Complete
+[E4T] ue_nas_tx t_us=105485618178 sess=0 len=67
+[2026-11-05 23:14:06.611] [nas] [info] Initial Registration is successful
+[2026-11-05 23:14:06.613] [nas] [debug] Configuration Update Command received
+[2026-11-05 23:14:08.857] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=105487864242 sess=1 len=0
+[2026-11-05 23:14:08.857] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=105487864352 sess=0 len=103
+[2026-11-05 23:14:08.877] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487883881 sess=1 len=0
+[E4T] ue_cmpl_tx t_us=105487883885 sess=1 len=20
+[E4T] ue_nas_tx t_us=105487883896 sess=0 len=103
+[2026-11-05 23:14:08.882] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487888756 sess=1 len=6
+[2026-11-05 23:14:08.882] [nas] [info] EAP-EDHOC: loaded method-4 key record (CUR slot)
+[E4T] ue_load t_us=105487888808 sess=0 len=0 next=0
+[E4T] ue_msg1 t_us=105487889236 sess=1 len=2424
+[2026-11-05 23:14:08.882] [nas] [info] EAP-EDHOC: sent message_1 fragment (997/2424 bytes)
+[E4T] ue_cmpl_tx t_us=105487889267 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105487889281 sess=0 len=103
+[2026-11-05 23:14:08.888] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487894753 sess=1 len=6
+[2026-11-05 23:14:08.888] [nas] [info] EAP-EDHOC: continued fragmented response (428 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105487894761 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105487894769 sess=0 len=103
+[2026-11-05 23:14:08.891] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487898159 sess=1 len=6
+[2026-11-05 23:14:08.891] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105487898166 sess=1 len=434
+[E4T] ue_nas_tx t_us=105487898173 sess=0 len=103
+[2026-11-05 23:14:08.895] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487901796 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487901800 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487901806 sess=0 len=103
+[2026-11-05 23:14:08.900] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487906835 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487906839 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487906845 sess=0 len=103
+[2026-11-05 23:14:08.906] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487912527 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487912531 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487912538 sess=0 len=103
+[2026-11-05 23:14:08.909] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487915920 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487915924 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487915931 sess=0 len=103
+[2026-11-05 23:14:08.912] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487919454 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487919458 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487919464 sess=0 len=103
+[2026-11-05 23:14:08.916] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487923006 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105487923010 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487923017 sess=0 len=103
+[2026-11-05 23:14:08.921] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487927523 sess=1 len=111
+[E4T] ue_msg2 t_us=105487927527 sess=1 len=6097
+[E4T] ue_store_next t_us=105487931721 sess=1 len=0 dur_us=3017
+[E4T] ue_msg3 t_us=105487931748 sess=1 len=3756
+[2026-11-05 23:14:08.925] [nas] [info] EAP-EDHOC: sent message_3 fragment (997/3756 bytes)
+[E4T] ue_cmpl_tx t_us=105487931759 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105487931770 sess=0 len=103
+[2026-11-05 23:14:08.930] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487936735 sess=1 len=6
+[2026-11-05 23:14:08.930] [nas] [info] EAP-EDHOC: continued fragmented response (1760 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105487936742 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105487936749 sess=0 len=103
+[2026-11-05 23:14:08.934] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487941246 sess=1 len=6
+[2026-11-05 23:14:08.934] [nas] [info] EAP-EDHOC: continued fragmented response (761 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105487941253 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105487941260 sess=0 len=103
+[2026-11-05 23:14:08.939] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487946304 sess=1 len=6
+[2026-11-05 23:14:08.939] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105487946311 sess=1 len=767
+[E4T] ue_nas_tx t_us=105487946319 sess=0 len=103
+[2026-11-05 23:14:08.943] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105487950432 sess=1 len=22
+[E4T] ue_msg4 t_us=105487950436 sess=1 len=16
+[E4T] msk_tag t_us=105487950442 sess=1 len=64 tag=2ce8e36eee3a256a
+[2026-11-05 23:14:08.943] [nas] [info] EAP-EDHOC: handshake complete, MSK/EMSK derived
+[E4T] ue_cmpl_tx t_us=105487950447 sess=1 len=6
+[E4T] ue_nas_tx t_us=105487950454 sess=0 len=103
+[E4T] ue_promote t_us=105487951012 sess=1 len=0 dur_us=525
+[2026-11-05 23:14:08.944] [nas] [info] EAP-EDHOC: NEXT promoted, old one-time key erased
+[2026-11-05 23:14:08.953] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=105487960445 sess=1 len=0 eap=3
+[2026-11-05 23:14:08.953] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-05 23:14:09.016] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.2] is up.
+[2026-11-05 23:14:09.026] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=105488033431 sess=0 len=103
+[2026-11-05 23:14:09.042] [nas] [debug] PDU Session Release Command received
+[2026-11-05 23:14:09.042] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=105488049011 sess=1 len=0
+[E4T] ue_nas_tx t_us=105488049027 sess=0 len=103
+[2026-11-05 23:14:09.284] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=105488291337 sess=1 len=0
+[2026-11-05 23:14:09.284] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=105488291397 sess=0 len=103
+[2026-11-05 23:14:09.309] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488316310 sess=1 len=0
+[E4T] ue_cmpl_tx t_us=105488316315 sess=1 len=20
+[E4T] ue_nas_tx t_us=105488316327 sess=0 len=103
+[2026-11-05 23:14:09.316] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488322661 sess=1 len=6
+[2026-11-05 23:14:09.316] [nas] [info] EAP-EDHOC: loaded method-4 key record (CUR slot)
+[E4T] ue_load t_us=105488322702 sess=0 len=0 next=0
+[E4T] ue_msg1 t_us=105488322884 sess=1 len=2424
+[2026-11-05 23:14:09.316] [nas] [info] EAP-EDHOC: sent message_1 fragment (997/2424 bytes)
+[E4T] ue_cmpl_tx t_us=105488322926 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105488322937 sess=0 len=103
+[2026-11-05 23:14:09.319] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488326395 sess=1 len=6
+[2026-11-05 23:14:09.319] [nas] [info] EAP-EDHOC: continued fragmented response (428 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105488326402 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105488326409 sess=0 len=103
+[2026-11-05 23:14:09.324] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488331403 sess=1 len=6
+[2026-11-05 23:14:09.324] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105488331410 sess=1 len=434
+[E4T] ue_nas_tx t_us=105488331417 sess=0 len=103
+[2026-11-05 23:14:09.328] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488335344 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488335348 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488335354 sess=0 len=103
+[2026-11-05 23:14:09.333] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488340470 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488340474 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488340480 sess=0 len=103
+[2026-11-05 23:14:09.337] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488343771 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488343775 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488343781 sess=0 len=103
+[2026-11-05 23:14:09.342] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488349200 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488349204 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488349210 sess=0 len=103
+[2026-11-05 23:14:09.348] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488355373 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488355377 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488355383 sess=0 len=103
+[2026-11-05 23:14:09.352] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488358950 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105488358954 sess=1 len=6
+[E4T] ue_nas_tx t_us=105488358960 sess=0 len=103
+[2026-11-05 23:14:09.358] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105488364849 sess=1 len=111
+[E4T] ue_msg2 t_us=105488364852 sess=1 len=6097
+[E4T] ue_store_next t_us=105488366325 sess=1 len=0 dur_us=907
+[E4T] ue_msg3 t_us=105488366352 sess=1 len=3756
+[2026-11-05 23:14:09.359] [nas] [info] EAP-EDHOC: sent message_3 fragment (997/3756 bytes)
+[E4T] ue_cmpl_tx t_us=105488366364 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105488366376 sess=0 len=103
+[2026-11-05 23:14:11.900] [nas] [error] PDU Session Establishment Reject received [USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED]
+[E4T] ue_pdu_rej t_us=105490907012 sess=1 len=0 cause=29 eap=0
+[2026-11-05 23:14:12.153] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=105491159658 sess=1 len=0
+[2026-11-05 23:14:12.153] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=105491160451 sess=0 len=103
+[2026-11-05 23:14:12.179] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105491186350 sess=1 len=0
+[E4T] ue_cmpl_tx t_us=105491186356 sess=1 len=20
+[E4T] ue_nas_tx t_us=105491186368 sess=0 len=103
+[2026-11-05 23:14:12.183] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105491189835 sess=1 len=6
+[2026-11-05 23:14:12.183] [nas] [info] EAP-EDHOC: loaded method-4 key record (NEXT slot)
+[E4T] ue_load t_us=105491189892 sess=0 len=0 next=1
+[E4T] ue_msg1 t_us=105491190032 sess=1 len=2424
+[2026-11-05 23:14:12.183] [nas] [info] EAP-EDHOC: sent message_1 fragment (997/2424 bytes)
+[E4T] ue_cmpl_tx t_us=105491190138 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105491190148 sess=0 len=103
+[2026-11-05 23:14:12.187] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105491194377 sess=1 len=6
+[2026-11-05 23:14:12.187] [nas] [info] EAP-EDHOC: continued fragmented response (428 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105491194385 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105491194393 sess=0 len=103
+[2026-11-05 23:14:12.194] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105491200711 sess=1 len=6
+[2026-11-05 23:14:12.194] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105491200718 sess=1 len=434
+[E4T] ue_nas_tx t_us=105491200726 sess=0 len=103
+[2026-11-05 23:14:13.230] [nas] [error] PDU Session Establishment Reject received [USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED]
+[E4T] ue_pdu_rej t_us=105492236807 sess=1 len=0 cause=29 eap=4
+[E4T] ue_fallback t_us=105492236859 sess=0 len=0
+[2026-11-05 23:14:13.230] [nas] [warning] EAP-EDHOC: EAP-Failure on NEXT, fallback=1 (next attempt on CUR, NEXT kept)
+[2026-11-05 23:14:13.510] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=105492517176 sess=1 len=0
+[2026-11-05 23:14:13.510] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=105492517376 sess=0 len=103
+[2026-11-05 23:14:13.518] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492525289 sess=1 len=0
+[E4T] ue_cmpl_tx t_us=105492525294 sess=1 len=20
+[E4T] ue_nas_tx t_us=105492525304 sess=0 len=103
+[2026-11-05 23:14:13.523] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492529538 sess=1 len=6
+[E4T] ue_msg1 t_us=105492529686 sess=1 len=2424
+[2026-11-05 23:14:13.523] [nas] [info] EAP-EDHOC: sent message_1 fragment (997/2424 bytes)
+[E4T] ue_cmpl_tx t_us=105492529717 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105492529725 sess=0 len=103
+[2026-11-05 23:14:13.527] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492534420 sess=1 len=6
+[2026-11-05 23:14:13.527] [nas] [info] EAP-EDHOC: continued fragmented response (428 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105492534427 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105492534435 sess=0 len=103
+[2026-11-05 23:14:13.531] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492537655 sess=1 len=6
+[2026-11-05 23:14:13.531] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105492537662 sess=1 len=434
+[E4T] ue_nas_tx t_us=105492537669 sess=0 len=103
+[2026-11-05 23:14:13.535] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492542214 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492542218 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492542224 sess=0 len=103
+[2026-11-05 23:14:13.539] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492546085 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492546090 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492546098 sess=0 len=103
+[2026-11-05 23:14:13.542] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492549224 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492549228 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492549234 sess=0 len=103
+[2026-11-05 23:14:13.546] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492552641 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492552646 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492552654 sess=0 len=103
+[2026-11-05 23:14:13.550] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492556679 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492556683 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492556689 sess=0 len=103
+[2026-11-05 23:14:13.557] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492564226 sess=1 len=1005
+[E4T] ue_cmpl_tx t_us=105492564230 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492564236 sess=0 len=103
+[2026-11-05 23:14:13.561] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492567851 sess=1 len=111
+[E4T] ue_msg2 t_us=105492567855 sess=1 len=6097
+[E4T] ue_store_next t_us=105492571306 sess=1 len=0 dur_us=3167
+[E4T] ue_msg3 t_us=105492571334 sess=1 len=3756
+[2026-11-05 23:14:13.564] [nas] [info] EAP-EDHOC: sent message_3 fragment (997/3756 bytes)
+[E4T] ue_cmpl_tx t_us=105492571345 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105492571356 sess=0 len=103
+[2026-11-05 23:14:13.568] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492574601 sess=1 len=6
+[2026-11-05 23:14:13.568] [nas] [info] EAP-EDHOC: continued fragmented response (1760 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105492574609 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105492574616 sess=0 len=103
+[2026-11-05 23:14:13.573] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492579558 sess=1 len=6
+[2026-11-05 23:14:13.573] [nas] [info] EAP-EDHOC: continued fragmented response (761 bytes remaining)
+[E4T] ue_cmpl_tx t_us=105492579565 sess=1 len=1005
+[E4T] ue_nas_tx t_us=105492579572 sess=0 len=103
+[2026-11-05 23:14:13.579] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492585632 sess=1 len=6
+[2026-11-05 23:14:13.579] [nas] [info] EAP-EDHOC: completed fragmented response
+[E4T] ue_cmpl_tx t_us=105492585639 sess=1 len=767
+[E4T] ue_nas_tx t_us=105492585646 sess=0 len=103
+[2026-11-05 23:14:13.584] [nas] [info] PDU Session Authentication Command received for PSI[1]
+[E4T] ue_cmd_rx t_us=105492591436 sess=1 len=22
+[E4T] ue_msg4 t_us=105492591440 sess=1 len=16
+[E4T] msk_tag t_us=105492591447 sess=1 len=64 tag=910d9c9c75f1728a
+[2026-11-05 23:14:13.584] [nas] [info] EAP-EDHOC: handshake complete, MSK/EMSK derived
+[E4T] ue_cmpl_tx t_us=105492591456 sess=1 len=6
+[E4T] ue_nas_tx t_us=105492591464 sess=0 len=103
+[E4T] ue_promote t_us=105492592081 sess=1 len=0 dur_us=581
+[2026-11-05 23:14:13.585] [nas] [info] EAP-EDHOC: NEXT promoted, old one-time key erased
+[2026-11-05 23:14:13.592] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=105492598848 sess=1 len=0 eap=3
+[2026-11-05 23:14:13.592] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-05 23:14:13.653] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.5] is up.
+[2026-11-05 23:14:13.666] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=105492672671 sess=0 len=103
+[2026-11-05 23:14:13.684] [nas] [debug] PDU Session Release Command received
+[2026-11-05 23:14:13.684] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=105492691270 sess=1 len=0
+[E4T] ue_nas_tx t_us=105492691302 sess=0 len=103

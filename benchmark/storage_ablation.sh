@@ -17,6 +17,7 @@
 #       message_4, so ue_tmpfs keeps only the DN-AAA flush and dn_tmpfs only
 #       the UE flush
 #       -> benchmark-results/e2e-storage-flush.csv (recreated)
+# STORAGE_SUFFIX=-v5 writes e2e-storage-flush-v5.csv instead.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -25,8 +26,8 @@ C=/usr/local/etc/edhoc; UE=$C/ue/edhoc-ue; ID=@edhoc.internet
 OWNER="${SUDO_USER:-$(id -un)}"
 [[ $EUID -eq 0 ]] || { echo "run with sudo" >&2; exit 1; }
 case "$MODE" in
-  both)  OUT="$ROOT/benchmark-results/e2e-storage-ablation.csv"; CONFIGS=(durable tmpfs) ;;
-  flush) OUT="$ROOT/benchmark-results/e2e-storage-flush.csv"; CONFIGS=(durable tmpfs ue_tmpfs dn_tmpfs) ;;
+  both)  OUT="$ROOT/benchmark-results/e2e-storage-ablation${STORAGE_SUFFIX:-}.csv"; CONFIGS=(durable tmpfs) ;;
+  flush) OUT="$ROOT/benchmark-results/e2e-storage-flush${STORAGE_SUFFIX:-}.csv"; CONFIGS=(durable tmpfs ue_tmpfs dn_tmpfs) ;;
   *) echo "mode: both|flush" >&2; exit 2 ;;
 esac
 
