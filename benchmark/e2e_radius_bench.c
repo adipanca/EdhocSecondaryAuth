@@ -40,6 +40,11 @@
  * there without waiting for the retransmission timeouts and is logged with
  * status DROP. The next iteration is the recovery session.
  *
+ * --variant v4|v4s|v4s+chk|v4t (method 4): Message1 variant, as edhoc_variant
+ * of the responder. Built with -DE4_TAMPER (e2e_radius_tamper) it also takes
+ * --tamper 1..7 [--other-ue-dir D], the message_1 tamper tests T1-T7 of
+ * benchmark/tamper_tests.sh; the benchmark binary has none of this.
+ *
  * This is a benchmark / interoperability harness, not production code.
  */
 #define _POSIX_C_SOURCE 200809L
@@ -247,6 +252,37 @@ static int eng_consume(eng_t *e, const uint8_t *in, size_t in_len,
  * length; sets *is_final_ack when we sent the closing empty ACK.
  * Returns -1 on protocol error.
  */
+#ifdef E4_TAMPER
+/* T1 KeyID_B bit, T2 KeyID_B of another UE, T3 ct_B bit, T4 AEAD bit, T5 old
+ * message_1, T6 current message_1 replayed in a second EAP session, T7 the
+ * UE writes another KeyID_B into PT1 (test hook in edhoc4.c) */
+extern const uint8_t *edhoc4_test_inner_kid;
+static int g_tamper, g_replay_mode;
+static const char *g_other_uedir;
+static uint8_t g_other_kid[E4_KEYID_LEN];
+static uint8_t g_m1_saved[E4_MAX_MSG];
+static size_t g_m1_saved_len;
+static const char *g_replay_result = "-";
+
+static void tamper_msg1(uint8_t *out, size_t *olen)
+{
+    if (g_replay_mode) {
+        memcpy(out, g_m1_saved, g_m1_saved_len);
+        *olen = g_m1_saved_len;
+        return;
+    }
+    memcpy(g_m1_saved, out, *olen);
+    g_m1_saved_len = *olen;
+    switch (g_tamper) {
+    case 1: out[0] ^= 0x01; break;
+    case 2: memcpy(out, g_other_kid, E4_KEYID_LEN); break;
+    case 3: out[E4_KEYID_LEN + 100] ^= 0x01; break;
+    case 4: out[E4_KEYID_LEN + E4_XWING_CT + 10] ^= 0x01; break;
+    default: break;
+    }
+}
+#endif
+
 static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
 {
     const uint8_t *msg = NULL;
@@ -270,6 +306,9 @@ static long eng_react(eng_t *e, const uint8_t *in, size_t in_len, uint8_t *wire)
         else
             rc = edhoc4_i_make_msg1(&e->c4, e->out, sizeof(e->out), &olen);
         if (rc != 0) return -1;
+#ifdef E4_TAMPER
+        if (!e->classical) tamper_msg1(e->out, &olen);
+#endif
         e->out_len = olen;
         e->step = 1;
         e->cur_in_msg = 2;   /* next inbound is message_2 */
@@ -562,6 +601,21 @@ static int run_once(int method, result_t *r)
         const uint8_t *in = reap + 5;
         size_t in_len = reap_len - 5;
 
+#ifdef E4_TAMPER
+        /* the responder answered message_1: a replay stops here; T6 sends the
+         * same message_1 in a second EAP session, then this session goes on */
+        if (e.step == 1 && e.out_pos >= e.out_len) {
+            if (g_replay_mode) { g_replay_result = "challenge"; e.failed = 1; break; }
+            if (g_tamper == 6) {
+                result_t r2;
+                g_replay_mode = 1;
+                g_replay_result = "reject";
+                run_once(method, &r2);
+                g_replay_mode = 0;
+                g_tamper = -6;   /* once per handshake */
+            }
+        }
+#endif
         /* forced loss: this inbound is message_4 (message_3 fully sent) */
         if (g_drop_once == 4 && e.step == 2 && e.out_pos >= e.out_len) {
             g_drop_once = 0; r->dropped = 1; e.failed = 1; break;
@@ -670,6 +724,46 @@ static const char *method_name(int m)
     }
 }
 
+#ifdef E4_TAMPER
+/* one line per iteration: the result at the UE; where the DN-AAA refused and
+ * how long it took comes from its [E4T] aaa_msg1 lines (tamper_analyze.py) */
+static int tamper_main(int method, int iters, const char *csv, const char *label)
+{
+    static const uint8_t inner[E4_KEYID_LEN] = { 0xa5, 0xa5, 0xa5, 0xa5 };
+    const int test = g_tamper;
+    char p[512];
+    FILE *cf = csv ? fopen(csv, "a") : stdout;
+    if (!cf) return 1;
+    if (test == 2) {
+        edhoc4_ue_state other;
+        snprintf(p, sizeof(p), "%s/ue.rec", g_other_uedir ? g_other_uedir : "");
+        if (edhoc4_ue_load(p, &other) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return 1; }
+        edhoc4_keyid(other.peer_pk, g_other_kid);
+        edhoc4_ue_state_wipe(&other);
+    }
+    if (test == 7) edhoc4_test_inner_kid = inner;
+    for (int it = 1; it <= iters; it++) {
+        result_t r;
+        int rc;
+        g_tamper = test;
+        g_replay_result = "-";
+        if (test == 5) {      /* a completed run, then its message_1 again */
+            g_tamper = 0;
+            if (run_handshake(method, &r) != 0) { fprintf(stderr, "T5: set-up run failed\n"); return 1; }
+            g_replay_mode = 1;
+            g_replay_result = "reject";
+        }
+        rc = run_handshake(method, &r);
+        g_replay_mode = 0;
+        fprintf(cf, "%s,T%d,%d,%s,%d,%d,%s\n", label, test, it,
+                rc == 0 ? "success" : r.access_reject ? "eap-failure" : "other",
+                r.access_accept, r.access_reject, g_replay_result);
+    }
+    if (csv) fclose(cf);
+    return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     int method = -1, iters = 1;
@@ -694,6 +788,15 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--pool")) g_pool = 1;      /* opt-in precompute */
         else if (!strcmp(argv[i], "--drop-msg3-once")) g_drop_once = 3;
         else if (!strcmp(argv[i], "--drop-msg4-once")) g_drop_once = 4;
+        else if (!strcmp(argv[i], "--variant") && i + 1 < argc) {
+            int v = edhoc4_variant_parse(argv[++i]);
+            if (v < 0) { fprintf(stderr, "unknown variant: %s\n", argv[i]); return 2; }
+            edhoc4_set_variant(v);
+        }
+#ifdef E4_TAMPER
+        else if (!strcmp(argv[i], "--tamper") && i + 1 < argc) g_tamper = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--other-ue-dir") && i + 1 < argc) g_other_uedir = argv[++i];
+#endif
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
     }
     if (method < 0 || method > 4) {
@@ -707,6 +810,9 @@ int main(int argc, char **argv)
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
     srand((unsigned)(time(NULL) ^ getpid()));
 
+#ifdef E4_TAMPER
+    if (g_tamper) return tamper_main(method, iters, csv, label);
+#endif
     FILE *cf = NULL;
     if (csv) {
         int existed = access(csv, F_OK) == 0;

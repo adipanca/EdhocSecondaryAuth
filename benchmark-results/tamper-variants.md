@@ -1,0 +1,28 @@
+| test | manipulation | variant | result at the UE | DN-AAA step | DN-AAA median ms | Decaps run |
+|---|---|---|---|---|---|---|
+| T1 | KeyID_B header: 1 bit | v4 | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4s | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4s+chk | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4t | eap-failure 20/20 | lookup | 0.002 | no |
+| T2 | KeyID_B header: of another UE | v4 | eap-failure 20/20 | AEAD tag | 0.161 | yes |
+| T2 | KeyID_B header: of another UE | v4s | eap-failure 20/20 | AEAD tag | 0.176 | yes |
+| T2 | KeyID_B header: of another UE | v4s+chk | eap-failure 20/20 | AEAD tag | 0.174 | yes |
+| T2 | KeyID_B header: of another UE | v4t | eap-failure 20/20 | AEAD tag | 0.160 | yes |
+| T3 | ct_B: 1 bit | v4 | eap-failure 20/20 | AEAD tag | 0.178 | yes |
+| T3 | ct_B: 1 bit | v4s | eap-failure 20/20 | AEAD tag | 0.164 | yes |
+| T3 | ct_B: 1 bit | v4s+chk | eap-failure 20/20 | AEAD tag | 0.172 | yes |
+| T3 | ct_B: 1 bit | v4t | eap-failure 20/20 | AEAD tag | 0.154 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4 | eap-failure 20/20 | AEAD tag | 0.158 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4s | eap-failure 20/20 | AEAD tag | 0.148 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4s+chk | eap-failure 20/20 | AEAD tag | 0.147 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4t | eap-failure 20/20 | AEAD tag | 0.169 | yes |
+| T5 | old Message1 replayed | v4 | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4s | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4s+chk | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4t | eap-failure 20/20 | lookup | 0.001 | no |
+| T6 | current Message1 in a second EAP session | v4 | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.504 | yes |
+| T6 | current Message1 in a second EAP session | v4s | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.540 | yes |
+| T6 | current Message1 in a second EAP session | v4s+chk | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.492 | yes |
+| T6 | current Message1 in a second EAP session | v4t | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.561 | yes |
+| T7 | KeyID_B in PT1 != header | v4s | success 20/20 | accepted | 0.562 | yes |
+| T7 | KeyID_B in PT1 != header | v4s+chk | eap-failure 20/20 | inner KeyID check | 0.149 | yes |
