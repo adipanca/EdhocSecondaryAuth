@@ -14,7 +14,7 @@ one session without replication (see its header).
 Same compact X-Wing abstraction as gen_v3.py / edhoc_m4_hybrid_*.pv
 (xwpk / xw_ct / xw_ss / xw_decaps, quantum oracle QXW).
 
-usage: gen_m4v4.py <path/to/edhoc_m4_hybrid_classical.pv> <outdir> [--variant v4|v4s|v4s_chk|v4t]
+usage: gen_m4v4.py <path/to/edhoc_m4_hybrid_classical.pv> <outdir> [--variant v5|v4|v4s|v4s_chk|v4t]
 
 --variant (step 30) writes edhoc_m4<var>_*.pv with Message1 of that variant, the
 ID_CRED_I check against the record that the implementation has and that the
@@ -27,6 +27,7 @@ models above leave out (claimedI), and the Message1 header-integrity query;
           (the convention of message_2); AD adds nothing here: K_1 depends on TH_1.
   v4s_chk v4s + DN checks KeyID_B in PT1 = header
   v4t     TH_1 as v4s, AEAD_enc_aad(K_1, TH_1, PT1), PT1 and KeyID check as v4
+  v5      the final protocol: v4s_chk under the names edhoc_m4v5_*.pv
 Without --variant the output is the plain v4 set, unchanged.
 """
 import os
@@ -34,9 +35,11 @@ import sys
 
 SRC, OUT = sys.argv[1], sys.argv[2]
 VARIANT = None
+PREFIX = "v4"       # edhoc_m4<PREFIX>_*.pv
 if len(sys.argv) > 3:
-    assert sys.argv[3] == "--variant" and sys.argv[4] in ("v4", "v4s", "v4s_chk", "v4t")
-    VARIANT = sys.argv[4]
+    assert sys.argv[3] == "--variant" and sys.argv[4] in ("v5", "v4", "v4s", "v4s_chk", "v4t")
+    PREFIX = sys.argv[4]
+    VARIANT = "v4s_chk" if PREFIX == "v5" else PREFIX
 os.makedirs(OUT, exist_ok=True)
 old = open(SRC).read()
 pre = old[old.index("(* ---------------- Channel, types"):old.index("(* ============================ QUERIES")]
@@ -74,6 +77,14 @@ TITLE = ("EAP-EDHOC hybrid PQC method 4, v4 (X-Wing = ML-KEM-768 + X25519, ML-DS
          " *           EAD_2 under MAC_2/sigma_R; PT3 = (MAC_3, VK_I, sigma_I); Message4 = AEAD(K_4, empty);\n"
          " *           KeyID_B = H(pk_B) in clear, AAD_1 = (KeyID_B, ct_B), TH_1 = H(pk_B, ct_B), DN-AAA\n"
          " *           record found by KeyID_B (table recs)")
+
+
+if PREFIX == "v5":
+    TITLE = ("EAP-EDHOC hybrid PQC method 4, final v5 (X-Wing = ML-KEM-768 + X25519, ML-DSA-44 detached-signature\n"
+             " *           gate), no ephemeral X-Wing; next one-time keys in EAD_1 (Npk_A) and EAD_2 (Npk_B);\n"
+             " *           EAD_2 under MAC_2/sigma_R; PT3 = (MAC_3, VK_I, sigma_I); Message4 = AEAD(K_4, empty);\n"
+             " *           KeyID_B = H(pk_B) in clear and in Plaintext1, TH_1 = H(KeyID_B, ct_B); DN-AAA finds the\n"
+             " *           record by KeyID_B (table recs), checks ID_CRED_I and KeyID_B in Plaintext1 = header")
 
 
 def header(fname, setting, expect):
@@ -357,7 +368,7 @@ def single_session_main():
 
 def write(fname, setting, expect, queries, body, main, settings=""):
     if VARIANT:
-        fname = fname.replace("edhoc_m4v4_", f"edhoc_m4{VARIANT}_")
+        fname = fname.replace("edhoc_m4v4_", f"edhoc_m4{PREFIX}_")
     text = (header(fname, setting, expect) + settings + pre2 +
             "(* ============================ QUERIES ============================ *)\n" + queries +
             "\n(* ============================ PROCESSES ========================== *)\n" + body +
@@ -402,7 +413,7 @@ files.append(write("edhoc_m4v4_recovery.pv",
     ue_recovery(), one_time_main(False)))
 
 # ---- recovery: MSK_test must come from the DN side, since the UE may not accept
-REC_F = f"edhoc_m4{VARIANT or 'v4'}_recovery.pv"
+REC_F = f"edhoc_m4{PREFIX}_recovery.pv"
 rec = open(os.path.join(OUT, REC_F)).read()
 rec = rec.replace("  out(c, AEAD_enc(MSK, app_data_DN));\n  out(c, AEAD_enc(EMSK, EMSK_test))",
                   "  out(c, AEAD_enc(MSK, app_data_DN));\n  out(c, AEAD_enc(MSK, MSK_test));\n  out(c, AEAD_enc(EMSK, EMSK_test))")
@@ -485,7 +496,7 @@ if VARIANT:
     open(os.path.join(OUT, REC_F), "w").write(rec)
     # header integrity alone, when the DN does not check ID_CRED_I
     NOID = True
-    files.append(write(f"edhoc_m4{VARIANT}_noid_classical.pv",
+    files.append(write(f"edhoc_m4{PREFIX}_noid_classical.pv",
         "as classical, but the DN-AAA does not check ID_CRED_I against the record",
         "header integrity false: pk_B is public in this model, anyone can build a Message1",
         HDR_Q, procs(UE_T_ERASE, DN_T_ERASE), one_time_main(False)))
@@ -493,9 +504,9 @@ if VARIANT:
     # T7: a UE that deviates. ID_CRED_I public, so the attacker can build a
     # Message1 with any KeyID_B in PT1
     if VARIANT in ("v4s", "v4s_chk"):
-        files.append(write(f"edhoc_m4{VARIANT}_t7_classical.pv",
+        files.append(write(f"edhoc_m4{PREFIX}_t7_classical.pv",
             "T7: ID_CRED_I given to the attacker (a UE that deviates writes any KeyID_B into PT1)",
-            "v4s false, v4s_chk true",
+            "v4s false, v4s_chk and v5 true",
             T7_Q, procs(UE_T_ERASE, DN_T_ERASE),
             one_time_main(False).replace("  out(c, (pkSigI, pkSigR));\n", "  out(c, (pkSigI, pkSigR));\n  out(c, ID_CREDI);\n", 1)))
 
@@ -514,8 +525,17 @@ if VARIANT:
                      + ("  if kidP = kidB then\n" if VARIANT == "v4s_chk" else ""))
             nk = rep(nk, "let PT11 = (M_4, SuitesI, ID_CREDI, CI, EAD11) in", "let PT11 = (M_4, SuitesI, kidB1, ID_CREDI, CI, EAD11) in")
             nk = rep(nk, "AEAD_enc_aad(K11, (kidB1, ctB1), PT11)", "AEAD_enc(K11, PT11)")
-    fname = f"edhoc_m4{VARIANT}_nextkey.pv"
-    open(os.path.join(OUT, fname), "w").write(nk.replace("edhoc_m4v4_nextkey.pv", fname))
+    fname = f"edhoc_m4{PREFIX}_nextkey.pv"
+    nk = nk.replace("edhoc_m4v4_nextkey.pv", fname)
+    if PREFIX == "v5":
+        nk = rep(nk, """EAP-EDHOC hybrid PQC method 4, v4 (KeyID_B = H(pk_B) in clear, AAD_1 = (KeyID_B, ct_B),
+ *           TH_1 = H(pk_B, ct_B), next one-time keys in EAD_1 / EAD_2)""",
+                 """EAP-EDHOC hybrid PQC method 4, final v5 (KeyID_B = H(pk_B) in clear and in Plaintext1,
+ *           TH_1 = H(KeyID_B, ct_B), next one-time keys in EAD_1 / EAD_2)""")
+        nk = rep(nk, "the DN-AAA checks KeyID_B = H(pk_B). The next keys", "the DN-AAA checks KeyID_B in Plaintext1. The next keys")
+        nk = rep(nk, "primitives identical to edhoc_m4v4_*.pv.", "primitives identical to edhoc_m4v5_*.pv.")
+        nk = rep(nk, " * Generated by gen_unlink_bounded.py.\n", " * Generated by gen_m4v4.py --variant v5.\n")
+    open(os.path.join(OUT, fname), "w").write(nk)
     files.append(fname)
 print("\n".join(files))
 
