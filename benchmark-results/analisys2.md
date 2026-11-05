@@ -1036,3 +1036,131 @@ Step 29: dua model baru di `symmetry-rev/proverif/`, primitif sama dengan `edhoc
 **Lint.** `lint.py` memberi OK untuk `nextkey`. Untuk `unlink_bounded`, 14 temuannya semua terkait `choice[...]`, yang tidak dikenali linter; salinan tanpa `choice` hanya memberi temuan untuk nama event `Run1Done`/`Run2Done` yang ditambahkan untuk cek ini.
 
 Berkas: `results/edhoc_m4v4_{nextkey,unlink_bounded}.{log,time}`, `results/step29-attempts/` (varian `.pv`, log, waktu), `results/SUMMARY_v4.txt` (dijalankan ulang `run_all_v4.sh`; hasil model lama tidak berubah).
+
+## 8. Varian AD Message1: v4 (Prof. You), v4s (Dr. Shin), v4t
+
+Step 30. Ketiga varian ada dalam satu build; `edhoc_variant` di blok `edhoc` config radiusd (default `v4`), `secondaryAuth.edhocVariant` atau `EDHOC_VARIANT` di `nr-ue`. `v4s+chk` hanya berbeda di DN-AAA. Paper tidak diubah.
+
+**Ringkasan.** Biaya dan keamanan terhadap penyerang luar praktis sama di keempat varian. Semua query lama ProVerif memberi hasil yang sama, dan T1–T6 ditolak atau diterima dengan cara yang sama. Biaya v4s dan v4s+chk adalah +34 B pada Message1, tanpa tambahan fragmen atau RT. Komputasi Message1 v4s lebih rendah sekitar 3,5 µs di UE dan 6,1 µs di DN-AAA karena tidak menghitung H(pk_B), jauh di bawah derau harness. Satu-satunya perbedaan fungsional adalah T7: pada v4s, UE yang menyimpang boleh mengisi KeyID_B lain di PT1 dan handshake tetap selesai (20/20), jadi salinan itu tidak berfungsi tanpa pemeriksaan `v4s+chk` (ditolak 20/20). Secara simbolik, integritas header pada v4s datang dari TH_1 = H(KeyID_B, ct_B) yang masuk ke K_1, bukan dari salinan di PT1.
+
+### Jawaban §0: AD Message2–4 di implementasi
+
+- AD = **`TH_x` mentah (32 B)**, bukan kosong dan bukan `Enc_structure`: `aead_seal()` memanggil `gcm_seal(key, nonce, th, 32, ...)` dan `aead_open()` memanggil `gcm_open(key, nonce, th, 32, ...)` di `edhoc4/edhoc4.c` (pada saat cek, baris 173 dan 187).
+- Sesuai §0.2, AD Message1 v4s mengikuti konvensi itu: **AD = TH_1**. Akibatnya v4s dan v4t memakai panggilan AEAD yang sama; bedanya hanya salinan KeyID_B di PT1 dan pemeriksaan KeyID_B = H(pk_B). "Tanpa AAD" di v4s berarti tanpa AAD_1 = (KeyID_B, ct_B), bukan AD kosong.
+- Di model ProVerif, AEAD Message2 ditulis `AEAD_enc` tanpa AD karena TH_x sudah masuk ke kuncinya. v4s dimodelkan dengan cara yang sama, sesuai langkah 3.1.
+
+### Penyesuaian terhadap step file
+
+- `Symmetry_Journal_Shin.drawio` tidak ditemukan di sistem, jadi definisi v4s diambil dari tabel step file dan tidak dicocokkan dengan diagramnya. File itu belum disimpan di `symmetry-rev/paper/drawio/`.
+- Tabel step menulis cek v4t "sama dengan v4s", sedangkan bagian DN-AAA menulis pemeriksaan KeyID_B = H(pk_B) "tetap ada". Yang diikuti bagian DN-AAA.
+- PT1 v4s memakai profil biner yang sudah ada: `method ‖ 0x58 0x20 KeyID_B ‖ C_I ‖ ID_CRED_I ‖ EAD_1`. Implementasi v4 tidak membawa Suites_I di PT1, jadi di sini juga tidak; urutan C_I dan ID_CRED_I mengikuti v4. TH_1 v4s dan v4t memakai CBOR sequence `bstr(KeyID_B) bstr(ct_B)` seperti diminta.
+- Di v4s, pemeriksaan KeyID terhadap slot record di `edhoc4_db_handle_msg1` juga dilewati, bukan hanya di inti protokol.
+
+### Ukuran (live vs model)
+
+| Varian | Message1–4 live (B) | Total (B) | Model (B) | Live = model | Fragmen EAP | RT |
+|---|---|---|---|---|---|---|
+| v4 | 2390/6097/3756/16 | 12259 | 2390/6097/3756/16 | cocok | 3/7/4/1 | 15 |
+| v4s | 2424/6097/3756/16 | 12293 | 2424/6097/3756/16 | cocok | 3/7/4/1 | 15 |
+| v4s+chk | 2424/6097/3756/16 | 12293 | 2424/6097/3756/16 | cocok | 3/7/4/1 | 15 |
+| v4t | 2390/6097/3756/16 | 12259 | 2390/6097/3756/16 | cocok | 3/7/4/1 | 15 |
+
+### Harness E2E loss-free (2 run × 100, bergantian dalam satu sesi)
+
+| Varian | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) | Selisih median vs v4 (ms) [95% CI] |
+|---|---|---|---|---|---|---|
+| v4 | 200 | 6.863 | 6.530 | 7.515 | [6.471, 6.631] | — |
+| v4s | 200 | 6.921 | 6.816 | 7.886 | [6.739, 6.907] | +0.285 [+0.160, +0.400] |
+| v4s+chk | 200 | 6.695 | 6.544 | 7.621 | [6.452, 6.668] | +0.013 [-0.133, +0.143] |
+| v4t | 200 | 6.492 | 6.381 | 7.534 | [6.314, 6.460] | -0.149 [-0.272, -0.054] |
+| EAP-TLS Hybrid PQC | 200 | 8.758 | 8.745 | 9.991 | [8.614, 8.838] | +2.215 [+2.037, +2.313] |
+
+Selisih di tabel ini **tidak boleh dibaca sebagai biaya protokol**. v4s dan v4s+chk hanya berbeda satu perbandingan 32 B, tetapi mediannya berbeda 0,272 ms, dan CI v4s serta v4t tidak mencakup 0 dengan arah berlawanan, padahal komputasi Message1 hanya berbeda beberapa µs. Tiap varian memakai radiusd dan record baru dengan urutan tetap dalam tiap run, jadi selisih sebesar ini mencerminkan derau antarsesi dan urutan. Selisih EAP-TLS Hybrid PQC (+2,2 ms) jauh di atas derau itu.
+
+### Komputasi Message1 (10.000 iterasi per varian, bergantian per iterasi, dalam proses)
+
+| Varian | Message1 (B) | UE median (µs) | UE p95 (µs) | DN-AAA median (µs) | DN-AAA p95 (µs) | UE vs v4 (µs) | DN-AAA vs v4 (µs) |
+|---|---|---|---|---|---|---|---|
+| v4 | 2390 | 142.3 | 194.9 | 74.7 | 117.9 | +0.0 | +0.0 |
+| v4s | 2424 | 138.8 | 190.9 | 68.6 | 90.1 | -3.5 | -6.1 |
+| v4s+chk | 2424 | 139.0 | 191.5 | 68.7 | 89.3 | -3.3 | -6.0 |
+| v4t | 2390 | 138.6 | 192.5 | 70.9 | 90.7 | -3.7 | -3.8 |
+
+### Full stack v4s (A/B 1 × 100, `@edhoc.internet`, tanpa uji pemulihan)
+
+- A: PASS 100/100, msk_match 100/100, rotated 100/100; B: PASS 100/100.
+- Ukuran / ronde: [('2424', '6097', '3756', '16', '15', '15')] (Message1..4 B, ronde NAS, RADIUS RT).
+
+| Metrik | Konf. | N | Mean (ms) | Median (ms) | p95 (ms) | 95% CI median (ms) |
+|---|---|---|---|---|---|---|
+| `t_pdu_ms` | A | 100 | 96.609 | 96.361 | 114.729 | [94.414, 97.904] |
+| `t_pdu_ms` | B | 100 | 20.925 | 20.501 | 32.594 | [19.656, 21.293] |
+| `t_secauth_ms` | A | 100 | 77.590 | 76.961 | 91.867 | [75.169, 78.909] |
+| `t_aaa_ms` | A | 100 | 5.813 | 5.730 | 7.968 | [5.491, 6.054] |
+
+- `t_pdu_ms` A − B: **75.859 ms**, 95% CI [73.761, 77.942] ms.
+- `uname -r`: 7.0.0-38-generic
+
+Yang diukur di sini hanya v4s. Selisih A − B v4b di bagian 7b (75,871 ms) berasal dari sesi dan N yang berbeda.
+
+### ProVerif per varian
+
+Sumber: `symmetry-rev/proverif/results/SUMMARY_v4_variants.txt` (`run_all_variants.sh`, MemoryMax=10G, 3600 s per query; model unlink tidak dijalankan). Semua query selesai; tidak ada NOT CONCLUDED.
+
+Model di `variants/` menambah pemeriksaan ID_CRED_I terhadap record, yang ada di implementasi tetapi tidak ada di `edhoc_m4v4_*.pv` (`claimedI` bebas). File `edhoc_m4v4_*.pv` lama tidak berubah.
+
+| Kelompok query | v4 | v4s | v4s+chk | v4t |
+|---|---|---|---|---|
+| classical, quantum: sanity false; Q2–Q4, Q5, Q5b, Q6–Q9 true | sesuai | sesuai | sesuai | sesuai |
+| KCI: semua true | sesuai | sesuai | sesuai | sesuai |
+| PCS: sanity false; Q2–Q4, Q10, Q11 true | sesuai | sesuai | sesuai | sesuai |
+| fs_noerase (kontrol negatif): Q5, Q5b, Q6–Q9 false | sesuai | sesuai | sesuai | sesuai |
+| recovery: sanity false; Q5, Q7–Q9 true | sesuai | sesuai | sesuai | sesuai |
+| nextkey: `s_NpkA`, `s_NpkB` true | sesuai | sesuai | sesuai | sesuai |
+| **Integritas header** (classical, quantum, fs_noerase, recovery) | true | true | true | true |
+| Integritas header, DN **tanpa** cek ID_CRED_I (`noid`) | false | false | false | false |
+| T7 `DN_acc_inner ==> h = p`, UE jujur | n/a | true | true | n/a |
+| T7, UE menyimpang (`t7`: penyerang tahu ID_CRED_I) | n/a | **false** | true | n/a |
+
+- **`noid` false di semua varian:** `pk_B` publik di model ini, jadi tanpa cek ID_CRED_I siapa pun bisa membuat Message1 yang diterima DN. Integritas header bergantung pada kerahasiaan ID_CRED_I dan pemeriksaannya, di semua varian. AAD_1 tidak mengubah hasil ini.
+- Query integritas header bersifat non-injective, jadi replay ke sesi DN lain tidak dicakup (lihat T6).
+- Ini model simbolik dengan AEAD dan hash ideal. Perbedaan antara AD = TH_1 dan AD = AAD_1 pada tingkat komputasional tidak diuji di sini.
+
+### Uji manipulasi T1–T7 (harness, 20 kali per sel)
+
+| test | manipulation | variant | result at the UE | DN-AAA step | DN-AAA median ms | Decaps run |
+|---|---|---|---|---|---|---|
+| T1 | KeyID_B header: 1 bit | v4 | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4s | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4s+chk | eap-failure 20/20 | lookup | 0.002 | no |
+| T1 | KeyID_B header: 1 bit | v4t | eap-failure 20/20 | lookup | 0.002 | no |
+| T2 | KeyID_B header: of another UE | v4 | eap-failure 20/20 | AEAD tag | 0.161 | yes |
+| T2 | KeyID_B header: of another UE | v4s | eap-failure 20/20 | AEAD tag | 0.176 | yes |
+| T2 | KeyID_B header: of another UE | v4s+chk | eap-failure 20/20 | AEAD tag | 0.174 | yes |
+| T2 | KeyID_B header: of another UE | v4t | eap-failure 20/20 | AEAD tag | 0.160 | yes |
+| T3 | ct_B: 1 bit | v4 | eap-failure 20/20 | AEAD tag | 0.178 | yes |
+| T3 | ct_B: 1 bit | v4s | eap-failure 20/20 | AEAD tag | 0.164 | yes |
+| T3 | ct_B: 1 bit | v4s+chk | eap-failure 20/20 | AEAD tag | 0.172 | yes |
+| T3 | ct_B: 1 bit | v4t | eap-failure 20/20 | AEAD tag | 0.154 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4 | eap-failure 20/20 | AEAD tag | 0.158 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4s | eap-failure 20/20 | AEAD tag | 0.148 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4s+chk | eap-failure 20/20 | AEAD tag | 0.147 | yes |
+| T4 | AEAD ciphertext: 1 bit | v4t | eap-failure 20/20 | AEAD tag | 0.169 | yes |
+| T5 | old Message1 replayed | v4 | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4s | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4s+chk | eap-failure 20/20 | lookup | 0.001 | no |
+| T5 | old Message1 replayed | v4t | eap-failure 20/20 | lookup | 0.001 | no |
+| T6 | current Message1 in a second EAP session | v4 | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.504 | yes |
+| T6 | current Message1 in a second EAP session | v4s | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.540 | yes |
+| T6 | current Message1 in a second EAP session | v4s+chk | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.492 | yes |
+| T6 | current Message1 in a second EAP session | v4t | session 1: success 20/20; replay session: challenge 20/20 | accepted (replay); accepted (session 1) | 0.561 | yes |
+| T7 | KeyID_B in PT1 != header | v4s | success 20/20 | accepted | 0.562 | yes |
+| T7 | KeyID_B in PT1 != header | v4s+chk | eap-failure 20/20 | inner KeyID check | 0.149 | yes |
+
+- **T1, T5:** ditolak dari indeks memori tanpa Decaps, di semua varian.
+- **T2–T4:** ditolak di AEAD setelah Decaps, di semua varian. Waktu tolak sama besarnya.
+- **T6:** sama di semua varian. DN-AAA menerima Message1 yang sama di sesi EAP kedua, menjalankan Decaps, dan membalas Message2 (biaya sekitar 0,5 ms termasuk tanda tangan). Sesi asli tetap sukses 20/20. Sesi replay hanya dihentikan oleh harness di titik itu, jadi uji ini tidak menunjukkan apakah sesi itu bisa berlanjut; penyerang tidak punya sk_A untuk membuka Message2.
+- **T7:** v4s **lolos** 20/20 dan handshake selesai; v4s+chk ditolak 20/20 di cek KeyID dalam. Pelakunya di sini UE yang memegang kuncinya sendiri, bukan penyerang di jaringan.
+- **Belum diuji:** pada v4, pemeriksaan KeyID_B = H(pk_B) melindungi dari entri indeks yang tidak konsisten sebelum Decaps (`edhoc4_dbtest`). Skenario itu tidak ada di T1–T7 dan tidak diuji pada v4s.
+
+Berkas: `benchmark-results/{e2e-handshake-variants,m1-compute-variants,fullstack-handshake-v2-variants,fullstack-harness-shared-variants,tamper-variants}.csv`, `tamper-variants-raw/`, `logs-fullstack-v2-20261105-224207/`; skrip `benchmark/{variants_harness.sh,variants_analyze.py,tamper_tests.sh,tamper_analyze.py,m1_compute_bench.c}`.

@@ -1,0 +1,1179 @@
+UERANSIM v3.2.7
+[2026-11-05 22:43:12.605] [sctp] [info] Trying to establish SCTP connection... (127.0.0.5:38412)
+[2026-11-05 22:43:12.607] [sctp] [info] SCTP connection established (127.0.0.5:38412)
+[2026-11-05 22:43:12.607] [sctp] [debug] SCTP association setup ascId[100]
+[2026-11-05 22:43:12.607] [ngap] [debug] Sending NG Setup Request
+[2026-11-05 22:43:12.611] [ngap] [debug] NG Setup Response received
+[2026-11-05 22:43:12.611] [ngap] [info] NG Setup procedure is successful
+[2026-11-05 22:43:14.607] [rrc] [debug] UE[1] new signal detected
+[2026-11-05 22:43:14.611] [rrc] [info] RRC Setup for UE[1]
+[2026-11-05 22:43:14.612] [ngap] [debug] Initial NAS message received from UE[1]
+[E4T] gnb_ngap_dl_rx t_us=103633624038 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103633624275 sess=1 len=42
+[E4T] gnb_ul_nas_rx t_us=103633625398 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103633625492 sess=1 len=21
+[E4T] gnb_ngap_dl_rx t_us=103633629194 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103633629286 sess=1 len=21
+[E4T] gnb_ul_nas_rx t_us=103633630693 sess=1 len=60
+[E4T] gnb_ngap_tx t_us=103633630791 sess=1 len=60
+[2026-11-05 22:43:14.633] [ngap] [debug] Initial Context Setup Request received
+[E4T] gnb_dl_nas_tx t_us=103633639914 sess=1 len=46
+[E4T] gnb_ul_nas_rx t_us=103633641234 sess=1 len=10
+[E4T] gnb_ngap_tx t_us=103633641351 sess=1 len=10
+[E4T] gnb_ngap_dl_rx t_us=103633641786 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103633641862 sess=1 len=51
+[E4T] gnb_ul_nas_rx t_us=103634880539 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103634880679 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103634890529 sess=2 len=0
+[2026-11-05 22:43:15.884] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103634891269 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103634949243 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103634949329 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103634952861 sess=1 len=20
+[2026-11-05 22:43:15.946] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103634954563 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103634954641 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103635195505 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103635195655 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103635203528 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103635204305 sess=1 len=86
+[2026-11-05 22:43:16.197] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103635307466 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103635307573 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103635310636 sess=1 len=20
+[2026-11-05 22:43:16.304] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103635319857 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103635319993 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103635555424 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103635555669 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103635564604 sess=2 len=0
+[2026-11-05 22:43:16.558] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103635565266 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103635674425 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103635674534 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103635680411 sess=1 len=20
+[2026-11-05 22:43:16.673] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103635681624 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103635681700 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103635917478 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103635917569 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103635926488 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103635927147 sess=1 len=86
+[2026-11-05 22:43:16.920] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103636123400 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103636123510 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103636128103 sess=1 len=20
+[2026-11-05 22:43:17.121] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103636133832 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103636133895 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103636360629 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103636360725 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103636368402 sess=2 len=0
+[2026-11-05 22:43:17.362] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103636369143 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103636488818 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103636488881 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103636494277 sess=1 len=20
+[2026-11-05 22:43:17.487] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103636495727 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103636495793 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103636769872 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103636769993 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103636777510 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103636778162 sess=1 len=86
+[2026-11-05 22:43:17.771] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103636888062 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103636888108 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103636894403 sess=1 len=20
+[2026-11-05 22:43:17.887] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103636895756 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103636895879 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103637129174 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103637129323 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103637137938 sess=2 len=0
+[2026-11-05 22:43:18.132] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103637138678 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103637249984 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103637250155 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103637255291 sess=1 len=20
+[2026-11-05 22:43:18.248] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103637256798 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103637257377 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103637490460 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103637490632 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103637499399 sess=2 len=0
+[2026-11-05 22:43:18.493] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103637500065 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103637594501 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103637594596 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103637597887 sess=1 len=20
+[2026-11-05 22:43:18.591] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103637599291 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103637599371 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103637871088 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103637871190 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103637878464 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103637879135 sess=1 len=86
+[2026-11-05 22:43:18.872] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103637989413 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103637989515 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103637994587 sess=1 len=20
+[2026-11-05 22:43:18.988] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103637996686 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103637996776 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103638236688 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103638236815 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103638245382 sess=2 len=0
+[2026-11-05 22:43:19.239] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103638246150 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103638346842 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103638347127 sess=1 len=21
+[2026-11-05 22:43:19.345] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103638351853 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103638353218 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103638353343 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103638581207 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103638581309 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103638589477 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103638590234 sess=1 len=86
+[2026-11-05 22:43:19.583] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103638707204 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103638707314 sess=1 len=21
+[2026-11-05 22:43:19.704] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103638711324 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103638713256 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103638713333 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103638952134 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103638952237 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103638961057 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103638961715 sess=1 len=86
+[2026-11-05 22:43:19.955] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103639093034 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103639093150 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103639097901 sess=1 len=20
+[2026-11-05 22:43:20.091] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103639101386 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103639101489 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103639357623 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103639357761 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103639367594 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103639368845 sess=1 len=86
+[2026-11-05 22:43:20.362] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103639425353 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103639425483 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103639429109 sess=1 len=20
+[2026-11-05 22:43:20.422] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103639430437 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103639430554 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103639665482 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103639665578 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103639673241 sess=2 len=0
+[2026-11-05 22:43:20.667] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103639673874 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103639754531 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103639754665 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103639759388 sess=1 len=20
+[2026-11-05 22:43:20.752] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103639760586 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103639760700 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103640016969 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103640017037 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103640025212 sess=2 len=0
+[2026-11-05 22:43:21.019] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103640025966 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103640091781 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103640091825 sess=1 len=21
+[2026-11-05 22:43:21.091] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103640097905 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103640099356 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103640099388 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103640334528 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103640334588 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103640342560 sess=2 len=0
+[2026-11-05 22:43:21.336] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103640343296 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103640421381 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103640421484 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103640430756 sess=1 len=20
+[2026-11-05 22:43:21.424] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103640431941 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103640432067 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103640673122 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103640673358 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103640683790 sess=2 len=0
+[2026-11-05 22:43:21.678] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103640684629 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103640746180 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103640746280 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103640750094 sess=1 len=20
+[2026-11-05 22:43:21.743] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103640751541 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103640751616 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103640986272 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103640986315 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103640995094 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103640995827 sess=1 len=86
+[2026-11-05 22:43:21.989] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103641110418 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103641110511 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103641118729 sess=1 len=20
+[2026-11-05 22:43:22.112] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103641120300 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103641120422 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103641351213 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103641351297 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103641359871 sess=2 len=0
+[2026-11-05 22:43:22.356] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103641362975 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103641427735 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103641427864 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103641432553 sess=1 len=20
+[2026-11-05 22:43:22.426] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103641436806 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103641440818 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103641681109 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103641681133 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103641719165 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103641719972 sess=1 len=86
+[2026-11-05 22:43:22.713] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103641867830 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103641867892 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103641872467 sess=1 len=20
+[2026-11-05 22:43:22.866] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103641873506 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103641873522 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103642112714 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103642112758 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103642120442 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103642121102 sess=1 len=86
+[2026-11-05 22:43:23.114] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642287884 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103642288101 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103642294363 sess=1 len=20
+[2026-11-05 22:43:23.287] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642296066 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103642296203 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103642526682 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103642526765 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103642537963 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103642538729 sess=1 len=86
+[2026-11-05 22:43:23.532] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642593120 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103642593347 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103642599818 sess=1 len=20
+[2026-11-05 22:43:23.593] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642600907 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103642601141 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103642836396 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103642836590 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103642845375 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103642846050 sess=1 len=86
+[2026-11-05 22:43:23.839] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642958353 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103642958443 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103642965241 sess=1 len=20
+[2026-11-05 22:43:23.958] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103642967324 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103642967454 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103643204550 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103643204719 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103643213458 sess=2 len=0
+[2026-11-05 22:43:24.207] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103643214129 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103643328687 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103643328817 sess=1 len=21
+[2026-11-05 22:43:24.328] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103643335374 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103643336501 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103643336585 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103643569328 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103643569417 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103643577669 sess=2 len=0
+[2026-11-05 22:43:24.571] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103643578442 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103643704837 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103643705032 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103643709475 sess=1 len=20
+[2026-11-05 22:43:24.703] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103643710702 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103643710781 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103643953878 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103643954031 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103643962455 sess=2 len=0
+[2026-11-05 22:43:24.956] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103643963375 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103644088956 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103644089151 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103644092531 sess=1 len=20
+[2026-11-05 22:43:25.086] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103644093774 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103644093908 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103644325431 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103644325565 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103644332802 sess=2 len=0
+[2026-11-05 22:43:25.327] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103644333618 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103644404145 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103644404233 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103644409448 sess=1 len=20
+[2026-11-05 22:43:25.405] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103644414292 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103644414373 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103644647536 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103644647621 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103644656317 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103644657291 sess=1 len=86
+[2026-11-05 22:43:25.650] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103644828564 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103644828701 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103644834995 sess=1 len=20
+[2026-11-05 22:43:25.828] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103644836587 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103644836645 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103645073413 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103645073555 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103645081250 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103645082068 sess=1 len=86
+[2026-11-05 22:43:26.075] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103645183528 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103645183623 sess=1 len=21
+[2026-11-05 22:43:26.181] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103645188199 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103645189493 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103645189577 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103645452648 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103645452959 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103645463278 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103645463988 sess=1 len=86
+[2026-11-05 22:43:26.457] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103645588648 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103645588760 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103645597082 sess=1 len=20
+[2026-11-05 22:43:26.590] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103645598631 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103645598712 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103645848819 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103645849159 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103645857920 sess=2 len=0
+[2026-11-05 22:43:26.852] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103645858760 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103645926376 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103645926607 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103645929538 sess=1 len=20
+[2026-11-05 22:43:26.923] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103645932668 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103645932750 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103646169283 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103646169381 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103646178855 sess=2 len=0
+[2026-11-05 22:43:27.173] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103646179661 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103646247213 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103646247298 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103646250646 sess=1 len=20
+[2026-11-05 22:43:27.244] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103646252638 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103646254524 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103646484817 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103646484869 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103646492748 sess=2 len=0
+[2026-11-05 22:43:27.487] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103646493669 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103646576653 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103646576702 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103646581112 sess=1 len=20
+[2026-11-05 22:43:27.574] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103646582688 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103646582790 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103646821466 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103646821618 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103646830157 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103646830795 sess=1 len=86
+[2026-11-05 22:43:27.824] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103646976510 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103646976615 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103646983249 sess=1 len=20
+[2026-11-05 22:43:27.976] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103646984388 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103646984481 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103647217649 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103647217853 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103647226201 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103647226948 sess=1 len=86
+[2026-11-05 22:43:28.220] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103647302810 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103647302969 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103647307254 sess=1 len=20
+[2026-11-05 22:43:28.300] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103647308369 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103647308450 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103647552976 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103647553169 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103647561152 sess=2 len=0
+[2026-11-05 22:43:28.555] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103647561952 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103647652693 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103647652801 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103647656990 sess=1 len=20
+[2026-11-05 22:43:28.650] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103647658433 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103647658514 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103647920756 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103647920896 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103647930366 sess=2 len=0
+[2026-11-05 22:43:28.924] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103647931372 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103647997657 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103647997798 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103648003230 sess=1 len=20
+[2026-11-05 22:43:28.996] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103648004512 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103648004674 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103648231609 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103648231762 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103648239726 sess=2 len=0
+[2026-11-05 22:43:29.233] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103648240503 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103648375350 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103648375449 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103648378437 sess=1 len=20
+[2026-11-05 22:43:29.371] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103648379912 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103648380038 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103648633799 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103648633903 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103648641625 sess=2 len=0
+[2026-11-05 22:43:29.635] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103648642313 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103648707718 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103648707811 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103648711002 sess=1 len=20
+[2026-11-05 22:43:29.704] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103648712453 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103648712554 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103648943471 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103648943603 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103648952800 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103648953522 sess=1 len=86
+[2026-11-05 22:43:29.947] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103649105664 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103649105770 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103649114180 sess=1 len=20
+[2026-11-05 22:43:30.107] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103649115298 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103649115440 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103649349795 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103649350126 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103649358134 sess=2 len=0
+[2026-11-05 22:43:30.352] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103649358979 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103649443780 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103649443933 sess=1 len=21
+[2026-11-05 22:43:30.440] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103649446989 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103649448198 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103649448282 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103649690566 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103649690694 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103649698494 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103649699417 sess=1 len=86
+[2026-11-05 22:43:30.692] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103649787829 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103649787942 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103649793643 sess=1 len=20
+[2026-11-05 22:43:30.787] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103649794749 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103649794910 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103650029722 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103650029852 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103650037529 sess=2 len=0
+[2026-11-05 22:43:31.031] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103650038299 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103650177119 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103650177264 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103650182454 sess=1 len=20
+[2026-11-05 22:43:31.176] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103650183903 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103650184000 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103650435700 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103650435891 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103650444971 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103650445945 sess=1 len=86
+[2026-11-05 22:43:31.439] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103650514671 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103650514778 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103650519315 sess=1 len=20
+[2026-11-05 22:43:31.512] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103650520690 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103650520809 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103650755081 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103650755181 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103650763306 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103650763964 sess=1 len=86
+[2026-11-05 22:43:31.757] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103650831291 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103650831381 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103650834322 sess=1 len=20
+[2026-11-05 22:43:31.827] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103650837182 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103650837261 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103651083171 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103651083248 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103651092133 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103651092878 sess=1 len=86
+[2026-11-05 22:43:32.086] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651176634 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103651176759 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103651180609 sess=1 len=20
+[2026-11-05 22:43:32.174] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651183997 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103651184092 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103651433839 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103651434003 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103651442758 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103651443470 sess=1 len=86
+[2026-11-05 22:43:32.437] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651491371 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103651491450 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103651494765 sess=1 len=20
+[2026-11-05 22:43:32.488] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651496452 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103651496586 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103651722138 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103651722279 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103651730867 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103651731530 sess=1 len=86
+[2026-11-05 22:43:32.725] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651816782 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103651816890 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103651824471 sess=1 len=20
+[2026-11-05 22:43:32.818] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103651828230 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103651828307 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103652055860 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103652055979 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103652063372 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103652064033 sess=1 len=86
+[2026-11-05 22:43:33.057] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103652158673 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103652158824 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103652163913 sess=1 len=20
+[2026-11-05 22:43:33.157] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103652165922 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103652166123 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103652415813 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103652415978 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103652424617 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103652425328 sess=1 len=86
+[2026-11-05 22:43:33.418] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103652521393 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103652521588 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103652524864 sess=1 len=20
+[2026-11-05 22:43:33.518] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103652526296 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103652526709 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103652761442 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103652761602 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103652769509 sess=2 len=0
+[2026-11-05 22:43:33.763] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103652770199 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103652867848 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103652868069 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103652875426 sess=1 len=20
+[2026-11-05 22:43:33.868] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103652877674 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103652877885 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103653111745 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103653111824 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103653119176 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103653119835 sess=1 len=86
+[2026-11-05 22:43:34.113] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103653192910 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103653193211 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103653205154 sess=1 len=20
+[2026-11-05 22:43:34.198] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103653207920 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103653208129 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103653438112 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103653438883 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103653446565 sess=2 len=0
+[2026-11-05 22:43:34.440] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103653447258 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103653555309 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103653555416 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103653561006 sess=1 len=20
+[2026-11-05 22:43:34.554] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103653562140 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103653562269 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103653795593 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103653795704 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103653803482 sess=2 len=0
+[2026-11-05 22:43:34.797] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103653804243 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103653878309 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103653878486 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103653882721 sess=1 len=20
+[2026-11-05 22:43:34.876] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103653883981 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103653884156 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103654117485 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103654117610 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103654125888 sess=2 len=0
+[2026-11-05 22:43:35.120] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103654126722 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103654225595 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103654225697 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103654230401 sess=1 len=20
+[2026-11-05 22:43:35.223] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103654238300 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103654238389 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103654475709 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103654475805 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103654484491 sess=2 len=0
+[2026-11-05 22:43:35.478] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103654485228 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103654541175 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103654541266 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103654545333 sess=1 len=20
+[2026-11-05 22:43:35.538] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103654546926 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103654547004 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103654775496 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103654775607 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103654783269 sess=2 len=0
+[2026-11-05 22:43:35.777] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103654784159 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103654919752 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103654919971 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103654927572 sess=1 len=20
+[2026-11-05 22:43:35.921] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103654928789 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103654928870 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103655182210 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103655182352 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103655190781 sess=2 len=0
+[2026-11-05 22:43:36.185] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103655191646 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103655251226 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103655251315 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103655255349 sess=1 len=20
+[2026-11-05 22:43:36.248] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103655264219 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103655264301 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103655483970 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103655484216 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103655491953 sess=2 len=0
+[2026-11-05 22:43:36.486] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103655492675 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103655592637 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103655592739 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103655600971 sess=1 len=20
+[2026-11-05 22:43:36.595] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103655603804 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103655604173 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103655833330 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103655833432 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103655841261 sess=2 len=0
+[2026-11-05 22:43:36.835] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103655841986 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103655920835 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103655921121 sess=1 len=21
+[2026-11-05 22:43:36.921] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103655928154 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103655930377 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103655930474 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103656161188 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103656161314 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103656169059 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103656169723 sess=1 len=86
+[2026-11-05 22:43:37.163] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103656256324 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103656256409 sess=1 len=21
+[2026-11-05 22:43:37.252] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103656259083 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103656260214 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103656260290 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103656493961 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103656494205 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103656502392 sess=2 len=0
+[2026-11-05 22:43:37.496] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103656503063 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103656637055 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103656637207 sess=1 len=21
+[2026-11-05 22:43:37.636] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103656642887 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103656644404 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103656644502 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103656907765 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103656907905 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103656916300 sess=2 len=0
+[2026-11-05 22:43:37.910] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103656917226 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103657079339 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103657079433 sess=1 len=21
+[2026-11-05 22:43:38.079] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103657085649 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103657086946 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103657087137 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103657350361 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103657350454 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103657358610 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103657359371 sess=1 len=86
+[2026-11-05 22:43:38.352] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103657433324 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103657433452 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103657438682 sess=1 len=20
+[2026-11-05 22:43:38.432] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103657439771 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103657439931 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103657671619 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103657671761 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103657679546 sess=2 len=0
+[2026-11-05 22:43:38.673] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103657680244 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103657739579 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103657739720 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103657744231 sess=1 len=20
+[2026-11-05 22:43:38.737] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103657745573 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103657745652 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103657974303 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103657974404 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103657983851 sess=2 len=0
+[2026-11-05 22:43:38.978] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103657984973 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103658174936 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103658175131 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103658182243 sess=1 len=20
+[2026-11-05 22:43:39.175] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103658183417 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103658183550 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103658435614 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103658435746 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103658445714 sess=2 len=0
+[2026-11-05 22:43:39.440] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103658446496 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103658552479 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103658552568 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103658557022 sess=1 len=20
+[2026-11-05 22:43:39.550] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103658558472 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103658558564 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103658793931 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103658794134 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103658807923 sess=2 len=0
+[2026-11-05 22:43:39.802] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103658808698 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103658885076 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103658885200 sess=1 len=21
+[2026-11-05 22:43:39.881] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103658888373 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103658889602 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103658889677 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103659162620 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103659162728 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103659170400 sess=2 len=0
+[2026-11-05 22:43:40.164] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103659171338 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103659270440 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103659270526 sess=1 len=21
+[2026-11-05 22:43:40.267] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103659273898 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103659275087 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103659275196 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103659526395 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103659526519 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103659533734 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103659534536 sess=1 len=86
+[2026-11-05 22:43:40.528] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103659600595 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103659600735 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103659606953 sess=1 len=20
+[2026-11-05 22:43:40.600] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103659610425 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103659610573 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103659843842 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103659843990 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103659852134 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103659852815 sess=1 len=86
+[2026-11-05 22:43:40.846] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103659937218 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103659937380 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103659940613 sess=1 len=20
+[2026-11-05 22:43:40.934] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103659942369 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103659942513 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103660185819 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103660185927 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103660203513 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103660204184 sess=1 len=86
+[2026-11-05 22:43:41.197] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103660257458 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103660257532 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103660263298 sess=1 len=20
+[2026-11-05 22:43:41.256] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103660268510 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103660268671 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103660491369 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103660491481 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103660499515 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103660500420 sess=1 len=86
+[2026-11-05 22:43:41.493] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103660589498 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103660589591 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103660592614 sess=1 len=20
+[2026-11-05 22:43:41.586] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103660593637 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103660593745 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103660837877 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103660837985 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103660845727 sess=2 len=0
+[2026-11-05 22:43:41.839] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103660846453 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103660906042 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103660906269 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103660909774 sess=1 len=20
+[2026-11-05 22:43:41.903] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103660911173 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103660911255 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103661157018 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103661157158 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103661164667 sess=2 len=0
+[2026-11-05 22:43:42.159] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103661166121 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103661276729 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103661276823 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103661279841 sess=1 len=20
+[2026-11-05 22:43:42.273] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103661281597 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103661281702 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103661533494 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103661533669 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103661541923 sess=2 len=0
+[2026-11-05 22:43:42.536] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103661542646 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103661628879 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103661628997 sess=1 len=21
+[2026-11-05 22:43:42.625] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103661632216 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103661633596 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103661633692 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103661866749 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103661866901 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103661874912 sess=2 len=0
+[2026-11-05 22:43:42.869] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103661875798 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103661953859 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103661953964 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103661961638 sess=1 len=20
+[2026-11-05 22:43:42.955] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103661963500 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103661963657 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103662196350 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103662196465 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103662204410 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103662205129 sess=1 len=86
+[2026-11-05 22:43:43.198] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103662332967 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103662333120 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103662335775 sess=1 len=20
+[2026-11-05 22:43:43.329] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103662337916 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103662338214 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103662596697 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103662597107 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103662605993 sess=2 len=0
+[2026-11-05 22:43:43.600] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103662606790 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103662661376 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103662661480 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103662667304 sess=1 len=20
+[2026-11-05 22:43:43.660] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103662668385 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103662668478 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103662904679 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103662904830 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103662912864 sess=2 len=0
+[2026-11-05 22:43:43.907] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103662913671 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103662976593 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103662976703 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103662979889 sess=1 len=20
+[2026-11-05 22:43:43.973] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103662981111 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103662981205 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103663244208 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103663244456 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103663252777 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103663254201 sess=1 len=86
+[2026-11-05 22:43:44.249] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103663321033 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103663321181 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103663327123 sess=1 len=20
+[2026-11-05 22:43:44.320] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103663328270 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103663328392 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103663568110 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103663568210 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103663576227 sess=2 len=0
+[2026-11-05 22:43:44.570] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103663576921 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103663644435 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103663644585 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103663648554 sess=1 len=20
+[2026-11-05 22:43:44.642] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103663650550 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103663650662 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103663942478 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103663942637 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103663951064 sess=2 len=0
+[2026-11-05 22:43:44.945] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103663951725 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103664049551 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103664049658 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103664056538 sess=1 len=20
+[2026-11-05 22:43:45.050] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103664057738 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103664057835 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103664297824 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103664298099 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103664307095 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103664307787 sess=1 len=86
+[2026-11-05 22:43:45.301] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103664372755 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103664372862 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103664378910 sess=1 len=20
+[2026-11-05 22:43:45.372] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103664380377 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103664380478 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103664615681 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103664615778 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103664624500 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103664625323 sess=1 len=86
+[2026-11-05 22:43:45.618] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103664717969 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103664718254 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103664723248 sess=1 len=20
+[2026-11-05 22:43:45.716] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103664724686 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103664724759 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103664966788 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103664966878 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103664974724 sess=2 len=0
+[2026-11-05 22:43:45.968] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103664975411 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103665047212 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103665047302 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103665056559 sess=1 len=20
+[2026-11-05 22:43:46.050] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103665058441 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103665058579 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103665285860 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103665285974 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103665294461 sess=2 len=0
+[2026-11-05 22:43:46.288] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103665295149 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103665392526 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103665392618 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103665399161 sess=1 len=20
+[2026-11-05 22:43:46.392] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103665400384 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103665400482 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103665636562 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103665636649 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103665644604 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103665645397 sess=1 len=86
+[2026-11-05 22:43:46.638] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103665707634 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103665707733 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103665714108 sess=1 len=20
+[2026-11-05 22:43:46.707] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103665715526 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103665715606 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103665941396 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103665941515 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103665950190 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103665950842 sess=1 len=86
+[2026-11-05 22:43:46.944] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666006001 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103666006235 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103666011219 sess=1 len=20
+[2026-11-05 22:43:47.004] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666012482 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103666012606 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103666260987 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103666261187 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103666268773 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103666269621 sess=1 len=86
+[2026-11-05 22:43:47.263] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666340289 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103666340393 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103666345394 sess=1 len=20
+[2026-11-05 22:43:47.338] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666346602 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103666346681 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103666580812 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103666581098 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103666589440 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103666590092 sess=1 len=86
+[2026-11-05 22:43:47.583] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666652473 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103666652682 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103666655795 sess=1 len=20
+[2026-11-05 22:43:47.649] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103666657362 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103666657448 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103666884556 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103666884685 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103666892297 sess=2 len=0
+[2026-11-05 22:43:47.886] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103666893172 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103666950746 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103666950926 sess=1 len=21
+[2026-11-05 22:43:47.950] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103666957334 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103666958607 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103666958734 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103667196704 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103667196791 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103667204630 sess=2 len=0
+[2026-11-05 22:43:48.198] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103667205300 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103667287169 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103667287255 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103667290093 sess=1 len=20
+[2026-11-05 22:43:48.283] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103667291448 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103667291671 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103667519967 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103667520235 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103667528479 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103667529228 sess=1 len=86
+[2026-11-05 22:43:48.522] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103667619059 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103667619224 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103667624619 sess=1 len=20
+[2026-11-05 22:43:48.618] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103667626877 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103667626958 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103667858457 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103667858602 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103667866337 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103667867080 sess=1 len=86
+[2026-11-05 22:43:48.860] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103667945418 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103667945539 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103667950391 sess=1 len=20
+[2026-11-05 22:43:48.943] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103667951633 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103667951810 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103668179202 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103668179322 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103668187138 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103668187839 sess=1 len=86
+[2026-11-05 22:43:49.181] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103668350416 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103668350517 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103668356609 sess=1 len=20
+[2026-11-05 22:43:49.350] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103668358743 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103668359877 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103668599524 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103668599657 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103668607301 sess=2 len=0
+[2026-11-05 22:43:49.601] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103668608265 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103668687467 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103668687560 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103668694391 sess=1 len=20
+[2026-11-05 22:43:49.687] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103668696880 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103668697115 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103668924769 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103668924864 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103668932702 sess=2 len=0
+[2026-11-05 22:43:49.927] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103668933505 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103669073463 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103669073569 sess=1 len=21
+[2026-11-05 22:43:50.073] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103669079918 sess=1 len=20
+[E4T] gnb_ul_nas_rx t_us=103669082338 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103669082447 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103669335932 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103669336065 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103669343221 sess=2 len=0
+[2026-11-05 22:43:50.337] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103669344012 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103669419580 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103669419699 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103669424491 sess=1 len=20
+[2026-11-05 22:43:50.418] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103669426004 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103669426245 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103669657221 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103669657336 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103669667124 sess=2 len=0
+[2026-11-05 22:43:50.661] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103669667810 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103669760467 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103669760911 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103669766578 sess=1 len=20
+[2026-11-05 22:43:50.760] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103669767306 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103669767395 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103669997459 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103669997582 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103670006362 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103670007106 sess=1 len=86
+[2026-11-05 22:43:51.000] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103670143697 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103670143852 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103670148557 sess=1 len=20
+[2026-11-05 22:43:51.142] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103670150239 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103670150345 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103670410993 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103670411269 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103670419807 sess=2 len=0
+[2026-11-05 22:43:51.414] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103670420598 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103670470264 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103670470377 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103670476820 sess=1 len=20
+[2026-11-05 22:43:51.470] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103670477914 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103670478152 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103670713398 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103670713569 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103670721462 sess=2 len=0
+[E4T] gnb_dl_nas_tx t_us=103670723034 sess=1 len=86
+[2026-11-05 22:43:51.716] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103670828386 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103670828487 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103670835722 sess=1 len=20
+[2026-11-05 22:43:51.829] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103670837013 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103670837187 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103671071541 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103671071658 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103671079674 sess=2 len=0
+[2026-11-05 22:43:52.073] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103671080473 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103671240641 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103671240733 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103671245281 sess=1 len=20
+[2026-11-05 22:43:52.238] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103671246894 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103671247014 sess=1 len=19
+[E4T] gnb_ul_nas_rx t_us=103671506592 sess=1 len=51
+[E4T] gnb_ngap_tx t_us=103671506863 sess=1 len=51
+[E4T] gnb_ngap_setup_rx t_us=103671515442 sess=2 len=0
+[2026-11-05 22:43:52.509] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
+[E4T] gnb_dl_nas_tx t_us=103671516146 sess=1 len=86
+[E4T] gnb_ul_nas_rx t_us=103671609604 sess=1 len=21
+[E4T] gnb_ngap_tx t_us=103671609715 sess=1 len=21
+[E4T] gnb_dl_nas_tx t_us=103671613430 sess=1 len=20
+[2026-11-05 22:43:52.606] [ngap] [info] PDU session resource(s) released for UE[1] count[1]
+[E4T] gnb_ul_nas_rx t_us=103671614767 sess=1 len=19
+[E4T] gnb_ngap_tx t_us=103671614869 sess=1 len=19

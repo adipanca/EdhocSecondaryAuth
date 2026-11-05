@@ -20,6 +20,9 @@
 #   sessions until EAP-Success, then 10 normal sessions), then a sample
 #   capture on lo (one session, one message_3 drop and its recovery).
 #
+# Message1 variant: EDHOC_VARIANT for nr-ue and the harness; radiusd takes
+# edhoc_variant from its config (set_edhoc_variant.sh).
+#
 # Protocol v4: the UE's outer EAP identity (ue.yaml secondaryAuth.identity)
 # is the anonymous NAI @edhoc.internet; the DN-AAA finds the record (id
 # FS_REC, default ue1) by KeyID_B in message_1. The method-4 records are
@@ -73,9 +76,9 @@ start_stack() {
 # configuration C: harness straight to radiusd, stack idle
 harness() {
   local csv="$OUT/harness-C$1.csv"
-  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
+  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v4}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
     --rto-ms 40 --max-retx 6 --loss 0 --iters 5 --csv /dev/null --label warmup | tail -1
-  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
+  sudo -u "$OWNER" "$HERE/e2e_radius_bench" --method 4 --variant "${EDHOC_VARIANT:-v4}" --ue-dir /usr/local/etc/edhoc/ue/edhoc-ue \
     --rto-ms 40 --max-retx 6 --loss 0 --iters "$N" --csv "$csv" --label "C$1" | tail -1
 }
 
@@ -97,6 +100,15 @@ for s in $(seq "$SERIES"); do
   sleep 2
   harness "$s"
 done
+
+# RECOVERY_N=0: series only, no recovery test and no sample capture
+if [[ "$RN" -eq 0 ]]; then
+  stop_stack
+  cp /tmp/radiusd-classic.log "$OUT/radiusd.log" 2>/dev/null
+  chown -R "$OWNER" "$OUT"
+  echo "logs: $OUT"
+  exit 0
+fi
 
 echo "== recovery test ($RN x message_3, $RN x message_4)"
 d="$OUT/R"
