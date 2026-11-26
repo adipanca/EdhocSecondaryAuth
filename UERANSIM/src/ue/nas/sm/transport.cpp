@@ -321,6 +321,10 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
                 char extra[64];
                 snprintf(extra, sizeof(extra), " pool_miss=%lu pool_taken=%lu", pst.miss, pst.taken);
                 E4T("ue_msg1", msg.pduSessionId, (long long)outLen, extra);
+                // refill now, while the UE waits for message_2: a run that never
+                // reaches the promotion (lost message_3/4, EAP-Failure) must
+                // not leave the next one with an empty pool
+                edhoc4_pool_refill_async();
                 m_edhocRound = 1;
                 std::memcpy(m_edhocOut, buf, outLen);
                 m_edhocOutLen = outLen;
@@ -484,7 +488,8 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
 
 // Next one-time key pair (Nsk_A, Npk_A in EAD_1): pregen (default) keeps one
 // key in a locked in-memory pool, made here at start and again in the
-// background after each promotion; inline generates it while message_1 is
+// background after message_1 is built (and after each promotion, a no-op
+// then); inline generates it while message_1 is
 // built. ue.yaml secondaryAuth.xwingNextKeygen, or EDHOC_NEXT_KEYGEN, which
 // overrides it. The pool is process-wide and never stored.
 void NasSm::setupEdhocKeyPool()
