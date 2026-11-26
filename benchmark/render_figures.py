@@ -28,12 +28,15 @@ FIGS = {   # produced file (relative to the workdir) -> paper image
     "output/A2_compute_breakdown.png": "img_A2_compute_breakdown.png",
     "output/C_throughput.png": "img_C_throughput.png",
     "output/D_baseline_comparison.png": "img_D_baseline_comparison.png",
+    "handshake_computation_grouped_v5pg.png": "img_handshake_computation_grouped_v5pg.png",
+    "output/D_baseline_comparison_v5pg.png": "img_D_baseline_comparison_v5pg.png",
 }
+RESULTS = os.path.join(ROOT, "benchmark-results")
 
 work = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix="nbrun-")
 os.makedirs(work, exist_ok=True)
 cells = [c for c in json.load(open(NB))["cells"] if c["cell_type"] == "code"]
-env = dict(os.environ, MPLBACKEND="Agg")
+env = dict(os.environ, MPLBACKEND="Agg", EDHOC_RESULTS=RESULTS)   # cells that read result files
 for i, c in enumerate(cells):
     path = os.path.join(work, f"cell{i}.py")
     with open(path, "w") as f:
