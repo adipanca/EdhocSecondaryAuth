@@ -1,0 +1,1609 @@
+UERANSIM v3.2.7
+[2026-11-26 10:49:49.075] [nas] [info] EAP-EDHOC: next X-Wing key pair pregen (pool 1 key, locked memory)
+[2026-11-26 10:49:49.076] [nas] [info] UE switches to state [MM-DEREGISTERED/PLMN-SEARCH]
+[2026-11-26 10:49:49.077] [rrc] [debug] New signal detected for cell[1], total [1] cells in coverage
+[2026-11-26 10:49:49.078] [nas] [info] Selected plmn[999/70]
+[2026-11-26 10:49:49.078] [rrc] [info] Selected cell plmn[999/70] tac[1] category[SUITABLE]
+[2026-11-26 10:49:49.078] [nas] [info] UE switches to state [MM-DEREGISTERED/PS]
+[2026-11-26 10:49:49.078] [nas] [info] UE switches to state [MM-DEREGISTERED/NORMAL-SERVICE]
+[2026-11-26 10:49:49.078] [nas] [debug] Initial registration required due to [MM-DEREG-NORMAL-SERVICE]
+[2026-11-26 10:49:49.078] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[2026-11-26 10:49:49.078] [nas] [debug] Sending Initial Registration
+[E4T] ue_nas_tx t_us=501129513046 sess=0 len=65
+[2026-11-26 10:49:49.078] [nas] [info] UE switches to state [MM-REGISTER-INITIATED]
+[2026-11-26 10:49:49.079] [rrc] [debug] Sending RRC Setup Request
+[2026-11-26 10:49:49.080] [rrc] [info] RRC connection established
+[2026-11-26 10:49:49.080] [rrc] [info] UE switches to state [RRC-CONNECTED]
+[2026-11-26 10:49:49.080] [nas] [info] UE switches to state [CM-CONNECTED]
+[2026-11-26 10:49:49.086] [nas] [debug] Authentication Request received
+[2026-11-26 10:49:49.086] [nas] [debug] Received SQN [000000000FA1]
+[2026-11-26 10:49:49.086] [nas] [debug] SQN-MS [000000000000]
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6b
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: 672FB7203520839B95A55DD7C49C1062
+[KDF] Parameter[1] len: 16 (appended as 2 bytes)
+[KDF] Parameter[2]: B932D4E9244B4B7D
+[KDF] Parameter[2] len: 8 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020672FB7203520839B95A55DD7C49C10620010B932D4E9244B4B7D0008
+[HMAC] Key   : CEAA8DAC187AA858ED0C198218B1F1D7EB7D857260679C38FA45BB7BE84D2C53
+[HMAC] Key Length : 32
+[HMAC] Input   : 6B35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020672FB7203520839B95A55DD7C49C10620010B932D4E9244B4B7D0008
+[HMAC] Input Length : 63
+[KDF] Output HMAC-SHA256: EDF6D3AFB1769B4684D1D687F1D7759E8C9F0BA014752E9F00D8B4C90FC25730
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] FC: 6a
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Parameter[1]: DC10992A3291
+[KDF] Parameter[1] len: 6 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020DC10992A32910006
+[HMAC] Key   : CEAA8DAC187AA858ED0C198218B1F1D7EB7D857260679C38FA45BB7BE84D2C53
+[HMAC] Key Length : 32
+[HMAC] Input   : 6A35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020DC10992A32910006
+[HMAC] Input Length : 43
+[KDF] Output HMAC-SHA256: C97A556759B9EB88282CAFC4D6EC843178AC3F85E8C527D75EA40C899096822B
+[KDF-Encode] SNN (raw string): 5G:mnc070.mcc999.3gppnetwork.org
+[KDF-Encode] SNN (hex): 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF-Encode] SNN (raw string): 999700000000001
+[KDF-Encode] SNN (hex): 393939373030303030303030303031
+[KDF] FC: 6c
+[KDF] Parameter[0]: 35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F7267
+[KDF] Parameter[0] len: 32 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Key   : C97A556759B9EB88282CAFC4D6EC843178AC3F85E8C527D75EA40C899096822B
+[HMAC] Key Length : 32
+[HMAC] Input   : 6C35473A6D6E633037302E6D63633939392E336770706E6574776F726B2E6F72670020
+[HMAC] Input Length : 35
+[KDF] Output HMAC-SHA256: 120B49045EF09E3A2302A417A0380A258C07B07A5A20FBAC780F4F26C882AD01
+[KDF] FC: 6d
+[KDF] Parameter[0]: 393939373030303030303030303031
+[KDF] Parameter[0] len: 15 (appended as 2 bytes)
+[KDF] Parameter[1]: 0000
+[KDF] Parameter[1] len: 2 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 6D393939373030303030303030303031000F00000002
+[HMAC] Key   : 120B49045EF09E3A2302A417A0380A258C07B07A5A20FBAC780F4F26C882AD01
+[HMAC] Key Length : 32
+[HMAC] Input   : 6D393939373030303030303030303031000F00000002
+[HMAC] Input Length : 22
+[KDF] Output HMAC-SHA256: 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+===========================DEBUG PARAMETER KDF================================ 
+[KDF DEBUG] SNN           = 5G:mnc070.mcc999.3gppnetwork.org
+[KDF DEBUG] SUPI          = 999700000000001
+[KDF DEBUG] ABBA len      = 2
+[KDF DEBUG] ABBA value    = 0000
+[KDF DEBUG] KAUSF         = C97A556759B9EB88282CAFC4D6EC843178AC3F85E8C527D75EA40C899096822B
+[KDF DEBUG] KSEAF         = 120B49045EF09E3A2302A417A0380A258C07B07A5A20FBAC780F4F26C882AD01
+[KDF DEBUG] KAMF          = 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+===========================DEBUG PARAMETER KDF================================ 
+[E4T] ue_nas_tx t_us=501129520468 sess=0 len=87
+[2026-11-26 10:49:49.092] [nas] [debug] Security Mode Command received
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 2604FE8C2FE0AA15E2C8AB1A3AE22B1591568B5CB44A586C8BE2D1E5A6235364
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 5755DA9427F0C425DCB2932FDFB9FD079BD2A865B24C82771F48488008033C84
+[KDF DEBUG] KNASenc = 91568B5CB44A586C8BE2D1E5A6235364
+[KDF DEBUG] KNASint = 9BD2A865B24C82771F48488008033C84
+[KDF] FC: 69
+[KDF] Parameter[0]: 01
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 00
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69010001000001
+[HMAC] Key   : 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+[HMAC] Key Length : 32
+[HMAC] Input   : 69010001000001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 2604FE8C2FE0AA15E2C8AB1A3AE22B1591568B5CB44A586C8BE2D1E5A6235364
+[KDF] FC: 69
+[KDF] Parameter[0]: 02
+[KDF] Parameter[0] len: 1 (appended as 2 bytes)
+[KDF] Parameter[1]: 02
+[KDF] Parameter[1] len: 1 (appended as 2 bytes)
+[KDF] Final Input to HMAC: 69020001020001
+[HMAC] Key   : 84978572105F19104668176B92C5AAC5611881D44C68FB84E9F0746B1FE8F366
+[HMAC] Key Length : 32
+[HMAC] Input   : 69020001020001
+[HMAC] Input Length : 7
+[KDF] Output HMAC-SHA256: 5755DA9427F0C425DCB2932FDFB9FD079BD2A865B24C82771F48488008033C84
+[KDF DEBUG] KNASenc = 91568B5CB44A586C8BE2D1E5A6235364
+[KDF DEBUG] KNASint = 9BD2A865B24C82771F48488008033C84
+[2026-11-26 10:49:49.092] [nas] [debug] Selected integrity[2] ciphering[0]
+[E4T] ue_nas_tx t_us=501129527072 sess=0 len=94
+[2026-11-26 10:49:49.105] [nas] [debug] Registration accept received
+[2026-11-26 10:49:49.105] [nas] [info] UE switches to state [MM-REGISTERED/NORMAL-SERVICE]
+[2026-11-26 10:49:49.105] [nas] [debug] Sending Registration Complete
+[E4T] ue_nas_tx t_us=501129540199 sess=0 len=67
+[2026-11-26 10:49:49.105] [nas] [info] Initial Registration is successful
+[2026-11-26 10:49:49.107] [nas] [debug] Configuration Update Command received
+[2026-11-26 10:49:50.324] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501130758539 sess=1 len=0
+[2026-11-26 10:49:50.324] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501130758814 sess=0 len=103
+[2026-11-26 10:49:50.368] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501130803207 sess=1 len=0 eap=0
+[2026-11-26 10:49:50.368] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:50.413] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.2] is up.
+[2026-11-26 10:49:50.423] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501130858755 sess=0 len=103
+[2026-11-26 10:49:50.442] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:50.442] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501130876726 sess=1 len=0
+[E4T] ue_nas_tx t_us=501130876766 sess=0 len=103
+[2026-11-26 10:49:50.689] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501131123712 sess=1 len=0
+[2026-11-26 10:49:50.689] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501131124259 sess=0 len=103
+[2026-11-26 10:49:50.712] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501131146595 sess=1 len=0 eap=0
+[2026-11-26 10:49:50.712] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:50.735] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.3] is up.
+[2026-11-26 10:49:50.760] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501131194921 sess=0 len=103
+[2026-11-26 10:49:50.781] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:50.781] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501131215786 sess=1 len=0
+[E4T] ue_nas_tx t_us=501131215820 sess=0 len=103
+[2026-11-26 10:49:51.075] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501131510050 sess=1 len=0
+[2026-11-26 10:49:51.075] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501131510332 sess=0 len=103
+[2026-11-26 10:49:51.091] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501131525406 sess=1 len=0 eap=0
+[2026-11-26 10:49:51.091] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:51.178] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.4] is up.
+[2026-11-26 10:49:51.188] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501131623342 sess=0 len=103
+[2026-11-26 10:49:51.223] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:51.223] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501131657899 sess=1 len=0
+[E4T] ue_nas_tx t_us=501131657940 sess=0 len=103
+[2026-11-26 10:49:51.455] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501131890404 sess=1 len=0
+[2026-11-26 10:49:51.456] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501131890706 sess=0 len=103
+[2026-11-26 10:49:51.488] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501131922835 sess=1 len=0 eap=0
+[2026-11-26 10:49:51.488] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:51.611] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.5] is up.
+[2026-11-26 10:49:51.623] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501132057958 sess=0 len=103
+[2026-11-26 10:49:51.658] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:51.658] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501132092869 sess=1 len=0
+[E4T] ue_nas_tx t_us=501132096025 sess=0 len=103
+[2026-11-26 10:49:51.897] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501132332125 sess=1 len=0
+[2026-11-26 10:49:51.897] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501132332310 sess=0 len=103
+[2026-11-26 10:49:51.918] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501132352851 sess=1 len=0 eap=0
+[2026-11-26 10:49:51.918] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:51.999] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.6] is up.
+[2026-11-26 10:49:52.009] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501132443813 sess=0 len=103
+[2026-11-26 10:49:52.027] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:52.027] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501132461885 sess=1 len=0
+[E4T] ue_nas_tx t_us=501132461926 sess=0 len=103
+[2026-11-26 10:49:52.266] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501132700406 sess=1 len=0
+[2026-11-26 10:49:52.266] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501132700554 sess=0 len=103
+[2026-11-26 10:49:52.291] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501132726119 sess=1 len=0 eap=0
+[2026-11-26 10:49:52.291] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:52.554] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.7] is up.
+[2026-11-26 10:49:52.565] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501132999600 sess=0 len=103
+[2026-11-26 10:49:52.591] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:52.591] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501133026284 sess=1 len=0
+[E4T] ue_nas_tx t_us=501133026320 sess=0 len=103
+[2026-11-26 10:49:52.842] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501133276748 sess=1 len=0
+[2026-11-26 10:49:52.842] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501133276903 sess=0 len=103
+[2026-11-26 10:49:52.856] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501133290819 sess=1 len=0 eap=0
+[2026-11-26 10:49:52.856] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:53.027] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.8] is up.
+[2026-11-26 10:49:53.047] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501133483337 sess=0 len=103
+[2026-11-26 10:49:53.062] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:53.062] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501133496467 sess=1 len=0
+[E4T] ue_nas_tx t_us=501133496502 sess=0 len=103
+[2026-11-26 10:49:53.305] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501133740323 sess=1 len=0
+[2026-11-26 10:49:53.306] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501133740543 sess=0 len=103
+[2026-11-26 10:49:53.317] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501133752014 sess=1 len=0 eap=0
+[2026-11-26 10:49:53.317] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:53.468] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.9] is up.
+[2026-11-26 10:49:53.481] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501133915635 sess=0 len=103
+[2026-11-26 10:49:53.498] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:53.498] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501133932887 sess=1 len=0
+[E4T] ue_nas_tx t_us=501133932936 sess=0 len=103
+[2026-11-26 10:49:53.732] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501134166626 sess=1 len=0
+[2026-11-26 10:49:53.732] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501134166775 sess=0 len=103
+[2026-11-26 10:49:53.743] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501134177848 sess=1 len=0 eap=0
+[2026-11-26 10:49:53.743] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:53.865] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.10] is up.
+[2026-11-26 10:49:53.876] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501134310879 sess=0 len=103
+[2026-11-26 10:49:53.893] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:53.893] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501134327614 sess=1 len=0
+[E4T] ue_nas_tx t_us=501134327650 sess=0 len=103
+[2026-11-26 10:49:54.134] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501134568521 sess=1 len=0
+[2026-11-26 10:49:54.134] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501134568587 sess=0 len=103
+[2026-11-26 10:49:54.155] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501134590104 sess=1 len=0 eap=0
+[2026-11-26 10:49:54.155] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:54.278] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.11] is up.
+[2026-11-26 10:49:54.289] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501134723579 sess=0 len=103
+[2026-11-26 10:49:54.303] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:54.303] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501134737775 sess=1 len=0
+[E4T] ue_nas_tx t_us=501134737812 sess=0 len=103
+[2026-11-26 10:49:54.545] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501134980376 sess=1 len=0
+[2026-11-26 10:49:54.546] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501134980615 sess=0 len=103
+[2026-11-26 10:49:54.565] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501134999431 sess=1 len=0 eap=0
+[2026-11-26 10:49:54.565] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:54.639] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.12] is up.
+[2026-11-26 10:49:54.652] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501135087121 sess=0 len=103
+[2026-11-26 10:49:54.668] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:54.668] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501135102708 sess=1 len=0
+[E4T] ue_nas_tx t_us=501135102743 sess=0 len=103
+[2026-11-26 10:49:54.916] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501135350673 sess=1 len=0
+[2026-11-26 10:49:54.916] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501135350912 sess=0 len=103
+[2026-11-26 10:49:54.936] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501135371281 sess=1 len=0 eap=0
+[2026-11-26 10:49:54.936] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:55.016] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.13] is up.
+[2026-11-26 10:49:55.027] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501135461573 sess=0 len=103
+[2026-11-26 10:49:55.046] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:55.046] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501135481132 sess=1 len=0
+[E4T] ue_nas_tx t_us=501135481166 sess=0 len=103
+[2026-11-26 10:49:55.300] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501135735354 sess=1 len=0
+[2026-11-26 10:49:55.301] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501135735528 sess=0 len=103
+[2026-11-26 10:49:55.312] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501135746773 sess=1 len=0 eap=0
+[2026-11-26 10:49:55.312] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:55.399] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.14] is up.
+[2026-11-26 10:49:55.410] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501135844457 sess=0 len=103
+[2026-11-26 10:49:55.436] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:55.436] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501135871108 sess=1 len=0
+[E4T] ue_nas_tx t_us=501135871149 sess=0 len=103
+[2026-11-26 10:49:55.705] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501136139425 sess=1 len=0
+[2026-11-26 10:49:55.705] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501136139561 sess=0 len=103
+[2026-11-26 10:49:55.715] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501136149722 sess=1 len=0 eap=0
+[2026-11-26 10:49:55.715] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:55.743] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.15] is up.
+[2026-11-26 10:49:55.754] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501136189018 sess=0 len=103
+[2026-11-26 10:49:55.773] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:55.773] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501136208209 sess=1 len=0
+[E4T] ue_nas_tx t_us=501136208224 sess=0 len=103
+[2026-11-26 10:49:56.006] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501136441179 sess=1 len=0
+[2026-11-26 10:49:56.006] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501136441311 sess=0 len=103
+[2026-11-26 10:49:56.036] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501136470955 sess=1 len=0 eap=0
+[2026-11-26 10:49:56.036] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:56.104] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.16] is up.
+[2026-11-26 10:49:56.114] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501136549316 sess=0 len=103
+[2026-11-26 10:49:56.136] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:56.136] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501136570990 sess=1 len=0
+[E4T] ue_nas_tx t_us=501136571025 sess=0 len=103
+[2026-11-26 10:49:56.369] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501136804158 sess=1 len=0
+[2026-11-26 10:49:56.369] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501136804302 sess=0 len=103
+[2026-11-26 10:49:56.398] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501136832715 sess=1 len=0 eap=0
+[2026-11-26 10:49:56.398] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:56.493] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.17] is up.
+[2026-11-26 10:49:56.504] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501136938505 sess=0 len=103
+[2026-11-26 10:49:56.531] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:56.531] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501136966030 sess=1 len=0
+[E4T] ue_nas_tx t_us=501136966068 sess=0 len=103
+[2026-11-26 10:49:56.805] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501137239753 sess=1 len=0
+[2026-11-26 10:49:56.805] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501137239887 sess=0 len=103
+[2026-11-26 10:49:56.826] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501137260991 sess=1 len=0 eap=0
+[2026-11-26 10:49:56.826] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:56.845] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.18] is up.
+[2026-11-26 10:49:56.863] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501137298225 sess=0 len=103
+[2026-11-26 10:49:56.880] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:56.880] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501137314590 sess=1 len=0
+[E4T] ue_nas_tx t_us=501137314623 sess=0 len=103
+[2026-11-26 10:49:57.168] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501137603030 sess=1 len=0
+[2026-11-26 10:49:57.168] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501137603247 sess=0 len=103
+[2026-11-26 10:49:57.190] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501137624624 sess=1 len=0 eap=0
+[2026-11-26 10:49:57.190] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:57.222] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.19] is up.
+[2026-11-26 10:49:57.240] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501137674436 sess=0 len=103
+[2026-11-26 10:49:57.264] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:57.264] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501137698760 sess=1 len=0
+[E4T] ue_nas_tx t_us=501137698794 sess=0 len=103
+[2026-11-26 10:49:57.497] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501137931556 sess=1 len=0
+[2026-11-26 10:49:57.497] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501137931666 sess=0 len=103
+[2026-11-26 10:49:57.512] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501137946857 sess=1 len=0 eap=0
+[2026-11-26 10:49:57.512] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:57.562] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.20] is up.
+[2026-11-26 10:49:57.573] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501138007541 sess=0 len=103
+[2026-11-26 10:49:57.622] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:57.622] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501138056481 sess=1 len=0
+[E4T] ue_nas_tx t_us=501138056519 sess=0 len=103
+[2026-11-26 10:49:57.858] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501138293111 sess=1 len=0
+[2026-11-26 10:49:57.859] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501138293547 sess=0 len=103
+[2026-11-26 10:49:57.884] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501138318690 sess=1 len=0 eap=0
+[2026-11-26 10:49:57.884] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:57.937] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.21] is up.
+[2026-11-26 10:49:57.947] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501138382117 sess=0 len=103
+[2026-11-26 10:49:57.969] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:57.969] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501138403386 sess=1 len=0
+[E4T] ue_nas_tx t_us=501138403422 sess=0 len=103
+[2026-11-26 10:49:58.200] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501138635311 sess=1 len=0
+[2026-11-26 10:49:58.201] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501138635454 sess=0 len=103
+[2026-11-26 10:49:58.222] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501138657023 sess=1 len=0 eap=0
+[2026-11-26 10:49:58.222] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:58.345] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.22] is up.
+[2026-11-26 10:49:58.356] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501138790567 sess=0 len=103
+[2026-11-26 10:49:58.375] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:58.375] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501138809755 sess=1 len=0
+[E4T] ue_nas_tx t_us=501138809809 sess=0 len=103
+[2026-11-26 10:49:58.632] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501139066997 sess=1 len=0
+[2026-11-26 10:49:58.632] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501139067228 sess=0 len=103
+[2026-11-26 10:49:58.662] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501139097078 sess=1 len=0 eap=0
+[2026-11-26 10:49:58.662] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:58.756] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.23] is up.
+[2026-11-26 10:49:58.767] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501139201716 sess=0 len=103
+[2026-11-26 10:49:58.782] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:58.782] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501139216470 sess=1 len=0
+[E4T] ue_nas_tx t_us=501139216510 sess=0 len=103
+[2026-11-26 10:49:59.026] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501139460490 sess=1 len=0
+[2026-11-26 10:49:59.026] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501139460634 sess=0 len=103
+[2026-11-26 10:49:59.036] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501139470729 sess=1 len=0 eap=0
+[2026-11-26 10:49:59.036] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:59.124] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.24] is up.
+[2026-11-26 10:49:59.134] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501139568575 sess=0 len=103
+[2026-11-26 10:49:59.152] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:59.152] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501139586736 sess=1 len=0
+[E4T] ue_nas_tx t_us=501139586770 sess=0 len=103
+[2026-11-26 10:49:59.395] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501139829464 sess=1 len=0
+[2026-11-26 10:49:59.395] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501139829603 sess=0 len=103
+[2026-11-26 10:49:59.406] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501139840410 sess=1 len=0 eap=0
+[2026-11-26 10:49:59.406] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:59.480] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.25] is up.
+[2026-11-26 10:49:59.491] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501139925384 sess=0 len=103
+[2026-11-26 10:49:59.513] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:59.513] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501139947577 sess=1 len=0
+[E4T] ue_nas_tx t_us=501139947613 sess=0 len=103
+[2026-11-26 10:49:59.758] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501140192739 sess=1 len=0
+[2026-11-26 10:49:59.758] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501140192927 sess=0 len=103
+[2026-11-26 10:49:59.769] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501140203540 sess=1 len=0 eap=0
+[2026-11-26 10:49:59.769] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:49:59.815] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.26] is up.
+[2026-11-26 10:49:59.826] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501140261112 sess=0 len=103
+[2026-11-26 10:49:59.846] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:49:59.846] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501140280700 sess=1 len=0
+[E4T] ue_nas_tx t_us=501140280735 sess=0 len=103
+[2026-11-26 10:50:00.090] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501140525243 sess=1 len=0
+[2026-11-26 10:50:00.091] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501140525377 sess=0 len=103
+[2026-11-26 10:50:00.109] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501140543914 sess=1 len=0 eap=0
+[2026-11-26 10:50:00.109] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:00.156] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.27] is up.
+[2026-11-26 10:50:00.167] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501140601774 sess=0 len=103
+[2026-11-26 10:50:00.192] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:00.192] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501140626707 sess=1 len=0
+[E4T] ue_nas_tx t_us=501140626722 sess=0 len=103
+[2026-11-26 10:50:00.420] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501140855023 sess=1 len=0
+[2026-11-26 10:50:00.420] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501140855300 sess=0 len=103
+[2026-11-26 10:50:00.441] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501140876159 sess=1 len=0 eap=0
+[2026-11-26 10:50:00.441] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:00.591] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.28] is up.
+[2026-11-26 10:50:00.602] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501141036603 sess=0 len=103
+[2026-11-26 10:50:00.619] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:00.619] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501141054113 sess=1 len=0
+[E4T] ue_nas_tx t_us=501141054205 sess=0 len=103
+[2026-11-26 10:50:00.850] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501141285196 sess=1 len=0
+[2026-11-26 10:50:00.851] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501141285389 sess=0 len=103
+[2026-11-26 10:50:00.882] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501141316682 sess=1 len=0 eap=0
+[2026-11-26 10:50:00.882] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:00.963] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.29] is up.
+[2026-11-26 10:50:00.974] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501141408464 sess=0 len=103
+[2026-11-26 10:50:00.992] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:00.992] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501141427113 sess=1 len=0
+[E4T] ue_nas_tx t_us=501141427190 sess=0 len=103
+[2026-11-26 10:50:01.232] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501141666471 sess=1 len=0
+[2026-11-26 10:50:01.232] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501141666587 sess=0 len=103
+[2026-11-26 10:50:01.258] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501141692839 sess=1 len=0 eap=0
+[2026-11-26 10:50:01.258] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:01.311] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.30] is up.
+[2026-11-26 10:50:01.322] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501141757452 sess=0 len=103
+[2026-11-26 10:50:01.339] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:01.339] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501141773899 sess=1 len=0
+[E4T] ue_nas_tx t_us=501141773932 sess=0 len=103
+[2026-11-26 10:50:01.573] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501142007585 sess=1 len=0
+[2026-11-26 10:50:01.573] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501142007745 sess=0 len=103
+[2026-11-26 10:50:01.587] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501142021867 sess=1 len=0 eap=0
+[2026-11-26 10:50:01.587] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:01.661] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.31] is up.
+[2026-11-26 10:50:01.671] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501142105663 sess=0 len=103
+[2026-11-26 10:50:01.688] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:01.688] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501142122382 sess=1 len=0
+[E4T] ue_nas_tx t_us=501142122420 sess=0 len=103
+[2026-11-26 10:50:01.940] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501142375380 sess=1 len=0
+[2026-11-26 10:50:01.941] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501142375558 sess=0 len=103
+[2026-11-26 10:50:01.953] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501142387722 sess=1 len=0 eap=0
+[2026-11-26 10:50:01.953] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:02.055] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.32] is up.
+[2026-11-26 10:50:02.066] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501142501171 sess=0 len=103
+[2026-11-26 10:50:02.085] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:02.085] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501142520075 sess=1 len=0
+[E4T] ue_nas_tx t_us=501142520123 sess=0 len=103
+[2026-11-26 10:50:02.355] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501142789387 sess=1 len=0
+[2026-11-26 10:50:02.355] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501142789567 sess=0 len=103
+[2026-11-26 10:50:02.375] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501142809512 sess=1 len=0 eap=0
+[2026-11-26 10:50:02.375] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:02.394] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.33] is up.
+[2026-11-26 10:50:02.420] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501142854617 sess=0 len=103
+[2026-11-26 10:50:02.438] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:02.438] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501142872709 sess=1 len=0
+[E4T] ue_nas_tx t_us=501142872746 sess=0 len=103
+[2026-11-26 10:50:02.728] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501143163137 sess=1 len=0
+[2026-11-26 10:50:02.729] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501143163341 sess=0 len=103
+[2026-11-26 10:50:02.749] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501143184179 sess=1 len=0 eap=0
+[2026-11-26 10:50:02.749] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:02.867] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.34] is up.
+[2026-11-26 10:50:02.877] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501143312252 sess=0 len=103
+[2026-11-26 10:50:02.897] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:02.897] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501143331707 sess=1 len=0
+[E4T] ue_nas_tx t_us=501143331744 sess=0 len=103
+[2026-11-26 10:50:03.161] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501143596346 sess=1 len=0
+[2026-11-26 10:50:03.162] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501143596520 sess=0 len=103
+[2026-11-26 10:50:03.180] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501143615131 sess=1 len=0 eap=0
+[2026-11-26 10:50:03.180] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:03.283] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.35] is up.
+[2026-11-26 10:50:03.294] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501143728534 sess=0 len=103
+[2026-11-26 10:50:03.313] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:03.313] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501143747872 sess=1 len=0
+[E4T] ue_nas_tx t_us=501143748132 sess=0 len=103
+[2026-11-26 10:50:03.579] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501144013646 sess=1 len=0
+[2026-11-26 10:50:03.579] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501144013901 sess=0 len=103
+[2026-11-26 10:50:03.589] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501144024297 sess=1 len=0 eap=0
+[2026-11-26 10:50:03.590] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:03.777] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.36] is up.
+[2026-11-26 10:50:03.787] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501144222326 sess=0 len=103
+[2026-11-26 10:50:03.804] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:03.804] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501144238862 sess=1 len=0
+[E4T] ue_nas_tx t_us=501144238903 sess=0 len=103
+[2026-11-26 10:50:04.068] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501144503384 sess=1 len=0
+[2026-11-26 10:50:04.069] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501144503551 sess=0 len=103
+[2026-11-26 10:50:04.094] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501144528915 sess=1 len=0 eap=0
+[2026-11-26 10:50:04.094] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:04.184] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.37] is up.
+[2026-11-26 10:50:04.201] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501144635983 sess=0 len=103
+[2026-11-26 10:50:04.226] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:04.226] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501144660844 sess=1 len=0
+[E4T] ue_nas_tx t_us=501144660887 sess=0 len=103
+[2026-11-26 10:50:04.493] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501144927493 sess=1 len=0
+[2026-11-26 10:50:04.493] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501144927629 sess=0 len=103
+[2026-11-26 10:50:04.503] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501144937571 sess=1 len=0 eap=0
+[2026-11-26 10:50:04.503] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:04.570] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.38] is up.
+[2026-11-26 10:50:04.582] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501145017018 sess=0 len=103
+[2026-11-26 10:50:04.597] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:04.597] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501145031484 sess=1 len=0
+[E4T] ue_nas_tx t_us=501145031519 sess=0 len=103
+[2026-11-26 10:50:04.838] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501145273136 sess=1 len=0
+[2026-11-26 10:50:04.838] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501145273292 sess=0 len=103
+[2026-11-26 10:50:04.858] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501145293003 sess=1 len=0 eap=0
+[2026-11-26 10:50:04.858] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:05.048] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.39] is up.
+[2026-11-26 10:50:05.067] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501145519538 sess=0 len=103
+[2026-11-26 10:50:05.174] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:05.174] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501145608615 sess=1 len=0
+[E4T] ue_nas_tx t_us=501145608657 sess=0 len=103
+[2026-11-26 10:50:05.403] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501145837879 sess=1 len=0
+[2026-11-26 10:50:05.403] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501145838311 sess=0 len=103
+[2026-11-26 10:50:05.426] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501145860657 sess=1 len=0 eap=0
+[2026-11-26 10:50:05.426] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:05.686] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.40] is up.
+[2026-11-26 10:50:05.696] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501146130955 sess=0 len=103
+[2026-11-26 10:50:05.719] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:05.719] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501146153571 sess=1 len=0
+[E4T] ue_nas_tx t_us=501146153590 sess=0 len=103
+[2026-11-26 10:50:05.996] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501146431108 sess=1 len=0
+[2026-11-26 10:50:05.996] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501146431262 sess=0 len=103
+[2026-11-26 10:50:06.006] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501146440812 sess=1 len=0 eap=0
+[2026-11-26 10:50:06.006] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:06.085] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.41] is up.
+[2026-11-26 10:50:06.098] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501146533184 sess=0 len=103
+[2026-11-26 10:50:06.140] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:06.140] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501146575245 sess=1 len=0
+[E4T] ue_nas_tx t_us=501146575293 sess=0 len=103
+[2026-11-26 10:50:06.381] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501146816006 sess=1 len=0
+[2026-11-26 10:50:06.381] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501146816246 sess=0 len=103
+[2026-11-26 10:50:06.393] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501146827915 sess=1 len=0 eap=0
+[2026-11-26 10:50:06.393] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:06.411] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.42] is up.
+[2026-11-26 10:50:06.449] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501146883580 sess=0 len=103
+[2026-11-26 10:50:06.464] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:06.464] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501146899244 sess=1 len=0
+[E4T] ue_nas_tx t_us=501146899262 sess=0 len=103
+[2026-11-26 10:50:06.699] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501147133940 sess=1 len=0
+[2026-11-26 10:50:06.699] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501147134139 sess=0 len=103
+[2026-11-26 10:50:06.721] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501147155645 sess=1 len=0 eap=0
+[2026-11-26 10:50:06.721] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:06.879] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.43] is up.
+[2026-11-26 10:50:06.890] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501147325041 sess=0 len=103
+[2026-11-26 10:50:06.906] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:06.906] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501147341277 sess=1 len=0
+[E4T] ue_nas_tx t_us=501147341342 sess=0 len=103
+[2026-11-26 10:50:07.149] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501147584261 sess=1 len=0
+[2026-11-26 10:50:07.150] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501147584389 sess=0 len=103
+[2026-11-26 10:50:07.161] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501147595384 sess=1 len=0 eap=0
+[2026-11-26 10:50:07.161] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:07.242] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.44] is up.
+[2026-11-26 10:50:07.253] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501147687745 sess=0 len=103
+[2026-11-26 10:50:07.268] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:07.268] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501147702959 sess=1 len=0
+[E4T] ue_nas_tx t_us=501147703042 sess=0 len=103
+[2026-11-26 10:50:07.507] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501147941618 sess=1 len=0
+[2026-11-26 10:50:07.507] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501147941744 sess=0 len=103
+[2026-11-26 10:50:07.524] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501147960063 sess=1 len=0 eap=0
+[2026-11-26 10:50:07.525] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:07.551] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.45] is up.
+[2026-11-26 10:50:07.564] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501147999072 sess=0 len=103
+[2026-11-26 10:50:07.577] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:07.577] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501148012251 sess=1 len=0
+[E4T] ue_nas_tx t_us=501148012287 sess=0 len=103
+[2026-11-26 10:50:07.818] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501148252661 sess=1 len=0
+[2026-11-26 10:50:07.819] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501148253641 sess=0 len=103
+[2026-11-26 10:50:07.829] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501148263870 sess=1 len=0 eap=0
+[2026-11-26 10:50:07.829] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:07.873] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.46] is up.
+[2026-11-26 10:50:07.890] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501148324809 sess=0 len=103
+[2026-11-26 10:50:07.907] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:07.907] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501148341899 sess=1 len=0
+[E4T] ue_nas_tx t_us=501148341936 sess=0 len=103
+[2026-11-26 10:50:08.142] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501148576936 sess=1 len=0
+[2026-11-26 10:50:08.142] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501148577129 sess=0 len=103
+[2026-11-26 10:50:08.155] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501148590313 sess=1 len=0 eap=0
+[2026-11-26 10:50:08.156] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:08.236] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.47] is up.
+[2026-11-26 10:50:08.247] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501148682227 sess=0 len=103
+[2026-11-26 10:50:08.262] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:08.262] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501148696965 sess=1 len=0
+[E4T] ue_nas_tx t_us=501148697001 sess=0 len=103
+[2026-11-26 10:50:08.524] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501148959021 sess=1 len=0
+[2026-11-26 10:50:08.524] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501148959269 sess=0 len=103
+[2026-11-26 10:50:08.535] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501148969668 sess=1 len=0 eap=0
+[2026-11-26 10:50:08.535] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:08.574] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.48] is up.
+[2026-11-26 10:50:08.585] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501149020960 sess=0 len=103
+[2026-11-26 10:50:08.605] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:08.605] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501149039662 sess=1 len=0
+[E4T] ue_nas_tx t_us=501149039699 sess=0 len=103
+[2026-11-26 10:50:08.916] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501149351069 sess=1 len=0
+[2026-11-26 10:50:08.916] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501149351237 sess=0 len=103
+[2026-11-26 10:50:08.927] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501149361995 sess=1 len=0 eap=0
+[2026-11-26 10:50:08.927] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:09.024] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.49] is up.
+[2026-11-26 10:50:09.035] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501149469780 sess=0 len=103
+[2026-11-26 10:50:09.068] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:09.068] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501149502510 sess=1 len=0
+[E4T] ue_nas_tx t_us=501149502528 sess=0 len=103
+[2026-11-26 10:50:09.295] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501149730083 sess=1 len=0
+[2026-11-26 10:50:09.295] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501149730309 sess=0 len=103
+[2026-11-26 10:50:09.315] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501149750185 sess=1 len=0 eap=0
+[2026-11-26 10:50:09.315] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:09.368] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.50] is up.
+[2026-11-26 10:50:09.379] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501149814175 sess=0 len=103
+[2026-11-26 10:50:09.402] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:09.402] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501149836822 sess=1 len=0
+[E4T] ue_nas_tx t_us=501149836856 sess=0 len=103
+[2026-11-26 10:50:09.628] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501150062709 sess=1 len=0
+[2026-11-26 10:50:09.628] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501150062838 sess=0 len=103
+[2026-11-26 10:50:09.652] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501150086393 sess=1 len=0 eap=0
+[2026-11-26 10:50:09.652] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:09.730] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.51] is up.
+[2026-11-26 10:50:09.741] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501150175535 sess=0 len=103
+[2026-11-26 10:50:09.765] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:09.765] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501150199706 sess=1 len=0
+[E4T] ue_nas_tx t_us=501150199772 sess=0 len=103
+[2026-11-26 10:50:10.005] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501150439382 sess=1 len=0
+[2026-11-26 10:50:10.005] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501150439588 sess=0 len=103
+[2026-11-26 10:50:10.021] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501150455983 sess=1 len=0 eap=0
+[2026-11-26 10:50:10.021] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:10.063] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.52] is up.
+[2026-11-26 10:50:10.074] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501150509230 sess=0 len=103
+[2026-11-26 10:50:10.089] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:10.089] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501150523453 sess=1 len=0
+[E4T] ue_nas_tx t_us=501150523486 sess=0 len=103
+[2026-11-26 10:50:10.320] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501150755495 sess=1 len=0
+[2026-11-26 10:50:10.321] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501150755705 sess=0 len=103
+[2026-11-26 10:50:10.340] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501150775313 sess=1 len=0 eap=0
+[2026-11-26 10:50:10.341] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:10.476] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.53] is up.
+[2026-11-26 10:50:10.486] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501150920764 sess=0 len=103
+[2026-11-26 10:50:10.505] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:10.505] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501150939605 sess=1 len=0
+[E4T] ue_nas_tx t_us=501150939623 sess=0 len=103
+[2026-11-26 10:50:10.742] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501151177101 sess=1 len=0
+[2026-11-26 10:50:10.743] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501151177409 sess=0 len=103
+[2026-11-26 10:50:10.754] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501151188605 sess=1 len=0 eap=0
+[2026-11-26 10:50:10.754] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:10.820] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.54] is up.
+[2026-11-26 10:50:10.834] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501151268623 sess=0 len=103
+[2026-11-26 10:50:10.848] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:10.849] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501151283347 sess=1 len=0
+[E4T] ue_nas_tx t_us=501151283373 sess=0 len=103
+[2026-11-26 10:50:11.083] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501151517889 sess=1 len=0
+[2026-11-26 10:50:11.083] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501151518295 sess=0 len=103
+[2026-11-26 10:50:11.103] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501151538267 sess=1 len=0 eap=0
+[2026-11-26 10:50:11.103] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:11.235] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.55] is up.
+[2026-11-26 10:50:11.245] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501151679789 sess=0 len=103
+[2026-11-26 10:50:11.262] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:11.262] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501151696447 sess=1 len=0
+[E4T] ue_nas_tx t_us=501151696483 sess=0 len=103
+[2026-11-26 10:50:11.566] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501152000546 sess=1 len=0
+[2026-11-26 10:50:11.566] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501152000715 sess=0 len=103
+[2026-11-26 10:50:11.586] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501152021233 sess=1 len=0 eap=0
+[2026-11-26 10:50:11.586] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:11.634] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.56] is up.
+[2026-11-26 10:50:11.646] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501152080698 sess=0 len=103
+[2026-11-26 10:50:11.671] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:11.671] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501152105425 sess=1 len=0
+[E4T] ue_nas_tx t_us=501152105465 sess=0 len=103
+[2026-11-26 10:50:11.910] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501152344903 sess=1 len=0
+[2026-11-26 10:50:11.910] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501152345303 sess=0 len=103
+[2026-11-26 10:50:11.932] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501152366583 sess=1 len=0 eap=0
+[2026-11-26 10:50:11.932] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:12.063] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.57] is up.
+[2026-11-26 10:50:12.073] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501152508197 sess=0 len=103
+[2026-11-26 10:50:12.090] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:12.090] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501152525259 sess=1 len=0
+[E4T] ue_nas_tx t_us=501152525279 sess=0 len=103
+[2026-11-26 10:50:12.341] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501152775878 sess=1 len=0
+[2026-11-26 10:50:12.341] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501152776028 sess=0 len=103
+[2026-11-26 10:50:12.354] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501152788539 sess=1 len=0 eap=0
+[2026-11-26 10:50:12.354] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:12.464] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.58] is up.
+[2026-11-26 10:50:12.475] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501152910459 sess=0 len=103
+[2026-11-26 10:50:12.494] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:12.494] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501152928572 sess=1 len=0
+[E4T] ue_nas_tx t_us=501152928625 sess=0 len=103
+[2026-11-26 10:50:12.771] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501153205763 sess=1 len=0
+[2026-11-26 10:50:12.773] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501153207829 sess=0 len=103
+[2026-11-26 10:50:12.784] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501153219011 sess=1 len=0 eap=0
+[2026-11-26 10:50:12.784] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:12.830] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.59] is up.
+[2026-11-26 10:50:12.841] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501153275904 sess=0 len=103
+[2026-11-26 10:50:12.862] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:12.862] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501153297159 sess=1 len=0
+[E4T] ue_nas_tx t_us=501153297199 sess=0 len=103
+[2026-11-26 10:50:13.127] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501153561966 sess=1 len=0
+[2026-11-26 10:50:13.127] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501153562095 sess=0 len=103
+[2026-11-26 10:50:13.148] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501153582670 sess=1 len=0 eap=0
+[2026-11-26 10:50:13.148] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:13.165] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.60] is up.
+[2026-11-26 10:50:13.183] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501153617702 sess=0 len=103
+[2026-11-26 10:50:13.198] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:13.198] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501153632432 sess=1 len=0
+[E4T] ue_nas_tx t_us=501153632466 sess=0 len=103
+[2026-11-26 10:50:13.434] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501153868908 sess=1 len=0
+[2026-11-26 10:50:13.434] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501153869152 sess=0 len=103
+[2026-11-26 10:50:13.450] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501153884560 sess=1 len=0 eap=0
+[2026-11-26 10:50:13.450] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:13.523] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.61] is up.
+[2026-11-26 10:50:13.533] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501153968235 sess=0 len=103
+[2026-11-26 10:50:13.552] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:13.552] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501153987001 sess=1 len=0
+[E4T] ue_nas_tx t_us=501153987017 sess=0 len=103
+[2026-11-26 10:50:13.781] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501154215862 sess=1 len=0
+[2026-11-26 10:50:13.781] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501154216126 sess=0 len=103
+[2026-11-26 10:50:13.943] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501154377515 sess=1 len=0 eap=0
+[2026-11-26 10:50:13.943] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:14.246] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.62] is up.
+[2026-11-26 10:50:14.256] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501154691175 sess=0 len=103
+[2026-11-26 10:50:14.276] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:14.276] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501154711187 sess=1 len=0
+[E4T] ue_nas_tx t_us=501154715612 sess=0 len=103
+[2026-11-26 10:50:14.504] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501154939718 sess=1 len=0
+[2026-11-26 10:50:14.505] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501154939914 sess=0 len=103
+[2026-11-26 10:50:14.517] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501154952195 sess=1 len=0 eap=0
+[2026-11-26 10:50:14.518] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:14.688] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.63] is up.
+[2026-11-26 10:50:14.702] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501155136524 sess=0 len=103
+[2026-11-26 10:50:14.729] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:14.729] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501155163597 sess=1 len=0
+[E4T] ue_nas_tx t_us=501155163642 sess=0 len=103
+[2026-11-26 10:50:14.958] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501155392773 sess=1 len=0
+[2026-11-26 10:50:14.958] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501155392958 sess=0 len=103
+[2026-11-26 10:50:14.992] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501155427310 sess=1 len=0 eap=0
+[2026-11-26 10:50:14.993] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:15.120] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.64] is up.
+[2026-11-26 10:50:15.123] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501155558083 sess=0 len=103
+[2026-11-26 10:50:15.184] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:15.184] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501155618817 sess=1 len=0
+[E4T] ue_nas_tx t_us=501155618859 sess=0 len=103
+[2026-11-26 10:50:15.459] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501155894306 sess=1 len=0
+[2026-11-26 10:50:15.460] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501155894454 sess=0 len=103
+[2026-11-26 10:50:15.470] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501155904719 sess=1 len=0 eap=0
+[2026-11-26 10:50:15.470] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:15.491] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.65] is up.
+[2026-11-26 10:50:15.504] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501155938853 sess=0 len=103
+[2026-11-26 10:50:15.520] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:15.520] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501155954717 sess=1 len=0
+[E4T] ue_nas_tx t_us=501155954753 sess=0 len=103
+[2026-11-26 10:50:15.752] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501156186694 sess=1 len=0
+[2026-11-26 10:50:15.752] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501156186852 sess=0 len=103
+[2026-11-26 10:50:15.768] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501156203025 sess=1 len=0 eap=0
+[2026-11-26 10:50:15.768] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:15.825] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.66] is up.
+[2026-11-26 10:50:15.837] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501156271416 sess=0 len=103
+[2026-11-26 10:50:15.875] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:15.875] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501156309757 sess=1 len=0
+[E4T] ue_nas_tx t_us=501156309791 sess=0 len=103
+[2026-11-26 10:50:16.116] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501156550965 sess=1 len=0
+[2026-11-26 10:50:16.116] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501156551180 sess=0 len=103
+[2026-11-26 10:50:16.126] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501156560893 sess=1 len=0 eap=0
+[2026-11-26 10:50:16.126] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:16.148] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.67] is up.
+[2026-11-26 10:50:16.162] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501156597524 sess=0 len=103
+[2026-11-26 10:50:16.186] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:16.186] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501156621019 sess=1 len=0
+[E4T] ue_nas_tx t_us=501156621058 sess=0 len=103
+[2026-11-26 10:50:16.418] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501156852725 sess=1 len=0
+[2026-11-26 10:50:16.418] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501156852835 sess=0 len=103
+[2026-11-26 10:50:16.437] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501156871771 sess=1 len=0 eap=0
+[2026-11-26 10:50:16.437] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:16.509] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.68] is up.
+[2026-11-26 10:50:16.519] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501156954073 sess=0 len=103
+[2026-11-26 10:50:16.536] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:16.536] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501156970630 sess=1 len=0
+[E4T] ue_nas_tx t_us=501156970670 sess=0 len=103
+[2026-11-26 10:50:16.775] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501157209604 sess=1 len=0
+[2026-11-26 10:50:16.775] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501157209948 sess=0 len=103
+[2026-11-26 10:50:16.794] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501157229297 sess=1 len=0 eap=0
+[2026-11-26 10:50:16.795] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:16.846] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.69] is up.
+[2026-11-26 10:50:16.857] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501157292111 sess=0 len=103
+[2026-11-26 10:50:16.879] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:16.879] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501157314171 sess=1 len=0
+[E4T] ue_nas_tx t_us=501157314204 sess=0 len=103
+[2026-11-26 10:50:17.133] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501157568957 sess=1 len=0
+[2026-11-26 10:50:17.136] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501157572554 sess=0 len=103
+[2026-11-26 10:50:17.159] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501157593874 sess=1 len=0 eap=0
+[2026-11-26 10:50:17.159] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:17.319] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.70] is up.
+[2026-11-26 10:50:17.329] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501157764272 sess=0 len=103
+[2026-11-26 10:50:17.349] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:17.349] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501157783646 sess=1 len=0
+[E4T] ue_nas_tx t_us=501157783681 sess=0 len=103
+[2026-11-26 10:50:17.651] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501158085757 sess=1 len=0
+[2026-11-26 10:50:17.651] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501158085926 sess=0 len=103
+[2026-11-26 10:50:17.696] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501158130376 sess=1 len=0 eap=0
+[2026-11-26 10:50:17.696] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:17.794] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.71] is up.
+[2026-11-26 10:50:17.804] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501158239271 sess=0 len=103
+[2026-11-26 10:50:17.819] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:17.819] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501158253460 sess=1 len=0
+[E4T] ue_nas_tx t_us=501158253478 sess=0 len=103
+[2026-11-26 10:50:18.087] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501158522368 sess=1 len=0
+[2026-11-26 10:50:18.088] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501158522555 sess=0 len=103
+[2026-11-26 10:50:18.107] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501158542226 sess=1 len=0 eap=0
+[2026-11-26 10:50:18.107] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:18.285] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.72] is up.
+[2026-11-26 10:50:18.295] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501158730136 sess=0 len=103
+[2026-11-26 10:50:18.320] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:18.320] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501158755147 sess=1 len=0
+[E4T] ue_nas_tx t_us=501158755184 sess=0 len=103
+[2026-11-26 10:50:18.571] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501159005792 sess=1 len=0
+[2026-11-26 10:50:18.571] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501159005919 sess=0 len=103
+[2026-11-26 10:50:18.641] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501159076162 sess=1 len=0 eap=0
+[2026-11-26 10:50:18.641] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:18.721] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.73] is up.
+[2026-11-26 10:50:18.732] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501159166456 sess=0 len=103
+[2026-11-26 10:50:18.758] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:18.758] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501159193013 sess=1 len=0
+[E4T] ue_nas_tx t_us=501159193127 sess=0 len=103
+[2026-11-26 10:50:18.990] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501159425313 sess=1 len=0
+[2026-11-26 10:50:18.991] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501159425466 sess=0 len=103
+[2026-11-26 10:50:19.010] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501159444669 sess=1 len=0 eap=0
+[2026-11-26 10:50:19.010] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:19.116] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.74] is up.
+[2026-11-26 10:50:19.127] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501159561882 sess=0 len=103
+[2026-11-26 10:50:19.153] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:19.154] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501159588314 sess=1 len=0
+[E4T] ue_nas_tx t_us=501159588353 sess=0 len=103
+[2026-11-26 10:50:19.393] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501159827790 sess=1 len=0
+[2026-11-26 10:50:19.393] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501159827940 sess=0 len=103
+[2026-11-26 10:50:19.418] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501159853348 sess=1 len=0 eap=0
+[2026-11-26 10:50:19.419] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:19.448] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.75] is up.
+[2026-11-26 10:50:19.459] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501159893397 sess=0 len=103
+[2026-11-26 10:50:19.474] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:19.474] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501159908431 sess=1 len=0
+[E4T] ue_nas_tx t_us=501159908445 sess=0 len=103
+[2026-11-26 10:50:19.766] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501160200576 sess=1 len=0
+[2026-11-26 10:50:19.766] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501160200705 sess=0 len=103
+[2026-11-26 10:50:19.805] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501160239468 sess=1 len=0 eap=0
+[2026-11-26 10:50:19.805] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:19.861] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.76] is up.
+[2026-11-26 10:50:19.872] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501160306895 sess=0 len=103
+[2026-11-26 10:50:19.892] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:19.892] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501160326599 sess=1 len=0
+[E4T] ue_nas_tx t_us=501160326632 sess=0 len=103
+[2026-11-26 10:50:20.147] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501160582125 sess=1 len=0
+[2026-11-26 10:50:20.147] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501160582275 sess=0 len=103
+[2026-11-26 10:50:20.161] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501160595557 sess=1 len=0 eap=0
+[2026-11-26 10:50:20.161] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:20.220] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.77] is up.
+[2026-11-26 10:50:20.231] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501160665977 sess=0 len=103
+[2026-11-26 10:50:20.249] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:20.249] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501160684026 sess=1 len=0
+[E4T] ue_nas_tx t_us=501160684063 sess=0 len=103
+[2026-11-26 10:50:20.492] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501160926735 sess=1 len=0
+[2026-11-26 10:50:20.492] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501160926899 sess=0 len=103
+[2026-11-26 10:50:20.504] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501160942297 sess=1 len=0 eap=0
+[2026-11-26 10:50:20.510] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:20.666] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.78] is up.
+[2026-11-26 10:50:20.678] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501161112778 sess=0 len=103
+[2026-11-26 10:50:20.698] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:20.698] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501161132568 sess=1 len=0
+[E4T] ue_nas_tx t_us=501161132603 sess=0 len=103
+[2026-11-26 10:50:20.984] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501161418872 sess=1 len=0
+[2026-11-26 10:50:20.984] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501161419230 sess=0 len=103
+[2026-11-26 10:50:20.997] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501161431897 sess=1 len=0 eap=0
+[2026-11-26 10:50:20.997] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:21.073] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.79] is up.
+[2026-11-26 10:50:21.083] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501161518338 sess=0 len=103
+[2026-11-26 10:50:21.103] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:21.103] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501161537899 sess=1 len=0
+[E4T] ue_nas_tx t_us=501161538055 sess=0 len=103
+[2026-11-26 10:50:21.362] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501161796580 sess=1 len=0
+[2026-11-26 10:50:21.362] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501161796758 sess=0 len=103
+[2026-11-26 10:50:21.381] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501161815680 sess=1 len=0 eap=0
+[2026-11-26 10:50:21.381] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:21.473] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.80] is up.
+[2026-11-26 10:50:21.483] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501161918166 sess=0 len=103
+[2026-11-26 10:50:21.511] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:21.511] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501161945726 sess=1 len=0
+[E4T] ue_nas_tx t_us=501161945744 sess=0 len=103
+[2026-11-26 10:50:21.750] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501162185098 sess=1 len=0
+[2026-11-26 10:50:21.750] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501162185328 sess=0 len=103
+[2026-11-26 10:50:21.781] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501162215584 sess=1 len=0 eap=0
+[2026-11-26 10:50:21.781] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:21.807] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.81] is up.
+[2026-11-26 10:50:21.824] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501162258702 sess=0 len=103
+[2026-11-26 10:50:21.850] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:21.850] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501162284427 sess=1 len=0
+[E4T] ue_nas_tx t_us=501162284463 sess=0 len=103
+[2026-11-26 10:50:22.092] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501162526776 sess=1 len=0
+[2026-11-26 10:50:22.092] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501162526928 sess=0 len=103
+[2026-11-26 10:50:22.104] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501162538599 sess=1 len=0 eap=0
+[2026-11-26 10:50:22.104] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:22.132] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.82] is up.
+[2026-11-26 10:50:22.142] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501162576971 sess=0 len=103
+[2026-11-26 10:50:22.160] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:22.160] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501162595298 sess=1 len=0
+[E4T] ue_nas_tx t_us=501162595337 sess=0 len=103
+[2026-11-26 10:50:22.401] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501162835911 sess=1 len=0
+[2026-11-26 10:50:22.401] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501162836134 sess=0 len=103
+[2026-11-26 10:50:22.423] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501162857954 sess=1 len=0 eap=0
+[2026-11-26 10:50:22.423] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:22.509] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.83] is up.
+[2026-11-26 10:50:22.519] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501162954380 sess=0 len=103
+[2026-11-26 10:50:22.544] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:22.544] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501162978445 sess=1 len=0
+[E4T] ue_nas_tx t_us=501162978489 sess=0 len=103
+[2026-11-26 10:50:22.772] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501163207340 sess=1 len=0
+[2026-11-26 10:50:22.773] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501163207549 sess=0 len=103
+[2026-11-26 10:50:22.792] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501163227200 sess=1 len=0 eap=0
+[2026-11-26 10:50:22.792] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:23.019] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.84] is up.
+[2026-11-26 10:50:23.035] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501163470305 sess=0 len=103
+[2026-11-26 10:50:23.051] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:23.051] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501163486045 sess=1 len=0
+[E4T] ue_nas_tx t_us=501163486081 sess=0 len=103
+[2026-11-26 10:50:23.338] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501163772694 sess=1 len=0
+[2026-11-26 10:50:23.338] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501163773142 sess=0 len=103
+[2026-11-26 10:50:23.351] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501163786195 sess=1 len=0 eap=0
+[2026-11-26 10:50:23.351] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:23.393] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.85] is up.
+[2026-11-26 10:50:23.419] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501163854244 sess=0 len=103
+[2026-11-26 10:50:23.440] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:23.440] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501163874612 sess=1 len=0
+[E4T] ue_nas_tx t_us=501163874651 sess=0 len=103
+[2026-11-26 10:50:23.673] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501164107623 sess=1 len=0
+[2026-11-26 10:50:23.673] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501164107800 sess=0 len=103
+[2026-11-26 10:50:23.691] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501164126332 sess=1 len=0 eap=0
+[2026-11-26 10:50:23.692] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:23.785] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.86] is up.
+[2026-11-26 10:50:23.796] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501164233057 sess=0 len=103
+[2026-11-26 10:50:23.815] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:23.816] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501164250329 sess=1 len=0
+[E4T] ue_nas_tx t_us=501164250531 sess=0 len=103
+[2026-11-26 10:50:24.076] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501164510403 sess=1 len=0
+[2026-11-26 10:50:24.076] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501164510603 sess=0 len=103
+[2026-11-26 10:50:24.097] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501164531383 sess=1 len=0 eap=0
+[2026-11-26 10:50:24.097] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:24.148] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.87] is up.
+[2026-11-26 10:50:24.158] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501164593151 sess=0 len=103
+[2026-11-26 10:50:24.177] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:24.177] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501164612010 sess=1 len=0
+[E4T] ue_nas_tx t_us=501164612103 sess=0 len=103
+[2026-11-26 10:50:24.420] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501164854556 sess=1 len=0
+[2026-11-26 10:50:24.420] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501164854694 sess=0 len=103
+[2026-11-26 10:50:24.440] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501164874857 sess=1 len=0 eap=0
+[2026-11-26 10:50:24.440] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:24.527] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.88] is up.
+[2026-11-26 10:50:24.538] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501164972967 sess=0 len=103
+[2026-11-26 10:50:24.556] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:24.556] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501164990466 sess=1 len=0
+[E4T] ue_nas_tx t_us=501164992069 sess=0 len=103
+[2026-11-26 10:50:24.797] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501165232033 sess=1 len=0
+[2026-11-26 10:50:24.797] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501165232264 sess=0 len=103
+[2026-11-26 10:50:24.816] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501165251295 sess=1 len=0 eap=0
+[2026-11-26 10:50:24.816] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:25.062] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.89] is up.
+[2026-11-26 10:50:25.062] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501165497306 sess=0 len=103
+[2026-11-26 10:50:25.090] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:25.090] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501165525024 sess=1 len=0
+[E4T] ue_nas_tx t_us=501165525060 sess=0 len=103
+[2026-11-26 10:50:25.327] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501165761933 sess=1 len=0
+[2026-11-26 10:50:25.327] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501165762292 sess=0 len=103
+[2026-11-26 10:50:25.341] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501165775423 sess=1 len=0 eap=0
+[2026-11-26 10:50:25.341] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:25.415] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.90] is up.
+[2026-11-26 10:50:25.426] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501165860522 sess=0 len=103
+[2026-11-26 10:50:25.441] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:25.441] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501165876125 sess=1 len=0
+[E4T] ue_nas_tx t_us=501165876142 sess=0 len=103
+[2026-11-26 10:50:25.676] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501166111215 sess=1 len=0
+[2026-11-26 10:50:25.677] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501166111335 sess=0 len=103
+[2026-11-26 10:50:25.692] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501166127303 sess=1 len=0 eap=0
+[2026-11-26 10:50:25.693] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:25.741] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.91] is up.
+[2026-11-26 10:50:25.752] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501166187396 sess=0 len=103
+[2026-11-26 10:50:25.769] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:25.769] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501166204272 sess=1 len=0
+[E4T] ue_nas_tx t_us=501166204310 sess=0 len=103
+[2026-11-26 10:50:26.039] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501166473769 sess=1 len=0
+[2026-11-26 10:50:26.039] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501166473877 sess=0 len=103
+[2026-11-26 10:50:26.056] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501166491074 sess=1 len=0 eap=0
+[2026-11-26 10:50:26.056] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:26.156] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.92] is up.
+[2026-11-26 10:50:26.167] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501166601947 sess=0 len=103
+[2026-11-26 10:50:26.186] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:26.186] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501166621266 sess=1 len=0
+[E4T] ue_nas_tx t_us=501166621305 sess=0 len=103
+[2026-11-26 10:50:26.418] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501166853229 sess=1 len=0
+[2026-11-26 10:50:26.419] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501166853428 sess=0 len=103
+[2026-11-26 10:50:26.432] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501166866431 sess=1 len=0 eap=0
+[2026-11-26 10:50:26.432] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:26.532] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.93] is up.
+[2026-11-26 10:50:26.543] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501166978126 sess=0 len=103
+[2026-11-26 10:50:26.559] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:26.559] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501166994128 sess=1 len=0
+[E4T] ue_nas_tx t_us=501166994166 sess=0 len=103
+[2026-11-26 10:50:26.825] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501167260181 sess=1 len=0
+[2026-11-26 10:50:26.825] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501167260328 sess=0 len=103
+[2026-11-26 10:50:26.845] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501167279865 sess=1 len=0 eap=0
+[2026-11-26 10:50:26.845] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:26.909] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.94] is up.
+[2026-11-26 10:50:26.920] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501167354767 sess=0 len=103
+[2026-11-26 10:50:26.936] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:26.936] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501167370762 sess=1 len=0
+[E4T] ue_nas_tx t_us=501167370797 sess=0 len=103
+[2026-11-26 10:50:27.188] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501167623036 sess=1 len=0
+[2026-11-26 10:50:27.188] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501167623319 sess=0 len=103
+[2026-11-26 10:50:27.212] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501167647297 sess=1 len=0 eap=0
+[2026-11-26 10:50:27.213] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:27.309] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.95] is up.
+[2026-11-26 10:50:27.320] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501167754882 sess=0 len=103
+[2026-11-26 10:50:27.352] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:27.352] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501167786743 sess=1 len=0
+[E4T] ue_nas_tx t_us=501167786779 sess=0 len=103
+[2026-11-26 10:50:27.597] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501168031948 sess=1 len=0
+[2026-11-26 10:50:27.597] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501168032173 sess=0 len=103
+[2026-11-26 10:50:27.616] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501168051154 sess=1 len=0 eap=0
+[2026-11-26 10:50:27.616] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:27.747] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.96] is up.
+[2026-11-26 10:50:27.766] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501168200411 sess=0 len=103
+[2026-11-26 10:50:27.787] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:27.787] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501168221669 sess=1 len=0
+[E4T] ue_nas_tx t_us=501168221710 sess=0 len=103
+[2026-11-26 10:50:28.105] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501168540007 sess=1 len=0
+[2026-11-26 10:50:28.105] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501168540313 sess=0 len=103
+[2026-11-26 10:50:28.127] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501168561815 sess=1 len=0 eap=0
+[2026-11-26 10:50:28.127] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:28.176] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.97] is up.
+[2026-11-26 10:50:28.188] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501168622650 sess=0 len=103
+[2026-11-26 10:50:28.223] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:28.223] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501168657590 sess=1 len=0
+[E4T] ue_nas_tx t_us=501168657627 sess=0 len=103
+[2026-11-26 10:50:28.453] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501168887456 sess=1 len=0
+[2026-11-26 10:50:28.453] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501168888307 sess=0 len=103
+[2026-11-26 10:50:28.471] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501168905570 sess=1 len=0 eap=0
+[2026-11-26 10:50:28.471] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:28.547] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.98] is up.
+[2026-11-26 10:50:28.559] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501168993990 sess=0 len=103
+[2026-11-26 10:50:28.572] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:28.572] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501169006761 sess=1 len=0
+[E4T] ue_nas_tx t_us=501169006804 sess=0 len=103
+[2026-11-26 10:50:28.800] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501169235218 sess=1 len=0
+[2026-11-26 10:50:28.801] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501169235746 sess=0 len=103
+[2026-11-26 10:50:28.820] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501169255206 sess=1 len=0 eap=0
+[2026-11-26 10:50:28.820] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:28.912] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.99] is up.
+[2026-11-26 10:50:28.923] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501169358180 sess=0 len=103
+[2026-11-26 10:50:28.952] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:28.952] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501169386566 sess=1 len=0
+[E4T] ue_nas_tx t_us=501169386617 sess=0 len=103
+[2026-11-26 10:50:29.182] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501169616725 sess=1 len=0
+[2026-11-26 10:50:29.182] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501169616895 sess=0 len=103
+[2026-11-26 10:50:29.203] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501169638364 sess=1 len=0 eap=0
+[2026-11-26 10:50:29.204] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:29.430] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.100] is up.
+[2026-11-26 10:50:29.441] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501169875726 sess=0 len=103
+[2026-11-26 10:50:29.466] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:29.466] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501169900785 sess=1 len=0
+[E4T] ue_nas_tx t_us=501169900881 sess=0 len=103
+[2026-11-26 10:50:29.716] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501170150927 sess=1 len=0
+[2026-11-26 10:50:29.716] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501170151205 sess=0 len=103
+[2026-11-26 10:50:29.730] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501170165269 sess=1 len=0 eap=0
+[2026-11-26 10:50:29.730] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:29.831] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.101] is up.
+[2026-11-26 10:50:29.842] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501170276744 sess=0 len=103
+[2026-11-26 10:50:29.859] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:29.859] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501170294279 sess=1 len=0
+[E4T] ue_nas_tx t_us=501170294295 sess=0 len=103
+[2026-11-26 10:50:30.096] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501170530479 sess=1 len=0
+[2026-11-26 10:50:30.096] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501170530717 sess=0 len=103
+[2026-11-26 10:50:30.115] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501170549407 sess=1 len=0 eap=0
+[2026-11-26 10:50:30.115] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:30.169] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.102] is up.
+[2026-11-26 10:50:30.180] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501170615176 sess=0 len=103
+[2026-11-26 10:50:30.201] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:30.201] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501170635865 sess=1 len=0
+[E4T] ue_nas_tx t_us=501170635908 sess=0 len=103
+[2026-11-26 10:50:30.449] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501170883758 sess=1 len=0
+[2026-11-26 10:50:30.449] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501170883936 sess=0 len=103
+[2026-11-26 10:50:30.469] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501170904285 sess=1 len=0 eap=0
+[2026-11-26 10:50:30.470] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:30.614] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.103] is up.
+[2026-11-26 10:50:30.627] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501171062041 sess=0 len=103
+[2026-11-26 10:50:30.675] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:30.675] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501171110233 sess=1 len=0
+[E4T] ue_nas_tx t_us=501171110267 sess=0 len=103
+[2026-11-26 10:50:30.961] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501171395610 sess=1 len=0
+[2026-11-26 10:50:30.961] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501171395922 sess=0 len=103
+[2026-11-26 10:50:30.975] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501171409361 sess=1 len=0 eap=0
+[2026-11-26 10:50:30.975] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:31.072] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.104] is up.
+[2026-11-26 10:50:31.082] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501171517341 sess=0 len=103
+[2026-11-26 10:50:31.109] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:31.110] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501171544329 sess=1 len=0
+[E4T] ue_nas_tx t_us=501171544372 sess=0 len=103
+[2026-11-26 10:50:31.405] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501171840004 sess=1 len=0
+[2026-11-26 10:50:31.405] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501171840251 sess=0 len=103
+[2026-11-26 10:50:31.417] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501171852028 sess=1 len=0 eap=0
+[2026-11-26 10:50:31.417] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:31.561] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.105] is up.
+[2026-11-26 10:50:31.572] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501172006942 sess=0 len=103
+[2026-11-26 10:50:31.604] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:31.604] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501172038817 sess=1 len=0
+[E4T] ue_nas_tx t_us=501172038854 sess=0 len=103
+[2026-11-26 10:50:31.849] [nas] [debug] Sending PDU Session Establishment Request
+[E4T] ue_pdu_req t_us=501172284146 sess=1 len=0
+[2026-11-26 10:50:31.849] [nas] [debug] UAC access attempt is allowed for identity[0], category[MO_sig]
+[E4T] ue_nas_tx t_us=501172284304 sess=0 len=103
+[2026-11-26 10:50:31.859] [nas] [debug] PDU Session Establishment Accept received
+[E4T] ue_pdu_acc t_us=501172293792 sess=1 len=0 eap=0
+[2026-11-26 10:50:31.859] [nas] [info] PDU Session establishment is successful PSI[1]
+[2026-11-26 10:50:31.899] [app] [info] Connection setup for PDU session[1] is successful, TUN interface[uesimtun0, 10.45.0.106] is up.
+[2026-11-26 10:50:31.914] [nas] [debug] Sending PDU Session Release Request for PSI[1]
+[E4T] ue_nas_tx t_us=501172349197 sess=0 len=103
+[2026-11-26 10:50:31.933] [nas] [debug] PDU Session Release Command received
+[2026-11-26 10:50:31.933] [nas] [debug] Performing local release of PDU session[1]
+[E4T] ue_pdu_rel t_us=501172367802 sess=1 len=0
+[E4T] ue_nas_tx t_us=501172367837 sess=0 len=103

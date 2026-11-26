@@ -1,0 +1,7 @@
+label,iters,initiator_mean_us,initiator_median_us,responder_mean_us,responder_median_us,total_mean_us,pool_miss,refill_mean_us_per_key,refill_median_us_per_key
+inline-r1,2000,559.0,512.9,559.6,516.3,1118.5,,,
+pregen-r1,2000,505.6,460.6,500.8,450.4,1006.3,0,56.4,51.4
+inline-r2,2000,571.9,516.5,575.4,515.1,1147.3,,,
+pregen-r2,2000,512.0,464.5,508.2,460.9,1020.2,0,57.8,51.7
+inline-r3,2000,572.4,522.4,566.2,514.8,1138.5,,,
+pregen-r3,2000,510.7,454.0,514.8,468.1,1025.5,0,57.8,51.5

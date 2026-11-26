@@ -1,0 +1,5 @@
+bar,initiator_compute_us,responder_compute_us,total_compute_us,note
+v5-inline,484.917,484.917,969.834,KeyGen of the next key pair inside the handshake
+v5-pregen,430.501,430.501,861.001,next key pair taken from the pool
+keygen-moved,54.416,54.416,108.833,"X-Wing KeyGen per role, mean of the primitives (median 49.081 us)"
+eap-tls-hybrid,465.472,427.426,892.898,"method 6, unchanged"
