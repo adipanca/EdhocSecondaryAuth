@@ -26,7 +26,7 @@ LDLIBS  += -lsodium -lmbedcrypto -lm -pthread
 
 PQ_OBJS := $(MLKEM_LIB) $(MLDSA_LIB) $(PQ_COMMON_OBJ)
 
-all: libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
+all: libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_pooltest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
 
 $(PQCOMMON)/%.o: $(PQCOMMON)/%.c
 	$(CC) -O3 -fPIC -I$(PQCOMMON) -c -o $@ $<
@@ -69,6 +69,10 @@ edhoc4_keygen: keygen.c libedhoc4.a
 edhoc4_dbtest: dbtest.c edhoc4.c edhoc4_db.c edhoc4.h edhoc4_db.h $(PQ_OBJS)
 	$(CC) $(CFLAGS) -DE4_TEST_HOOKS -o $@ dbtest.c edhoc4.c edhoc4_db.c $(PQ_OBJS) $(LDLIBS)
 
+# pooltest: next-key pool (pregen / inline), with the pool test hook
+edhoc4_pooltest: pooltest.c edhoc4.c edhoc4.h $(PQ_OBJS)
+	$(CC) $(CFLAGS) -DE4_TEST_HOOKS -o $@ pooltest.c edhoc4.c $(PQ_OBJS) $(LDLIBS)
+
 edhoc4_xwing_kat: xwing_kat.c xwing_kat_vectors.h libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ xwing_kat.c libedhoc4.a $(LDLIBS)
 
@@ -78,13 +82,14 @@ edhoc03_selftest: selftest03.c libedhoc4.a
 edhoc03_keygen: keygen03.c libedhoc4.a
 	$(CC) $(CFLAGS) -o $@ keygen03.c libedhoc4.a $(LDLIBS)
 
-test: edhoc4_selftest edhoc4_dbtest edhoc4_xwing_kat
+test: edhoc4_selftest edhoc4_dbtest edhoc4_pooltest edhoc4_xwing_kat
 	./edhoc4_xwing_kat
 	./edhoc4_selftest
 	./edhoc4_dbtest
+	./edhoc4_pooltest
 
 clean:
-	rm -f edhoc4.o edhoc4_db.o edhoc03.o libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
+	rm -f edhoc4.o edhoc4_db.o edhoc03.o libedhoc4.a edhoc4_selftest edhoc4_keygen edhoc4_dbtest edhoc4_pooltest edhoc4_xwing_kat edhoc03_selftest edhoc03_keygen
 	rm -rf .arobj
 
 .PHONY: all test clean
