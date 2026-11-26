@@ -3,12 +3,15 @@
  * (no RADIUS transport, no key storage): wall-clock time of each party's
  * message processing over N handshakes, with key rotation after each one.
  *
- *   m4_inproc_bench [--iters N] [--pool] [--csv F --label L]
+ *   m4_inproc_bench [--iters N] [--next-keygen pregen|inline] [--csv F --label L]
  *
- * By default the next one-time key pair (EAD3/EAD4) is generated inside the
- * handshake, as the live UE and DN-AAA do; with --pool it is generated
- * between handshakes with edhoc4_pool_fill() (optional precompute). Build
- * with -DNO_POOL_API to link against an edhoc4 core without the pool.
+ * By default (inline) the next one-time key pair (EAD_1/EAD_2) is generated
+ * inside the handshake; with --next-keygen pregen (--pool) both parties take
+ * it from a pool of 64, filled up again between handshakes with
+ * edhoc4_pool_fill() outside the clock (the pool never drops below half,
+ * so its refill thread stays idle and does not run during a handshake).
+ * The time of that refill per key (one X-Wing KeyGen) is printed. Build with -DNO_POOL_API to link
+ * against an edhoc4 core without the pool.
  */
 #define _POSIX_C_SOURCE 199309L
 #include "edhoc4.h"
@@ -50,6 +53,7 @@ int main(int argc, char **argv)
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--iters") && i + 1 < argc) iters = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--pool")) pool = 1;
+        else if (!strcmp(argv[i], "--next-keygen") && i + 1 < argc) pool = !strcmp(argv[++i], "pregen");
         else if (!strcmp(argv[i], "--csv") && i + 1 < argc) csv = argv[++i];
         else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
@@ -58,6 +62,12 @@ int main(int argc, char **argv)
     pool = 0;
 #endif
     if (iters < 1 || sodium_init() < 0) return 1;
+#ifndef NO_POOL_API
+    edhoc4_pool_config(pool ? E4_NEXT_KEYGEN_PREGEN : E4_NEXT_KEYGEN_INLINE, 64);
+    if (pool) edhoc4_pool_fill(64);
+#endif
+    double *tf = malloc(iters * sizeof(double));   /* pregen: refill time per key */
+    if (!tf) return 1;
 
     edhoc4_creds ue, aaa;
     uint8_t idI[E4_ID_CRED] = { 0, 0, 1 }, idR[E4_ID_CRED] = { 0, 0, 2 };
@@ -74,7 +84,11 @@ int main(int argc, char **argv)
 
     for (int k = -50; k < iters; k++) {          /* 50 warm-up handshakes */
 #ifndef NO_POOL_API
-        if (pool) edhoc4_pool_fill(2);           /* both parties' next keys */
+        if (pool) {                              /* both parties' next keys */
+            double t = now_us();
+            edhoc4_pool_fill(64);
+            if (k >= 0) tf[k] = (now_us() - t) / 2;
+        }
 #endif
         edhoc4_ctx I, R;
         size_t n1, n2, n3, n4;
@@ -92,25 +106,42 @@ int main(int argc, char **argv)
         if (k >= 0) { ti[k] = ci; tr[k] = cr; }
     }
 
-    double si = 0, sr = 0;
-    for (int k = 0; k < iters; k++) { si += ti[k]; sr += tr[k]; }
+    double si = 0, sr = 0, sf = 0;
+    for (int k = 0; k < iters; k++) { si += ti[k]; sr += tr[k]; if (pool) sf += tf[k]; }
     qsort(ti, iters, sizeof(double), cmp_d);
     qsort(tr, iters, sizeof(double), cmp_d);
+    if (pool) qsort(tf, iters, sizeof(double), cmp_d);
+#ifndef NO_POOL_API
+    edhoc4_pool_stats_t ps;
+    edhoc4_pool_stats(&ps);
+#endif
     printf("[%s] N=%d initiator mean %.1f median %.1f us | responder mean %.1f median %.1f us"
            " | total mean %.1f us\n", label, iters, si / iters, ti[iters / 2],
            sr / iters, tr[iters / 2], (si + sr) / iters);
+#ifndef NO_POOL_API
+    if (pool) printf("[%s] pool: taken %lu, miss %lu, refill thread %lu keys; refill between"
+                     " handshakes: mean %.1f median %.1f us per key\n", label, ps.taken, ps.miss,
+                     ps.refilled, sf / iters, tf[iters / 2]);
+#endif
     if (csv) {
         FILE *f = fopen(csv, "a");
         if (!f) return 1;
         fseek(f, 0, SEEK_END);
         if (ftell(f) == 0)
             fprintf(f, "label,iters,initiator_mean_us,initiator_median_us,"
-                       "responder_mean_us,responder_median_us,total_mean_us\n");
-        fprintf(f, "%s,%d,%.1f,%.1f,%.1f,%.1f,%.1f\n", label, iters, si / iters,
+                       "responder_mean_us,responder_median_us,total_mean_us,"
+                       "pool_miss,refill_mean_us_per_key,refill_median_us_per_key\n");
+        fprintf(f, "%s,%d,%.1f,%.1f,%.1f,%.1f,%.1f,", label, iters, si / iters,
                 ti[iters / 2], sr / iters, tr[iters / 2], (si + sr) / iters);
+#ifndef NO_POOL_API
+        if (pool) fprintf(f, "%lu,%.1f,%.1f\n", ps.miss, sf / iters, tf[iters / 2]);
+        else
+#endif
+        fprintf(f, ",,\n");
         fclose(f);
     }
     free(ti);
     free(tr);
+    free(tf);
     return 0;
 }

@@ -117,6 +117,8 @@ struct UeConfig
      * authentication (EAP-Response/Identity, TS 33.501 11.1.2) */
     std::optional<std::string> secondaryAuthIdentity{};
     std::optional<std::string> secondaryAuthVariant{};
+    /* secondaryAuth.xwingNextKeygen: pregen (default) or inline */
+    std::optional<std::string> secondaryAuthNextKeygen{};
 
     struct
     {

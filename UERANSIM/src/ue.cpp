@@ -171,6 +171,8 @@ static nr::ue::UeConfig *ReadConfigYaml()
             result->secondaryAuthIdentity = yaml::GetString(secondaryAuth, "identity", 1, 200);
         if (yaml::HasField(secondaryAuth, "edhocVariant"))
             result->secondaryAuthVariant = yaml::GetString(secondaryAuth, "edhocVariant", 1, 20);
+        if (yaml::HasField(secondaryAuth, "xwingNextKeygen"))
+            result->secondaryAuthNextKeygen = yaml::GetString(secondaryAuth, "xwingNextKeygen", 1, 20);
     }
 
     yaml::AssertHasField(config, "integrity");
@@ -373,6 +375,7 @@ static nr::ue::UeConfig *GetConfigByUe(int ueIndex)
     c->tunNetmask = g_refConfig->tunNetmask;
     c->secondaryAuthIdentity = g_refConfig->secondaryAuthIdentity;
     c->secondaryAuthVariant = g_refConfig->secondaryAuthVariant;
+    c->secondaryAuthNextKeygen = g_refConfig->secondaryAuthNextKeygen;
     c->hplmn = g_refConfig->hplmn;
     c->configuredNssai = g_refConfig->configuredNssai;
     c->defaultConfiguredNssai = g_refConfig->defaultConfiguredNssai;

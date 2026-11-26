@@ -316,7 +316,11 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             rc = edhoc4_i_make_msg1(&m_edhocCtx, buf, sizeof(buf), &outLen);
             if (rc == E4_OK)
             {
-                E4T("ue_msg1", msg.pduSessionId, (long long)outLen);
+                edhoc4_pool_stats_t pst;
+                edhoc4_pool_stats(&pst);
+                char extra[64];
+                snprintf(extra, sizeof(extra), " pool_miss=%lu pool_taken=%lu", pst.miss, pst.taken);
+                E4T("ue_msg1", msg.pduSessionId, (long long)outLen, extra);
                 m_edhocRound = 1;
                 std::memcpy(m_edhocOut, buf, outLen);
                 m_edhocOutLen = outLen;
@@ -474,10 +478,38 @@ void NasSm::receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenti
             m_logger->info("EAP-EDHOC: NEXT promoted, old one-time key erased");
         m_edhocProvisioned = false;   // reload the slot for the next session
         m_edhocFallbackDone = false;
-        const char *pool = std::getenv("EDHOC4_ROTATION_POOL");
-        if (pool && std::atoi(pool) > 0)
-            edhoc4_pool_fill(1);      // opt-in: next EAD_1 key pair, outside the session
+        edhoc4_pool_refill_async();   // pregen: next EAD_1 key pair, in the background
     }
+}
+
+// Next one-time key pair (Nsk_A, Npk_A in EAD_1): pregen (default) keeps one
+// key in a locked in-memory pool, made here at start and again in the
+// background after each promotion; inline generates it while message_1 is
+// built. ue.yaml secondaryAuth.xwingNextKeygen, or EDHOC_NEXT_KEYGEN, which
+// overrides it. The pool is process-wide and never stored.
+void NasSm::setupEdhocKeyPool()
+{
+    static bool done = false;
+    if (done)
+        return;
+    done = true;
+    std::string mode = "pregen";
+    if (m_base && m_base->config && m_base->config->secondaryAuthNextKeygen.has_value())
+        mode = *m_base->config->secondaryAuthNextKeygen;
+    if (const char *env = std::getenv("EDHOC_NEXT_KEYGEN"))
+        mode = env;
+    int m = edhoc4_next_keygen_parse(mode.c_str());
+    if (m < 0)
+    {
+        m_logger->err("EAP-EDHOC: unknown xwingNextKeygen %s, using inline", mode.c_str());
+        m = E4_NEXT_KEYGEN_INLINE;
+    }
+    edhoc4_pool_config(m, 1);
+    edhoc4_pool_fill(1);
+    edhoc4_pool_stats_t st;
+    edhoc4_pool_stats(&st);
+    m_logger->info("EAP-EDHOC: next X-Wing key pair %s (pool %d key%s)", edhoc4_next_keygen_name(m), st.n,
+                   st.size ? (st.locked ? ", locked memory" : ", memory NOT locked") : "");
 }
 
 bool NasSm::ensureEdhocProvisioned()

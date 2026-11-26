@@ -112,6 +112,7 @@ class NasSm
     void receivePduSessionAuthenticationCommand(const nas::PduSessionAuthenticationCommand &msg);
     void receivePduSessionAuthenticationResult(const nas::PduSessionAuthenticationResult &msg);
     bool ensureEdhocProvisioned();
+    void setupEdhocKeyPool();
     void edhocOnResult(const std::optional<nas::IEEapMessage> &eap);
 
   private: /* Service Access Point */

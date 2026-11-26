@@ -213,17 +213,45 @@ int edhoc4_rec_write(const char *path, int slot, const edhoc4_creds *self,
  * valid slot. */
 int edhoc4_rec_zero(const char *path, int slot, int flush);
 
-/* ---- rotation-key pool (optional, off by default) ----
- * By default the EAD3/EAD4 key pair (next session's one-time X-Wing key) is
- * generated inside the handshake. It does not depend on the session, so a
- * deployment may precompute it: the handshake takes a key from this
- * process-wide pool when one is there and generates one inline otherwise.
- * edhoc4_pool_fill(n): top the pool up to n keys now (UE: after its commit).
- * edhoc4_pool_start(n): keep n keys ready with a refill thread, started on
- * the first take (DN-AAA). edhoc4_pool_misses(): keys generated inline. */
-#define E4_POOL_MAX 16
+/* ---- next-key generation: pre-generated pool (default) or inline ----
+ * The next one-time X-Wing key pair (Nsk_A/Npk_A in EAD_1, Nsk_B/Npk_B in
+ * EAD_2) does not depend on the run: it is fresh randomness used once. With
+ * E4_NEXT_KEYGEN_PREGEN (the UE and DN-AAA default, set with
+ * edhoc4_pool_config; tools that never call it generate inline) the
+ * handshake takes it from a
+ * process-wide pool kept in locked memory and refilled by a low-priority
+ * background thread; E4_NEXT_KEYGEN_INLINE generates it inside the handshake
+ * (the behaviour before the pool). The protocol is the same in both modes.
+ * A taken key is never returned: if the run fails it is wiped with the ctx.
+ * An empty pool falls back to inline generation and counts a pool miss.
+ * Pool keys are never written to disk; a restart builds a new pool.
+ *   edhoc4_pool_config(mode, size): set the mode and the pool size (0..
+ *     E4_POOL_MAX; 0 = always fall back) and lock the pool memory
+ *   edhoc4_pool_fill(n): generate keys now, in the caller, up to n
+ *   edhoc4_pool_refill_async(): wake the refill thread (started on first
+ *     use, after any daemon fork) to top the pool up to its size; the pool
+ *     also wakes it when a take leaves it below half
+ *   edhoc4_pool_clear(): wipe all pool keys (also done at exit) */
+#define E4_POOL_MAX 1024
+enum { E4_NEXT_KEYGEN_PREGEN = 0, E4_NEXT_KEYGEN_INLINE = 1 };
+typedef struct {
+    int           mode;          /* E4_NEXT_KEYGEN_* */
+    int           size;          /* configured pool size */
+    int           n;             /* keys in the pool now */
+    int           locked;        /* pool memory is mlock'ed */
+    unsigned long taken;         /* keys taken from the pool */
+    unsigned long miss;          /* pregen: pool empty, generated inline */
+    unsigned long inline_gen;    /* inline mode: generated in the handshake */
+    unsigned long refilled;      /* keys made by the refill thread */
+    uint64_t      refill_cpu_ns; /* refill thread CPU time, all keys */
+} edhoc4_pool_stats_t;
+int edhoc4_next_keygen_parse(const char *name);   /* "pregen" | "inline", -1 otherwise */
+const char *edhoc4_next_keygen_name(int mode);
+int edhoc4_pool_config(int mode, int size);
 int edhoc4_pool_fill(int n);
-int edhoc4_pool_start(int n);
+void edhoc4_pool_refill_async(void);
+void edhoc4_pool_clear(void);
+void edhoc4_pool_stats(edhoc4_pool_stats_t *st);
 unsigned long edhoc4_pool_misses(void);
 
 /* X-Wing known-answer test hook (draft-connolly-cfrg-xwing-kem-09, App. C):

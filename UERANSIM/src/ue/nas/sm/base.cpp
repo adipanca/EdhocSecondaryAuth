@@ -22,6 +22,7 @@ NasSm::NasSm(TaskBase *base, NasTimers *timers) : m_base(base), m_timers(timers)
 void NasSm::onStart(NasMm *mm)
 {
     m_mm = mm;
+    setupEdhocKeyPool();
 }
 
 void NasSm::onQuit()

@@ -21,8 +21,10 @@
  * Method 4 (final v3 protocol) uses one-time X-Wing keys kept in the
  * two-slot record <ue-dir>/ue.rec (CUR, and NEXT between message_3 and the
  * promotion); a run starts on NEXT if present. The key pair announced in
- * EAD_1 is generated while building message_1 (with --pool: before the
- * clock starts). After message_2 the UE writes NEXT = (Nsk_A, Npk_A, Npk_B)
+ * EAD_1 comes from the next-key pool (--next-keygen pregen, the default; the
+ * pool of one key is refilled before the clock starts, as the UE refills it
+ * in the background after its promotion) or is generated while building
+ * message_1 (--next-keygen inline; --pool is the old name of pregen). After message_2 the UE writes NEXT = (Nsk_A, Npk_A, Npk_B)
  * with one fdatasync before message_3 leaves, inside duration_ms; after
  * message_4 it promotes NEXT by zeroing the slot it ran on + fdatasync,
  * timed separately as ue_commit_ms. duration_ms stops at EAP-Success, as
@@ -39,6 +41,10 @@
  * the DN-AAA) or of message_4 (the DN-AAA has committed); the run stops
  * there without waiting for the retransmission timeouts and is logged with
  * status DROP. The next iteration is the recovery session.
+ * --drop-msg2-once: message_2 is lost; the UE abandons the run (ctx wiped,
+ * no NEXT written) and the next iteration starts a new one.
+ * --dump-keys F (method 4): one line per run with SHA-256 fingerprints of
+ * Npk_A and Npk_B and whether Nsk_A is zero after the ctx wipe.
  *
  * --variant v4|v4s|v4s+chk|v4t (method 4): Message1 variant, as edhoc_variant
  * of the responder. Built with -DE4_TAMPER (e2e_radius_tamper) it also takes
@@ -108,8 +114,10 @@ static const char *g_uedir    = NULL;   /* method 4 UE files, default g_creddir 
 static const char *g_identity = "@edhoc.internet";
 static double      g_loss     = 0.0;    /* per-datagram drop probability */
 static int         g_verbose  = 0;
-static int         g_pool     = 0;      /* --pool: EAD_1 key made before the clock starts */
-static int         g_drop_once = 0;     /* 3 / 4: lose message_3 / message_4 in the first run */
+static int         g_next_keygen = E4_NEXT_KEYGEN_PREGEN;   /* --next-keygen */
+static FILE       *g_keys     = NULL;   /* --dump-keys */
+static int         g_run_no   = 0;
+static int         g_drop_once = 0;     /* 2 / 3 / 4: lose message_2 / 3 / 4 in the first run */
 static edhoc4_ue_state g_ue;            /* method 4: slot of the current run */
 static int         g_max_retx = 6;      /* EAP-style retransmit cap (per exchange) */
 static double      g_rto_ms   = 40.0;   /* retransmit back-off, matches lossy_bench RTO */
@@ -616,6 +624,10 @@ static int run_once(int method, result_t *r)
             }
         }
 #endif
+        /* forced loss: this inbound is message_2 (message_1 fully sent) */
+        if (g_drop_once == 2 && e.step == 1 && e.out_pos >= e.out_len) {
+            g_drop_once = 0; r->dropped = 1; e.failed = 1; break;
+        }
         /* forced loss: this inbound is message_4 (message_3 fully sent) */
         if (g_drop_once == 4 && e.step == 2 && e.out_pos >= e.out_len) {
             g_drop_once = 0; r->dropped = 1; e.failed = 1; break;
@@ -672,7 +684,19 @@ static int run_once(int method, result_t *r)
             if (edhoc4_ue_promote(p, &g_ue) != E4_OK) r->ok = 0;
             r->ue_commit_ms = now_ms() - tc;
         } else if (r->ok) r->ok = 0;            /* Accept without message_4 */
+        uint8_t fa[32], fb[32];
+        static const uint8_t zero_pk[E4_XWING_PK], zero_sk[E4_XWING_SK];
+        crypto_hash_sha256(fa, e.c4.new_pk, E4_XWING_PK);
+        crypto_hash_sha256(fb, e.c4.peer_new_pk, E4_XWING_PK);
+        int have_b = memcmp(e.c4.peer_new_pk, zero_pk, E4_XWING_PK) != 0;
         edhoc4_ctx_wipe(&e.c4);
+        if (g_keys) {
+            fprintf(g_keys, "%d,%d,%d,", ++g_run_no, r->ok, r->dropped);
+            for (int i = 0; i < 32; i++) fprintf(g_keys, "%02x", fa[i]);
+            fputc(',', g_keys);
+            for (int i = 0; i < 32 && have_b; i++) fprintf(g_keys, "%02x", fb[i]);
+            fprintf(g_keys, ",%d\n", sodium_memcmp(e.c4.new_sk, zero_sk, E4_XWING_SK) == 0);
+        }
     }
     for (int i = 0; i < 5; i++) { r->msg_bytes[i] = e.msg_bytes[i]; r->msg_frags[i] = e.msg_frags[i]; }
     return r->ok ? 0 : -1;
@@ -686,7 +710,7 @@ static int run_handshake(int method, result_t *r)
     if (method <= 3) return run_once(method, r);
 
     snprintf(p, sizeof(p), "%s/ue.rec", g_uedir);
-    if (g_pool) edhoc4_pool_fill(1);   /* --pool: EAD_1 key before the clock */
+    edhoc4_pool_fill(1);   /* pregen: EAD_1 key ready before the clock (no-op inline) */
     if (edhoc4_ue_load(p, &g_ue) != E4_OK) { fprintf(stderr, "load %s failed\n", p); return -1; }
     int used_next = g_ue.using_next;
     int rc = run_once(method, r);
@@ -785,7 +809,15 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--csv") && i + 1 < argc) csv = argv[++i];
         else if (!strcmp(argv[i], "--label") && i + 1 < argc) label = argv[++i];
         else if (!strcmp(argv[i], "-v")) g_verbose = 1;
-        else if (!strcmp(argv[i], "--pool")) g_pool = 1;      /* opt-in precompute */
+        else if (!strcmp(argv[i], "--pool")) g_next_keygen = E4_NEXT_KEYGEN_PREGEN;
+        else if (!strcmp(argv[i], "--next-keygen") && i + 1 < argc) {
+            g_next_keygen = edhoc4_next_keygen_parse(argv[++i]);
+            if (g_next_keygen < 0) { fprintf(stderr, "unknown next-keygen: %s\n", argv[i]); return 2; }
+        }
+        else if (!strcmp(argv[i], "--dump-keys") && i + 1 < argc) {
+            if (!(g_keys = fopen(argv[++i], "a"))) { perror(argv[i]); return 2; }
+        }
+        else if (!strcmp(argv[i], "--drop-msg2-once")) g_drop_once = 2;
         else if (!strcmp(argv[i], "--drop-msg3-once")) g_drop_once = 3;
         else if (!strcmp(argv[i], "--drop-msg4-once")) g_drop_once = 4;
         else if (!strcmp(argv[i], "--variant") && i + 1 < argc) {
@@ -800,7 +832,7 @@ int main(int argc, char **argv)
         else { fprintf(stderr, "unknown arg: %s\n", argv[i]); return 2; }
     }
     if (method < 0 || method > 4) {
-        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L] [--pool]\n"
+        fprintf(stderr, "usage: %s --method 0..4 [--iters N] [--loss PCT] [--csv F] [--label L] [--next-keygen pregen|inline]\n"
                         "          [--drop-msg3-once | --drop-msg4-once]   (method 4)\n", argv[0]);
         return 2;
     }
@@ -809,6 +841,7 @@ int main(int argc, char **argv)
     if (!g_uedir) g_uedir = g_creddir;
     if (sodium_init() < 0) { fprintf(stderr, "sodium_init failed\n"); return 1; }
     srand((unsigned)(time(NULL) ^ getpid()));
+    if (method == 4) edhoc4_pool_config(g_next_keygen, 1);   /* the UE's pool of one */
 
 #ifdef E4_TAMPER
     if (g_tamper) return tamper_main(method, iters, csv, label);
@@ -867,10 +900,16 @@ int main(int argc, char **argv)
 
     printf("== method %d (%s): %d/%d PASS", method, method_name(method), pass, iters);
     if (pass) printf("  mean=%.3f ms best=%.3f worst=%.3f", sum / pass, best, worst);
-    if (method == 4) printf("  ead1_keys_inline=%lu fallbacks=%d", edhoc4_pool_misses(), n_fallback);
+    if (method == 4) {
+        edhoc4_pool_stats_t ps;
+        edhoc4_pool_stats(&ps);
+        printf("  next_keygen=%s pool_taken=%lu pool_miss=%lu inline=%lu fallbacks=%d",
+               edhoc4_next_keygen_name(ps.mode), ps.taken, ps.miss, ps.inline_gen, n_fallback);
+    }
     if (n_drop) printf("  forced_drops=%d", n_drop);
     printf(" ==\n");
 
     if (cf) fclose(cf);
+    if (g_keys) fclose(g_keys);
     return (pass == iters - n_drop) ? 0 : 1;
 }

@@ -85,12 +85,16 @@ static void e4t_line(char const *line)
 
 static void e4t_commit(uint64_t t0)
 {
-	char line[128];
+	char line[200];
 	uint64_t t1;
+	edhoc4_pool_stats_t st;
 	if (!e4t_on()) return;
 	t1 = e4t_now_us();
-	snprintf(line, sizeof(line), "[E4T] aaa_commit t_us=%llu sess=0 len=0 dur_us=%llu\n",
-		 (unsigned long long)t1, (unsigned long long)(t1 - t0));
+	edhoc4_pool_stats(&st);
+	snprintf(line, sizeof(line), "[E4T] aaa_commit t_us=%llu sess=0 len=0 dur_us=%llu"
+		 " pool_n=%d pool_taken=%lu pool_miss=%lu pool_refilled=%lu\n",
+		 (unsigned long long)t1, (unsigned long long)(t1 - t0),
+		 st.n, st.taken, st.miss, st.refilled);
 	e4t_line(line);
 }
 
@@ -125,6 +129,8 @@ typedef struct rlm_eap_edhoc_t {
 	char const	*emsk_dir;	//!< optional: <emsk_dir>/<record_id>.emsk.hex for aaa_keyexport
 	char const	*anon_realm;	//!< realm of the anonymous outer identity (method 4)
 	char const	*edhoc_variant;	//!< Message1 variant: v5 (default), v4, v4s, v4s+chk, v4t
+	char const	*next_keygen;	//!< next X-Wing key pair: pregen (default, pool) or inline
+	uint32_t	pool_size;	//!< pregen: keys kept ready (default 64)
 	char		db_buf[1024];
 	char const	*creds03_path;	//!< server03.creds (responder creds, methods 0-3)
 	char const	*peer_pub03_path; //!< ue03.pub (UE static keys, methods 0-3)
@@ -157,6 +163,8 @@ static CONF_PARSER module_config[] = {
 	{ "emsk_dir", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, emsk_dir), NULL },
 	{ "anon_realm", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, anon_realm), "edhoc.internet" },
 	{ "edhoc_variant", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, edhoc_variant), "v5" },
+	{ "xwing_next_keygen", FR_CONF_OFFSET(PW_TYPE_STRING, rlm_eap_edhoc_t, next_keygen), "pregen" },
+	{ "xwing_pool_size", FR_CONF_OFFSET(PW_TYPE_INTEGER, rlm_eap_edhoc_t, pool_size), "64" },
 	{ "peer_pub03", FR_CONF_OFFSET(PW_TYPE_STRING | PW_TYPE_FILE_INPUT, rlm_eap_edhoc_t, peer_pub03_path), NULL },
 	CONF_PARSER_TERMINATOR
 };
@@ -214,17 +222,42 @@ static int mod_instantiate(CONF_SECTION *cs, void **instance)
 		     (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6);
 	}
 
-	/* The EAD_2 key pair is generated while message_1 is processed,
-	 * inside the handshake. EDHOC4_ROTATION_POOL=<n> (opt-in) instead
-	 * keeps n key pairs ready with a background refill thread. */
+	/* Next one-time key pair (Nsk_B, Npk_B in EAD_2): taken from a pool kept
+	 * in locked memory and refilled by a low-priority thread after each
+	 * commit (pregen, default), or generated while message_1 is processed
+	 * (inline). The pool is never stored; it is rebuilt at every start.
+	 * EDHOC4_ROTATION_POOL=<n> (older scripts) overrides: 0 = inline. */
 	{
+		int mode = edhoc4_next_keygen_parse(inst->next_keygen);
+		int size = (int)inst->pool_size;
 		char const *ps = getenv("EDHOC4_ROTATION_POOL");
-		int n = ps ? atoi(ps) : 0;
+		struct timespec t0, t1;
+		edhoc4_pool_stats_t st;
 
-		if (n > 0) {
-			edhoc4_pool_start(n);
-			INFO("rlm_eap_edhoc: rotation-key pool enabled (%d keys)", n);
+		if (mode < 0) {
+			ERROR("rlm_eap_edhoc: unknown xwing_next_keygen %s (pregen | inline)", inst->next_keygen);
+			return -1;
 		}
+		if (ps) {
+			size = atoi(ps);
+			mode = size > 0 ? E4_NEXT_KEYGEN_PREGEN : E4_NEXT_KEYGEN_INLINE;
+		}
+		if (size < 0 || size > E4_POOL_MAX ||
+		    edhoc4_pool_config(mode, size) != E4_OK) {
+			ERROR("rlm_eap_edhoc: xwing_pool_size %d out of range (0..%d)", size, E4_POOL_MAX);
+			return -1;
+		}
+		clock_gettime(CLOCK_MONOTONIC, &t0);
+		if (edhoc4_pool_fill(size) != E4_OK) {
+			ERROR("rlm_eap_edhoc: cannot fill the next-key pool");
+			return -1;
+		}
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		edhoc4_pool_stats(&st);
+		INFO("rlm_eap_edhoc: next X-Wing key pair %s, pool %d key(s) ready in %.1f ms%s",
+		     edhoc4_next_keygen_name(mode), st.n,
+		     (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6,
+		     st.size ? (st.locked ? ", locked memory" : ", NOT locked (mlock failed)") : "");
 	}
 
 	/* Classical methods 0-3 credentials are optional. */
@@ -621,9 +654,10 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 		/* the slot with the old sk_B is erased off the critical path */
 		edhoc4_db_erase_old_async(&sess->rec);
 		edhoc4_db_rec_wipe(&sess->rec);
+		edhoc4_pool_refill_async();	/* replace the key this run took */
 		sess->round = 2;
 		RDEBUG2("rlm_eap_edhoc: sent message_4 (%zu bytes), handshake keys derived"
-			" (EAD_2 keys generated inline: %lu)", out_len, edhoc4_pool_misses());
+			" (next-key pool misses: %lu)", out_len, edhoc4_pool_misses());
 		return 1;
 
 	case 2:	/* expect empty ACK -> EAP-Success + MPPE keys */
@@ -655,10 +689,26 @@ static int CC_HINT(nonnull) mod_process(void *instance, eap_handler_t *handler)
 /*
  *	The module name should be the only globally exported symbol.
  */
+/* pool statistics at shutdown; the pool keys are wiped at exit */
+static int mod_detach(void *instance)
+{
+	edhoc4_pool_stats_t st;
+
+	(void)instance;
+	edhoc4_pool_stats(&st);
+	INFO("rlm_eap_edhoc: next-key pool (%s, size %d): taken %lu, pool_miss %lu, inline %lu,"
+	     " refilled %lu, refill CPU %.1f us/key", edhoc4_next_keygen_name(st.mode), st.size,
+	     st.taken, st.miss, st.inline_gen, st.refilled,
+	     st.refilled ? st.refill_cpu_ns / 1e3 / st.refilled : 0.0);
+	edhoc4_pool_clear();
+	return 0;
+}
+
 extern rlm_eap_module_t rlm_eap_edhoc;
 rlm_eap_module_t rlm_eap_edhoc = {
 	.name		= "eap_edhoc",
 	.instantiate	= mod_instantiate,
+	.detach		= mod_detach,
 	.session_init	= mod_session_init,
 	.process	= mod_process,
 };

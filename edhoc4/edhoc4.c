@@ -3,14 +3,17 @@
  * no ephemeral X-Wing key pair; forward secrecy from one-time static keys.
  * See edhoc4.h and mermaid.md §5.
  */
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE          /* gettid, pthread_setname_np */
 #include "edhoc4.h"
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/resource.h>
 #ifdef E4_TEST_HOOKS
 #include <signal.h>
 #endif
@@ -338,104 +341,198 @@ int edhoc4_xwing_selftest_kat(const uint8_t seed[32], const uint8_t eseed[64],
     return rc;
 }
 
-/* ---- optional rotation-key pool (off unless filled or started) ----
- * The next one-time key pair does not depend on the session, so a deployment
- * may generate it before the handshake that announces it. Taken keys are
- * wiped from the pool; an empty pool (the default) generates inline. */
+/* ---- next one-time key pairs: pre-generated pool or inline ----
+ * See edhoc4.h. The pool lives in memory only (mlock'ed when possible) and
+ * is shared by all threads of the process; the refill thread generates each
+ * key without holding the mutex and only locks it to push. Unconfigured
+ * processes (tools, tests) generate inline. */
 typedef struct {
     uint8_t pk[E4_XWING_PK];
     uint8_t sk[E4_XWING_SK];
 } pool_key;
 
 static pool_key        pool_keys[E4_POOL_MAX];
-static int             pool_n, pool_target, pool_thread_on;
-static unsigned long   pool_miss;
+static int             pool_mode = E4_NEXT_KEYGEN_INLINE;
+static int             pool_size, pool_n, pool_want, pool_thread_on;
+static int             pool_locked_n, pool_atexit_on;
+static edhoc4_pool_stats_t pool_st;
 static pthread_mutex_t pool_mu = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  pool_cv = PTHREAD_COND_INITIALIZER;
 
-static int pool_clamp(int n)
+int edhoc4_next_keygen_parse(const char *name)
 {
-    return n < 0 ? 0 : (n > E4_POOL_MAX ? E4_POOL_MAX : n);
+    if (!name) return -1;
+    if (!strcmp(name, "pregen")) return E4_NEXT_KEYGEN_PREGEN;
+    if (!strcmp(name, "inline")) return E4_NEXT_KEYGEN_INLINE;
+    return -1;
 }
 
-/* generate one key outside the lock, then store it if there is room */
-static int pool_add_one(void)
+const char *edhoc4_next_keygen_name(int mode)
+{
+    return mode == E4_NEXT_KEYGEN_PREGEN ? "pregen" : "inline";
+}
+
+void edhoc4_pool_clear(void)
+{
+    pthread_mutex_lock(&pool_mu);
+    sodium_memzero(pool_keys, sizeof(pool_keys));
+    pool_n = 0;
+    pthread_mutex_unlock(&pool_mu);
+}
+
+int edhoc4_pool_config(int mode, int size)
+{
+    if (mode != E4_NEXT_KEYGEN_PREGEN && mode != E4_NEXT_KEYGEN_INLINE) return E4_ERR_ARG;
+    if (size < 0 || size > E4_POOL_MAX) return E4_ERR_ARG;
+    if (sodium_init() < 0) return E4_ERR_ARG;
+    pthread_mutex_lock(&pool_mu);
+    if (pool_locked_n) sodium_munlock(pool_keys, pool_locked_n * sizeof(pool_key));
+    pool_locked_n = 0;            /* sodium_munlock zeroes the range */
+    pool_n = 0;
+    pool_mode = mode;
+    pool_size = mode == E4_NEXT_KEYGEN_PREGEN ? size : 0;
+    if (pool_size && sodium_mlock(pool_keys, pool_size * sizeof(pool_key)) == 0)
+        pool_locked_n = pool_size;
+    pool_st.mode = pool_mode;
+    pool_st.size = pool_size;
+    pool_st.locked = pool_locked_n > 0;
+    if (!pool_atexit_on) pool_atexit_on = atexit(edhoc4_pool_clear) == 0;
+    pthread_mutex_unlock(&pool_mu);
+    return E4_OK;
+}
+
+/* generate one key outside the lock, then store it if there is room;
+ * returns the CPU time of the generation in *cpu_ns */
+static int pool_add_one(uint64_t *cpu_ns)
 {
     pool_key k;
-    if (xwing_keypair(k.pk, k.sk) != E4_OK) return E4_ERR_KEM;
-    pthread_mutex_lock(&pool_mu);
-    if (pool_n < E4_POOL_MAX) pool_keys[pool_n++] = k;
-    pthread_mutex_unlock(&pool_mu);
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t0);
+    int rc = xwing_keypair(k.pk, k.sk);
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t1);
+    if (cpu_ns)
+        *cpu_ns = (uint64_t)(t1.tv_sec - t0.tv_sec) * 1000000000ull
+                  + (uint64_t)t1.tv_nsec - (uint64_t)t0.tv_nsec;
+    if (rc == E4_OK) {
+        pthread_mutex_lock(&pool_mu);
+        if (pool_n < pool_size) pool_keys[pool_n++] = k;
+        pthread_mutex_unlock(&pool_mu);
+    }
     sodium_memzero(&k, sizeof(k));
-    return E4_OK;
+    return rc == E4_OK ? E4_OK : E4_ERR_KEM;
 }
 
 int edhoc4_pool_fill(int n)
 {
-    n = pool_clamp(n);
     for (;;) {
         pthread_mutex_lock(&pool_mu);
-        int have = pool_n;
+        int have = pool_n, cap = pool_size;
         pthread_mutex_unlock(&pool_mu);
-        if (have >= n) return E4_OK;
-        if (pool_add_one() != E4_OK) return E4_ERR_KEM;
+        if (have >= n || have >= cap) return E4_OK;
+        if (pool_add_one(NULL) != E4_OK) return E4_ERR_KEM;
     }
 }
 
 static void *pool_main(void *arg)
 {
     (void)arg;
+    pthread_setname_np(pthread_self(), "e4-keypool");
+    setpriority(PRIO_PROCESS, (id_t)gettid(), 19);    /* this thread only */
     for (;;) {
         pthread_mutex_lock(&pool_mu);
-        while (pool_n >= pool_target) pthread_cond_wait(&pool_cv, &pool_mu);
+        while (!(pool_want && pool_n < pool_size)) {
+            pool_want = 0;
+            pthread_cond_wait(&pool_cv, &pool_mu);
+        }
         pthread_mutex_unlock(&pool_mu);
-        pool_add_one();
+        uint64_t ns = 0;
+        int rc = pool_add_one(&ns);
+        pthread_mutex_lock(&pool_mu);
+        if (rc == E4_OK) {
+            pool_st.refilled++;
+            pool_st.refill_cpu_ns += ns;
+        }
+        pthread_mutex_unlock(&pool_mu);
     }
     return NULL;
 }
 
-int edhoc4_pool_start(int n)
+/* with pool_mu held: wake the refill thread, starting it on first use */
+static void pool_wake_locked(void)
 {
-    pthread_mutex_lock(&pool_mu);
-    pool_target = pool_clamp(n);
-    pthread_cond_signal(&pool_cv);
-    pthread_mutex_unlock(&pool_mu);
-    return E4_OK;
-}
-
-unsigned long edhoc4_pool_misses(void)
-{
-    pthread_mutex_lock(&pool_mu);
-    unsigned long m = pool_miss;
-    pthread_mutex_unlock(&pool_mu);
-    return m;
-}
-
-/* The refill thread starts on the first take, i.e. in the process that
- * serves handshakes (after any daemon fork). */
-static int next_keypair(uint8_t pk[E4_XWING_PK], uint8_t sk[E4_XWING_SK])
-{
-    pthread_mutex_lock(&pool_mu);
-    if (pool_target > 0 && !pool_thread_on) {
+    if (pool_mode != E4_NEXT_KEYGEN_PREGEN || pool_size == 0) return;
+    if (!pool_thread_on) {
         pthread_t t;
         if (pthread_create(&t, NULL, pool_main, NULL) == 0) {
             pthread_detach(t);
             pool_thread_on = 1;
         }
     }
+    pool_want = 1;
+    pthread_cond_signal(&pool_cv);
+}
+
+void edhoc4_pool_refill_async(void)
+{
+    pthread_mutex_lock(&pool_mu);
+    pool_wake_locked();
+    pthread_mutex_unlock(&pool_mu);
+}
+
+void edhoc4_pool_stats(edhoc4_pool_stats_t *st)
+{
+    pthread_mutex_lock(&pool_mu);
+    *st = pool_st;
+    st->n = pool_n;
+    pthread_mutex_unlock(&pool_mu);
+}
+
+unsigned long edhoc4_pool_misses(void)
+{
+    pthread_mutex_lock(&pool_mu);
+    unsigned long m = pool_st.miss;
+    pthread_mutex_unlock(&pool_mu);
+    return m;
+}
+
+/* the handshake's KeyGen of the next one-time key pair */
+static int next_keypair(uint8_t pk[E4_XWING_PK], uint8_t sk[E4_XWING_SK])
+{
+    pthread_mutex_lock(&pool_mu);
+    if (pool_mode == E4_NEXT_KEYGEN_INLINE) {
+        pool_st.inline_gen++;
+        pthread_mutex_unlock(&pool_mu);
+        return xwing_keypair(pk, sk);
+    }
     if (pool_n > 0) {
         pool_key *k = &pool_keys[--pool_n];
         memcpy(pk, k->pk, E4_XWING_PK);
         memcpy(sk, k->sk, E4_XWING_SK);
         sodium_memzero(k, sizeof(*k));
-        pthread_cond_signal(&pool_cv);
+        pool_st.taken++;
+        if (pool_n < pool_size / 2) pool_wake_locked();
         pthread_mutex_unlock(&pool_mu);
         return E4_OK;
     }
-    pool_miss++;
+    pool_st.miss++;
+    pool_wake_locked();
     pthread_mutex_unlock(&pool_mu);
     return xwing_keypair(pk, sk);
 }
+
+#ifdef E4_TEST_HOOKS
+/* pooltest only: 1 if every pool slot at index >= pool_n is all zero */
+int edhoc4_test_pool_free_slots_zero(void)
+{
+    static const pool_key zero;
+    pthread_mutex_lock(&pool_mu);
+    int ok = 1;
+    for (int i = pool_n; i < E4_POOL_MAX && ok; i++)
+        ok = sodium_memcmp(&pool_keys[i], &zero, sizeof(zero)) == 0;
+    pthread_mutex_unlock(&pool_mu);
+    return ok;
+}
+#endif
 
 /* ======================================================================== */
 /* Key-schedule + exporter                                                   */
